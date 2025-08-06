@@ -148,9 +148,9 @@
                               <%= parsedData.umur %>
                             </td>
                             <td>
-                              <% if(device_data[i].cough == 0 ){ %>
+                              <% if(device_data[i].cough == 1 ){ %>
                               Batuk
-                              <% } else if(device_data[i].cough == 1 ){ %>
+                              <% } else if(device_data[i].cough == 0 ){ %>
                               Non-Batuk
                               <% } else if(device_data[i].cough == 99 ){ %>
                               Processing.....
