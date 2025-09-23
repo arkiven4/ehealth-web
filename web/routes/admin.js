@@ -72,55 +72,55 @@ router.get(
 );
 
 // data-batuk-naracoba
-router.get(
-  "/admin/data-batuk-naracoba",
-  auth.isAuth,
-  checkingRole.isAdmin,
-  adminController.data_batuk_naracoba
-);
+// router.get(
+//   "/admin/data-batuk-naracoba",
+//   auth.isAuth,
+//   checkingRole.isAdmin,
+//   adminController.data_batuk_naracoba
+// );
 
-router.get(
-  "/admin/data-batuk-naracoba-edit",
-  auth.isAuth,
-  checkingRole.isAdmin,
-  adminController.data_batuk_naracoba_edit
-);
+// router.get(
+//   "/admin/data-batuk-naracoba-edit",
+//   auth.isAuth,
+//   checkingRole.isAdmin,
+//   adminController.data_batuk_naracoba_edit
+// );
 
-router.get(
-  "/admin/data-batuk-naracoba-edit",
-  auth.isAuth,
-  checkingRole.isAdmin,
-  adminController.data_batuk_naracoba_edit
-);
+// router.get(
+//   "/admin/data-batuk-naracoba-edit",
+//   auth.isAuth,
+//   checkingRole.isAdmin,
+//   adminController.data_batuk_naracoba_edit
+// );
 
-router.post(
-  "/admin/data-batuk-naracoba-post",
-  auth.isAuth,
-  checkingRole.isAdmin,
-  adminController.data_batuk_naracoba_edit_post
-);
+// router.post(
+//   "/admin/data-batuk-naracoba-post",
+//   auth.isAuth,
+//   checkingRole.isAdmin,
+//   adminController.data_batuk_naracoba_edit_post
+// );
 
 // data-batuk-tb-primer
-router.get(
-  "/admin/data-batuk-tb-primer",
-  auth.isAuth,
-  checkingRole.isAdmin,
-  adminController.data_batuk_tbprimer
-);
+// router.get(
+//   "/admin/data-batuk-tb-primer",
+//   auth.isAuth,
+//   checkingRole.isAdmin,
+//   adminController.data_batuk_tbprimer
+// );
 
-router.get(
-  "/admin/data-batuk-tb-primer-edit",
-  auth.isAuth,
-  checkingRole.isAdmin,
-  adminController.data_batuk_tbprimer_edit
-);
+// router.get(
+//   "/admin/data-batuk-tb-primer-edit",
+//   auth.isAuth,
+//   checkingRole.isAdmin,
+//   adminController.data_batuk_tbprimer_edit
+// );
 
-router.post(
-  "/admin/data-batuk-tb-primer-post",
-  auth.isAuth,
-  checkingRole.isAdmin,
-  adminController.data_batuk_tbprimer_edit_post
-);
+// router.post(
+//   "/admin/data-batuk-tb-primer-post",
+//   auth.isAuth,
+//   checkingRole.isAdmin,
+//   adminController.data_batuk_tbprimer_edit_post
+// );
 
 // data-batuk-device-edit
 router.get(
@@ -137,12 +137,12 @@ router.post(
   adminController.data_batuk_device_edit_post
 );
 
-router.get(
-  "/admin/data-batuk-naracoba-export",
-  auth.isAuth,
-  checkingRole.isAdmin,
-  adminController.data_batuk_naracoba_export
-);
+// router.get(
+//   "/admin/data-batuk-naracoba-export",
+//   auth.isAuth,
+//   checkingRole.isAdmin,
+//   adminController.data_batuk_naracoba_export
+// );
 
 router.get(
   "/admin/data-batuk-device-export",

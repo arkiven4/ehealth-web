@@ -5,7 +5,7 @@ const { validationResult } = require("express-validator");
 const initParam = require("../helpers/init");
 
 const User = require("../models/user");
-
+    
 exports.getLogin = (req, res, next) => {
   let message = req.flash("error");
   User.countDocuments({}).then((count) => {
@@ -171,7 +171,8 @@ exports.postSignup = (req, res, next) => {
         userName : username,
         email: email,
         password: hashedPassword,
-        role : "admin"
+        role : "admin",
+        subrole : "pkm"
       });
       return user.save();
     })

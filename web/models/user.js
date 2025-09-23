@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const ROLE = ["patient", "doctor", "admin"];
+const SUBROLE = ["master", "sub1", "sub2"];
 const GENDER = ["male", "female"];
 
 const Schema = mongoose.Schema;
@@ -114,6 +115,10 @@ const userSchema = new Schema(
     role: {
       type: String,
       enum: ROLE,
+    },
+    subrole: {
+      type: String,
+      enum: SUBROLE,
     },
   },
   { timestamps: true }

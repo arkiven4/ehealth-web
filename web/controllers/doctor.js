@@ -7,6 +7,7 @@ exports.home = async (req, res, next) => {
   res.render("doctor/home-doctor", {
     pageTitle: "E-Health Dashboard",
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
     pasient : pasient
   });
 };
@@ -15,6 +16,7 @@ exports.add_patient = async (req, res, next) => {
   res.render("doctor/add-patient", {
     pageTitle: "E-Health Dashboard",
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
   });
 };
 

@@ -1,7 +1,7 @@
 const Device_Data_Cough = require("../../../models/device_data_cough");
 const Device_Data_Audiometri = require("../../../models/device_data_audiometri");
-const Device_Data_Cough_Naracoba = require("../../../models/device_data_cough_naracoba");
-const device_data_coughTBPrimerSchema = require("../../../models/device_data_cough_tbprimer");
+// const Device_Data_Cough_Naracoba = require("../../../models/device_data_cough_naracoba");
+// const device_data_coughTBPrimerSchema = require("../../../models/device_data_cough_tbprimer");
 
 const Settings = require("../../../models/settings");
 const initParam = require("../../../helpers/init");

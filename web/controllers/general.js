@@ -7,6 +7,7 @@ exports.home = async (req, res, next) => {
     pageHeader: "Home",
     userdata: req.session.user,
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
   });
 };
 
@@ -16,6 +17,7 @@ exports.edit_profile = async (req, res, next) => {
     pageHeader: "Edit Profile",
     userdata: req.session.user,
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
   });
 };
 
@@ -25,6 +27,7 @@ exports.account_setting = async (req, res, next) => {
     pageHeader: "Account Setting",
     userdata: req.session.user,
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
   });
 };
 

@@ -38,6 +38,8 @@
                <li id="data-batuk-primer">
                   <a href="/admin/data-batuk-tb-primer" class="iq-waves-effect"><i class="ri-database-2-fill"></i><span>Data Batuk TB Primer</span></a>
                </li>
+
+               <% if (subrole == "sub1" || subrole == "master") { %>
                <li class="iq-menu-title"><i class="ri-subtract-line"></i><span>Doctor</span></li>
                <li id="doctor-list">
                   <a href="/admin/doctor-list" class="iq-waves-effect"><i class="ri-contacts-fill"></i><span>Doctor List</span></a>
@@ -45,6 +47,7 @@
                <li id="add-doctor">
                   <a href="/admin/add-doctor" class="iq-waves-effect"><i class="ri-user-add-fill"></i><span>Add Doctor</span></a>
                </li>
+               <% } %> 
                <li class="iq-menu-title"><i class="ri-subtract-line"></i><span>Patient</span></li>
                <li class="iq-menu-title"><i class="ri-subtract-line"></i><span>Vibio</span></li>
                <li id="pasien-vibio">

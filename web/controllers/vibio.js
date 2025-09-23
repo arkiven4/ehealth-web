@@ -30,6 +30,7 @@ exports.user_list = async (req, res, next) => {
     pageHeader: "Patient List",
     userdata: req.session.user,
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
     user_list: userkData,
     currentPage: page,
     pages: Math.ceil(userData_count / resultsPerPage),
@@ -45,6 +46,7 @@ exports.user_add = async (req, res, next) => {
     pageHeader: "Add Patient Vibio",
     userdata: req.session.user,
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
   });
 };
 
@@ -62,6 +64,7 @@ exports.create_user = async (req, res, next) => {
       pageTitle: "Error!",
       isAuthenticated: req.session.isLoggedIn,
       role: req.session.user ? req.session.user.role : "",
+      subrole: req.session.user ? req.session.user.subrole : "",
       errorMessage: error.message,
     });
   }
@@ -79,6 +82,7 @@ exports.delete_user = async (req, res, next) => {
       pageTitle: "Error!",
       isAuthenticated: req.session.isLoggedIn,
       role: req.session.user ? req.session.user.role : "",
+      subrole: req.session.user ? req.session.user.subrole : "",
       errorMessage: error.message,
     });
   }
@@ -102,6 +106,7 @@ exports.terapi_list = async (req, res, next) => {
     countData: countData,
     userdata: req.session.user,
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
   });
 };
 
@@ -126,6 +131,7 @@ exports.terapi_detail = async (req, res, next) => {
     terapiData: terapiData,
     userdata: req.session.user,
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
     currentPage: page,
     pages: Math.ceil(terapiData_count / resultsPerPage),
     lastIndex: resultsPerPage * (page - 1),
@@ -226,6 +232,7 @@ exports.device_detail = async (req, res, next) => {
     device: deviceData,
     device_data: deviceData_Datas,
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
   });
 };
 
@@ -234,6 +241,7 @@ exports.add_doctor = async (req, res, next) => {
     pageTitle: "E-Health Dashboard",
     pageHeader: "Add Doctor",
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
     userdata: req.session.user,
   });
 };
@@ -243,6 +251,7 @@ exports.add_device = async (req, res, next) => {
     pageTitle: "E-Health Dashboard",
     pageHeader: "Add Device",
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
     userdata: req.session.user,
   });
 };
@@ -274,6 +283,7 @@ exports.data_batuk = async (req, res, next) => {
     lastIndex: resultsPerPage * (page - 1),
     totalCount: batukData_count,
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
   });
 };
 
@@ -395,6 +405,7 @@ exports.create_device = async (req, res, next) => {
       pageTitle: "Error!",
       isAuthenticated: req.session.isLoggedIn,
       role: req.session.user ? req.session.user.role : "",
+      subrole: req.session.user ? req.session.user.subrole : "",
       errorMessage: error.message,
     });
   }
@@ -416,6 +427,7 @@ exports.delete_device = async (req, res, next) => {
       pageTitle: "Error!",
       isAuthenticated: req.session.isLoggedIn,
       role: req.session.user ? req.session.user.role : "",
+      subrole: req.session.user ? req.session.user.subrole : "",
       errorMessage: error.message,
     });
   }
@@ -427,5 +439,6 @@ exports.coba = async (req, res, next) => {
     pageHeader: "Coba Page",
     userdata: req.session.user,
     role: req.session.user.role,
+    subrole: req.session.user.subrole,
   });
 };
