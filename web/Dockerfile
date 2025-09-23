@@ -11,7 +11,7 @@ RUN apt-get update -yq \
 RUN if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip ; fi
 RUN python3 -m pip install --upgrade pip
 
-RUN pip install tensorflow
+#RUN pip install tensorflow
 RUN pip install numpy
 RUN pip install matplotlib
 RUN pip install seaborn

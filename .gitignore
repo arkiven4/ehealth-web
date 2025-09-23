@@ -6,4 +6,6 @@ Note
 todo.md
 workspace.code-workspace
 temp
-public/uploads/*
+public/uploads/**/.wav
+public/uploads/**/.pdf
+public/uploads/**/.png

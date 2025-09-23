@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.8'
 
 services:
     mongo:
@@ -12,11 +12,18 @@ services:
         env_file:
             - ./secret/.env
         command: --quiet --logpath /var/log/mongodb/mongod-config.log
+        healthcheck:
+            test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+            interval: 10s
+            timeout: 10s
+            retries: 5
+            start_period: 40s
     web:
         build: ./web
         restart: always
         depends_on:
-            - mongo
+            mongo:
+                condition: service_healthy
         ports:
             - 80:8080
         volumes:
@@ -34,7 +41,6 @@ services:
         env_file:
             - ./secret/.env
         depends_on:
-            - mongo
-        links:
-            - mongo
+            mongo:
+                condition: service_healthy
         restart: always
