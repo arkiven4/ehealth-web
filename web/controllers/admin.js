@@ -71,6 +71,12 @@ exports.device_list = async (req, res, next) => {
   const deviceDataList = await Device.find({
     admin: req.session.user._id,
   });
+
+  let styleVersion = "default";
+  if (req.originalUrl.startsWith("/adminv2")) {
+    styleVersion = "version2";
+  }
+
   res.render("admin/device-list", {
     pageTitle: "E-Health Dashboard",
     pageHeader: "Device List",
@@ -78,6 +84,7 @@ exports.device_list = async (req, res, next) => {
     deviceList: deviceDataList,
     role: req.session.user.role,
     subrole: req.session.user.subrole,
+    styleVersion: styleVersion,
   });
 };
 

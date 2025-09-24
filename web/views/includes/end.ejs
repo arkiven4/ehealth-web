@@ -1,4 +1,5 @@
 <!-- Optional JavaScript -->
+ <% if (typeof styleVersion === "undefined" || styleVersion === "default") { %>
       <!-- jQuery first, then Popper.js, then Bootstrap JS -->
       <script src="/js/jquery.min.js"></script>
       <script src="/js/popper.min.js"></script>
@@ -42,5 +43,8 @@
       <!-- Custom JavaScript -->
       <script src="/js/custom.js"></script>
       <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+      <% } else if (styleVersion === "version2") { %>
+        <!-- Custom JS version2 -->
+      <% } %>
     </body>
     </html>

@@ -16,6 +16,13 @@ router.get(
 );
 
 router.get(
+  "/adminv2/device-list",
+  auth.isAuth,
+  checkingRole.isAdmin,
+  adminController.device_list
+);
+
+router.get(
   "/admin/add-device",
   auth.isAuth,
   checkingRole.isAdmin,

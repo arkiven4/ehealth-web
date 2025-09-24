@@ -7,6 +7,7 @@
       <title><%= pageTitle %></title>
       <!-- Favicon -->
       <link rel="shortcut icon" href="/images/favicon-web.png" />
+      <% if (typeof styleVersion === "undefined" || styleVersion === "default") { %>
       <!-- Bootstrap CSS -->
       <link rel="stylesheet" href="/css/bootstrap.min.css">
       <!-- Typography CSS -->
@@ -15,6 +16,9 @@
       <link rel="stylesheet" href="/css/style.css">
       <!-- Responsive CSS -->
       <link rel="stylesheet" href="/css/responsive.css">
+      <% } else if (styleVersion === "version2") { %>
+         <!-- Insert CSS for Version2 -->
+      <% } %>
        <!-- Full calendar 
       <link href='/fullcalendar/core/main.css' rel='stylesheet' />
       <link href='/fullcalendar/daygrid/main.css' rel='stylesheet' />
