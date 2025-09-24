@@ -172,7 +172,7 @@ exports.postSignup = (req, res, next) => {
         email: email,
         password: hashedPassword,
         role : "admin",
-        subrole : "pkm"
+        subrole : "sub1"
       });
       return user.save();
     })

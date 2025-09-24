@@ -39,25 +39,25 @@ exports.sendData = async (req, res, next) => {
           });
         }
   
-        PythonShell.run("./python-script/determinationCough.py", { args: [tempJsonData.file_audio] }, function (err, results) {
-          if (err) throw err;
-          //console.log('results: %j', results);
-          var cough = results[1];
-          console.log(results[2]);
-          Device_Data_Cough.updateOne({ uuid: uniqueID }, { cough: cough }).then((result) => {
-            console.log(result);
-          });
-        });
+        // PythonShell.run("./python-script/determinationCough.py", { args: [tempJsonData.file_audio] }, function (err, results) {
+        //   if (err) throw err;
+        //   //console.log('results: %j', results);
+        //   var cough = results[1];
+        //   console.log(results[2]);
+        //   Device_Data_Cough.updateOne({ uuid: uniqueID }, { cough: cough }).then((result) => {
+        //     console.log(result);
+        //   });
+        // });
 
-        PythonShell.run("./python-script/determinationCovid.py", { args: [tempJsonData.file_audio] }, function (err, results) {
-          if (err) throw err;
-          //console.log('results: %j', results);
-          var covid = results[1];
-          console.log(results[2]);
-          Device_Data_Cough.updateOne({ uuid: uniqueID }, { covid: covid }).then((result) => {
-            console.log(result);
-          });
-        });
+        // PythonShell.run("./python-script/determinationCovid.py", { args: [tempJsonData.file_audio] }, function (err, results) {
+        //   if (err) throw err;
+        //   //console.log('results: %j', results);
+        //   var covid = results[1];
+        //   console.log(results[2]);
+        //   Device_Data_Cough.updateOne({ uuid: uniqueID }, { covid: covid }).then((result) => {
+        //     console.log(result);
+        //   });
+        // });
 
         
         // const recog_server = await Settings.findOne({ key: "batuk_recognition_server" });

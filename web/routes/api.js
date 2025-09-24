@@ -36,4 +36,6 @@ router.post('/api/vibio/check_recognitionServer', apiVibioRecognitionController.
 //General Api
 router.post('/api/submit-data-batuk', isAuthApi ,  upload.any() , apiController.submit_data_batuk);
 
+
+
 module.exports = router;
