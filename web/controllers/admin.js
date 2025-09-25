@@ -415,36 +415,74 @@ exports.data_batuk_device_export = async (req, res, next) => {
   });
 };
 
+exports.get_doctor_profile = async (req, res, next) => {
+  try {
+    const doctorId = req.params.doctorId;
+    const doctor = await User.findById(doctorId);
+
+    if (!doctor) {
+      return res.status(404).render('error/404', { pageTitle: 'Doctor Not Found' });
+    }
+
+    res.render("admin/doctor-profile", { 
+      pageTitle: "Doctor Profile",
+      pageHeader: "Doctor Profile",
+      role: req.session.user.role,
+      subrole: req.session.user.subrole,
+      userdata: req.session.user,
+      doctorProfile: doctor
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).render('error/500', { pageTitle: 'Error' });
+  }
+};
+
 exports.create_doctor = async (req, res, next) => {
   if (req.body.pass === req.body.rpass) {
     const hashedPw = await bcrypt.hash(req.body.pass, 12);
-    const user = await User.update(
-      { email: req.body.email, userName: req.body.uname },
-      {
-        email: req.body.email,
-        userName: req.body.uname,
-        fullName: { first: req.body.fname, last: req.body.lname },
-        city: req.body.city,
-        department: req.body.cname,
-        doctorRole: req.body.selectuserrole,
-        mobileNumber1: req.body.mobno,
-        mobileNumber2: req.body.altconno,
-        address1: req.body.add1,
-        address2: req.body.add2,
-        country: req.body.selectcountry,
-        pinCode: req.body.pno,
-        password: hashedPw,
-        role: "doctor",
-        subrole: "pkm",
-        admin: req.session.user._id,
+    
+    // Gunakan findOneAndUpdate untuk mendapatkan dokumen yang baru dibuat
+    const newUser = await User.findOneAndUpdate(
+      { email: req.body.email }, // Kriteria pencarian
+      { // Data yang akan di-update atau di-insert
+        $set: {
+          userName: req.body.uname,
+          fullName: { first: req.body.fname, last: req.body.lname },
+          city: req.body.city,
+          department: req.body.cname,
+          doctorRole: req.body.selectuserrole,
+          mobileNumber1: req.body.mobno,
+          mobileNumber2: req.body.altconno,
+          address1: req.body.add1,
+          address2: req.body.add2,
+          country: req.body.selectcountry,
+          pinCode: req.body.pno,
+          password: hashedPw,
+          role: "doctor",
+          subrole: "pkm",
+          admin: req.session.user._id,
+          // Tambahkan accountType yang kita buat sebelumnya
+          accountType: req.body.accountType 
+        }
       },
-      { upsert: true }
+      { 
+        upsert: true, // Buat dokumen baru jika tidak ditemukan
+        new: true // Kembalikan dokumen yang baru setelah update/pembuatan
+      }
     );
-    if (user.upserted.length > 0) {
-      User.updateOne({ _id: req.session.user._id }, { $push: { doctorList: user.upserted[0]._id } }).then((result) => {});
+
+    // Jika newUser ada (berhasil dibuat/diupdate), tambahkan ke daftar dokter admin
+    if (newUser) {
+      // Menggunakan $addToSet untuk menghindari duplikat ID dokter di daftar
+      await User.updateOne(
+        { _id: req.session.user._id },
+        { $addToSet: { doctorList: newUser._id } }
+      );
     }
   }
-  res.redirect("/add-doctor");
+  // Redirect ke daftar dokter setelah selesai
+  res.redirect("/admin/doctor-list");
 };
 
 exports.create_device = async (req, res, next) => {

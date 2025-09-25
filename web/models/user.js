@@ -31,6 +31,13 @@ const userSchema = new Schema(
         trim: true,
       },
     },
+    accountType: {
+      type: String,
+      enum: ['ehealth', 'tbcare', 'gemastik'], 
+      default: 'ehealth',
+      required: true,
+      trim: true,
+    },
     doctorRole: {
       type: String,
       trim: true,

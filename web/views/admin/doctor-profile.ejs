@@ -1,0 +1,37 @@
+<%- include('../includes/head.ejs') %>
+</head>
+<body>
+   <div class="wrapper">
+      <%- include('../includes/navigations.ejs') %>
+      <div id="content-page" class="content-page">
+         <%- include('../includes/top-navbar.ejs') %>
+         <div class="container-fluid">
+            <div class="row">
+               <div class="col-lg-12">
+                  <div class="iq-card">
+                     <div class="iq-card-header d-flex justify-content-between">
+                        <div class="iq-header-title">
+                           <h4 class="card-title">Doctor Profile: <%= doctorProfile.fullName.first %> <%= doctorProfile.fullName.last %></h4>
+                        </div>
+                     </div>
+                     <div class="iq-card-body">
+                        <ul class="list-group">
+                           <li class="list-group-item"><strong>Full Name:</strong> <%= doctorProfile.fullName.first %> <%= doctorProfile.fullName.last %></li>
+                           <li class="list-group-item"><strong>Email:</strong> <%= doctorProfile.email %></li>
+                           <li class="list-group-item"><strong>Username:</strong> <%= doctorProfile.userName %></li>
+                           <li class="list-group-item"><strong>Account Type:</strong> <span class="badge badge-primary"><%= doctorProfile.accountType %></span></li>
+                           <li class="list-group-item"><strong>Department:</strong> <%= doctorProfile.department %></li>
+                           <li class="list-group-item"><strong>Specialty:</strong> <%= doctorProfile.doctorRole %></li>
+                           <li class="list-group-item"><strong>Mobile Number:</strong> <%= doctorProfile.mobileNumber1 %></li>
+                           <li class="list-group-item"><strong>Address:</strong> <%= doctorProfile.address1 %>, <%= doctorProfile.city %>, <%= doctorProfile.country %> <%= doctorProfile.pinCode %></li>
+                        </ul>
+                        <a href="/admin/doctor-list" class="btn btn-primary mt-3">Back to Doctor List</a>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <%- include('../includes/footer.ejs') %>
+      </div>
+   </div>
+   <%- include('../includes/end.ejs') %>

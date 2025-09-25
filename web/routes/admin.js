@@ -172,6 +172,13 @@ router.get(
   adminController.add_doctor
 );
 
+router.get(
+  "/admin/doctor-profile/:doctorId",
+  auth.isAuth,
+  checkingRole.isAdmin,
+  adminController.get_doctor_profile
+);
+
 router.post(
   "/admin/create-doctor",
   auth.isAuth,

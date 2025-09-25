@@ -20,6 +20,9 @@ exports.add_patient = async (req, res, next) => {
   });
 };
 
+// TBCare (PKM)
+
+
 exports.create_patient = async (req, res, next) => {
   if (req.body.pass === req.body.rpass) {
     const hashedPw = await bcrypt.hash(req.body.pass, 12);
