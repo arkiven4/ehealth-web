@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../includes/head.ejs') %>
+    <style>
+        .download-section { position: relative; min-height: 100vh; background-color: #f0fdfa; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 120px 0; }
+        .download-background { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 150%; height: 150px; border-top-left-radius: 50%; border-top-right-radius: 50%; background-image: linear-gradient(to right, #0d9488, #22d3ee); }
+        .download-content { position: relative; z-index: 10; }
+        .app-screenshot { max-width: 450px; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 4px solid white; }
+        .text-teal { color: #0d9488; }
+        .btn-download { border-radius: 9999px; font-weight: 600; transition: all 0.2s; padding: 0.75rem 1.5rem; }
+        .btn-download:hover { transform: scale(1.05); }
+        .btn-play-store { background-color: #0d9488; color: white; }
+        .btn-app-store { background-color: white; color: #333; border: 1px solid #ddd; }
+        .btn-download img { height: 24px; width: 24px; margin-right: 0.5rem; }
+    </style>
+</head>
+<body>
+    <%- include('../includes/tbcare/navbar-landing.ejs') %>
+    <section class="download-section">
+        <div class="bubble-background">
+            <div class="bubble" style="width: 64px; height: 64px; background-color: #a7f3d0; top: 10%; left: 10%;"></div>
+            <div class="bubble" style="width: 96px; height: 96px; background-color: #67e8f9; top: 25%; right: 10%; animation-duration: 12s;"></div>
+        </div>
+        <div class="download-background"></div>
+        <div class="container download-content">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-left mb-5 mb-md-0 wow fadeInLeft">
+                    <img src="/images/tbcare_landing/device/mobile.png" alt="TBCare App Screenshot" class="img-fluid app-screenshot">
+                </div>
+                <div class="col-md-6 text-center text-md-left wow fadeInRight">
+                    <h1 class="display-4 font-weight-bold text-teal">Dapatkan Aplikasi Kami</h1>
+                    <p class="lead text-secondary my-4">Uji potensi TBC Anda dengan mudah di mana saja dan kapan saja. Aplikasi TBCare Mobile membantu Anda melakukan pra-skrining dengan teknologi suara batuk yang inovatif.</p>
+                    <div class="d-flex flex-column flex-md-row justify-content-center justify-content-md-start">
+                        <a href="#" target="_blank" class="btn btn-download btn-play-store d-inline-flex align-items-center mb-2 mb-md-0 mr-md-3">
+                            <img src="https://www.gstatic.com/images/branding/product/2x/play_store_48dp.png" alt="Google Play">
+                            <span>Download di Google Play</span>
+                        </a>
+                        <a href="#" target="_blank" class="btn btn-download btn-app-store d-inline-flex align-items-center">
+                            <img src="https://www.gstatic.com/images/branding/product/2x/app_store_48dp.png" alt="App Store">
+                            <span>Download di App Store</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <%- include('../includes/tbcare/footer-landing.ejs') %>
+    <%- include('../includes/end.ejs') %>
+</body>
+</html>

@@ -4,3 +4,17 @@ exports.getLandingPage = (req, res, next) => {
     isAuthenticated: req.session.isLoggedIn 
   });
 };
+
+exports.getDownloadPage = (req, res, next) => {
+  res.render('tbcare/download', {
+    pageTitle: 'Download TBCare App',
+    isAuthenticated: req.session.isLoggedIn
+  });
+};
+
+exports.getAboutPage = (req, res, next) => {
+  res.render('tbcare/about', {
+    pageTitle: 'About TBCare App',
+    isAuthenticated: req.session.isLoggedIn
+  });
+};

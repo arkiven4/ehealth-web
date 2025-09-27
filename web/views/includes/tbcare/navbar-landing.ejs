@@ -54,9 +54,9 @@
 
         <div class="d-none d-md-flex align-items-center">
             <ul class="nav">
-                <li class="nav-item"><a href="/tbcare" class="nav-link-custom active px-3">Home</a></li>
-                <li class="nav-item"><a href="#" class="nav-link-custom px-3">Download App</a></li>
-                <li class="nav-item"><a href="#about" class="nav-link-custom px-3">About us</a></li>
+                <li class="nav-item"><a href="/tbcare" class="nav-link-custom px-3">Home</a></li>
+                <li class="nav-item"><a href="/tbcare/download" class="nav-link-custom px-3">Download App</a></li>
+                <li class="nav-item"><a href="/tbcare/about" class="nav-link-custom px-3">About us</a></li>
             </ul>
         </div>
 
@@ -65,8 +65,8 @@
                 <a href="/sub_1/doctor" class="btn btn-signup px-4">Dashboard</a>
                 <a href="/logout" class="btn btn-signin ml-2 px-4">Logout</a>
             <% } else { %>
-                <a href="/login" class="btn btn-signin px-4">Sign In</a>
-                <a href="/signup" class="btn btn-signup ml-2 px-4">Sign Up</a>
+                <!-- <a href="/login" class="btn btn-signin px-4">Sign In</a> -->
+                <a href="/signup" class="btn btn-signup ml-2 px-4">Sign In</a>
             <% } %>
         </div>
 
@@ -81,8 +81,8 @@
 <div class="collapse d-md-none" id="mobileMenu">
     <div class="bg-white p-4">
         <a href="/tbcare" class="d-block py-2">Home</a>
-        <a href="#" class="d-block py-2">Download App</a>
-        <a href="#about" class="d-block py-2">About us</a>
+        <a href="/tbcare/download" class="d-block py-2">Download App</a>
+        <a href="/tbcare/about" class="d-block py-2">About us</a>
         <hr>
         <% if (isAuthenticated) { %>
              <a href="/sub_1/doctor" class="btn btn-signup btn-block mb-2">Dashboard</a>

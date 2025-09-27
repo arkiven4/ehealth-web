@@ -3,43 +3,18 @@
 <head>
     <%- include('../includes/head.ejs') %>
     <style>
-        body { background-color: #ffffff; }
-        .hero-section {
-            position: relative;
-            padding-top: 150px;
-            padding-bottom: 150px;
-            background-color: #f0fdfa;
-            overflow: hidden;
-            text-align: center;
-        }
-        .hero-background {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 150%;
-            height: 30%;
-            border-top-left-radius: 50%;
-            border-top-right-radius: 50%;
-            background-image: linear-gradient(to right, #0d9488, #22d3ee);
-        }
+        .hero-section { position: relative; padding: 150px 0; background-color: #f0fdfa; overflow: hidden; text-align: center; }
+        .hero-background { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 150%; height: 25%; border-top-left-radius: 50%; border-top-right-radius: 50%; background-image: linear-gradient(to right, #0d9488, #22d3ee); }
         .hero-content { position: relative; z-index: 10; }
-        .hero-image { max-width: 220px; }
+        .hero-image { max-width: 220px; transition: transform 0.3s ease; }
+        .hero-image:hover { transform: scale(1.05) rotate(3deg); }
         .systems-section { padding: 80px 0; background-color: #ffffff; }
-        .system-card {
-            border: none;
-            border-radius: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .system-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-        }
+        .system-card { border: none; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .system-card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
         .system-card img { height: 128px; width: auto; margin-bottom: 1.5rem; }
         .text-teal { color: #0d9488; }
-        .btn-orange { background-color: #fb923c; border-color: #fb923c; color: white; }
-        .btn-orange:hover { background-color: #f97316; border-color: #f97316; color: white; }
+        .btn-orange { background-color: #fb923c; border-color: #fb923c; color: white; transition: all 0.2s; }
+        .btn-orange:hover { background-color: #f97316; border-color: #f97316; color: white; transform: scale(1.1); }
     </style>
 </head>
 <body>
@@ -49,34 +24,34 @@
         <div class="hero-background"></div>
         <div class="container hero-content">
             <div class="row align-items-center justify-content-center">
-                <div class="col-lg-3 d-none d-lg-block">
+                <div class="col-lg-3 d-none d-lg-block wow fadeInLeft" data-wow-delay="0.4s">
                     <img src="/images/tbcare_landing/monster.png" alt="Monster Illustration" class="img-fluid hero-image">
                 </div>
-                <div class="col-lg-6 col-md-10">
-                    <h1 class="display-4 font-weight-bold text-teal">
-                        Know Your Cough,<br>Get The Right Treatment
-                    </h1>
-                    <p class="lead text-secondary mt-3">
-                        Sistem pintar untuk mendeteksi potensi TBC dari suara batuk, membantu pasien & dokter mendapatkan solusi lebih cepat dan tepat.
-                    </p>
+                <div class="col-lg-6 col-md-10 wow fadeInUp" data-wow-delay="0.2s">
+                    <h1 class="display-4 font-weight-bold text-teal">Know Your Cough,<br>Get The Right Treatment</h1>
+                    <p class="lead text-secondary mt-3">Sistem pintar untuk mendeteksi potensi TBC dari suara batuk, membantu pasien & dokter mendapatkan solusi lebih cepat dan tepat.</p>
                     <a href="/login" class="btn btn-orange btn-lg rounded-pill mt-4 px-5">Log In</a>
                 </div>
-                <div class="col-lg-3 d-none d-lg-block">
+                <div class="col-lg-3 d-none d-lg-block wow fadeInRight" data-wow-delay="0.4s">
                     <img src="/images/tbcare_landing/device.png" alt="Device Illustration" class="img-fluid hero-image">
                 </div>
             </div>
         </div>
     </section>
 
+    <div class="scroll-banner-container">
+        <div class="scroll-banner-content"></div>
+    </div>
+    
     <section class="systems-section">
         <div class="container">
             <div class="row">
-                <div class="col-12 text-center mb-5">
+                <div class="col-12 text-center mb-5 wow fadeInDown">
                     <h2 class="font-weight-bold text-teal">Our Systems</h2>
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-4 mb-4">
+                <div class="col-md-4 mb-4 wow fadeInUp" data-wow-delay="0.2s">
                     <div class="card system-card p-4 text-center h-100">
                         <img src="/images/tbcare_landing/device/Hardware.png" alt="Hardware" class="mx-auto">
                         <div class="card-body">
@@ -85,7 +60,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
+                <div class="col-md-4 mb-4 wow fadeInUp" data-wow-delay="0.4s">
                     <div class="card system-card p-4 text-center h-100">
                         <img src="/images/tbcare_landing/device/Web.png" alt="Web Dashboard" class="mx-auto">
                         <div class="card-body">
@@ -94,7 +69,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
+                <div class="col-md-4 mb-4 wow fadeInUp" data-wow-delay="0.6s">
                     <div class="card system-card p-4 text-center h-100">
                         <img src="/images/tbcare_landing/device/mobile.png" alt="Mobile App" class="mx-auto">
                         <div class="card-body">
@@ -108,7 +83,6 @@
     </section>
 
     <%- include('../includes/tbcare/footer-landing.ejs') %>
-    
     <%- include('../includes/end.ejs') %>
 </body>
 </html>
