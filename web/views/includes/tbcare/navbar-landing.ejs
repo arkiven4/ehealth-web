@@ -1,0 +1,95 @@
+<style>
+    .navbar-landing-container {
+        max-width: 1280px;
+        background-color: white;
+        border-radius: 1rem; /* rounded-2xl */
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* shadow-lg */
+        border: 1px solid #e5e7eb; /* border-gray-200 */
+        height: 80px;
+    }
+    .nav-link-custom {
+        font-weight: 500;
+        color: #4b5563; /* text-gray-600 */
+        transition: color 0.2s;
+        padding-bottom: 0.5rem;
+    }
+    .nav-link-custom:hover {
+        color: #14b8a6; /* hover:text-teal-500 */
+    }
+    .nav-link-custom.active {
+        color: #2dd4bf; /* text-teal-400 */
+        border-bottom: 2px solid #2dd4bf; /* border-b-2 border-teal-400 */
+    }
+    .btn-signin {
+        border-radius: 9999px;
+        border: 1px solid #d1d5db;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .btn-signin:hover {
+        background-color: #f3f4f6;
+        transform: scale(1.05);
+    }
+    .btn-signup {
+        border-radius: 9999px;
+        background-color: #2dd4bf;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .btn-signup:hover {
+        background-color: #14b8a6;
+        transform: scale(1.05);
+        color: white;
+    }
+</style>
+
+<nav class="fixed-top py-3">
+    <div class="container navbar-landing-container d-flex justify-content-between align-items-center px-4">
+        <div>
+            <a class="navbar-brand" href="/tbcare">
+                <img src="/images/tbcare_landing/logo.png" style="height: 32px;" alt="TBCare Logo">
+            </a>
+        </div>
+
+        <div class="d-none d-md-flex align-items-center">
+            <ul class="nav">
+                <li class="nav-item"><a href="/tbcare" class="nav-link-custom active px-3">Home</a></li>
+                <li class="nav-item"><a href="#" class="nav-link-custom px-3">Download App</a></li>
+                <li class="nav-item"><a href="#about" class="nav-link-custom px-3">About us</a></li>
+            </ul>
+        </div>
+
+        <div class="d-none d-md-flex align-items-center">
+             <% if (isAuthenticated) { %>
+                <a href="/sub_1/doctor" class="btn btn-signup px-4">Dashboard</a>
+                <a href="/logout" class="btn btn-signin ml-2 px-4">Logout</a>
+            <% } else { %>
+                <a href="/login" class="btn btn-signin px-4">Sign In</a>
+                <a href="/signup" class="btn btn-signup ml-2 px-4">Sign Up</a>
+            <% } %>
+        </div>
+
+        <div class="d-md-none">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mobileMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="collapse d-md-none" id="mobileMenu">
+    <div class="bg-white p-4">
+        <a href="/tbcare" class="d-block py-2">Home</a>
+        <a href="#" class="d-block py-2">Download App</a>
+        <a href="#about" class="d-block py-2">About us</a>
+        <hr>
+        <% if (isAuthenticated) { %>
+             <a href="/sub_1/doctor" class="btn btn-signup btn-block mb-2">Dashboard</a>
+             <a href="/logout" class="btn btn-signin btn-block">Logout</a>
+        <% } else { %>
+            <a href="/login" class="btn btn-signin btn-block mb-2">Sign In</a>
+            <a href="/signup" class="btn btn-signup btn-block">Sign Up</a>
+        <% } %>
+    </div>
+</div>

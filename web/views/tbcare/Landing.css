@@ -1,0 +1,128 @@
+.scroll-banner {
+  animation: scroll-left 25s linear infinite;
+  display: flex;
+}
+
+.scroll-banner:hover {
+  animation-play-state: paused;
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes scrollBanner {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -500px 0; /* Atur sesuai lebar banner.png */
+  }
+}
+
+@keyframes floatSlow {
+  0% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-20px) translateX(10px); }
+  100% { transform: translateY(0) translateX(0); }
+}
+
+@keyframes floatFast {
+  0% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-35px) translateX(-15px); }
+  100% { transform: translateY(0) translateX(0); }
+}
+
+.animate-float-slow {
+  animation: floatSlow 8s ease-in-out infinite;
+}
+
+.animate-float-fast {
+  animation: floatFast 5s ease-in-out infinite;
+}
+
+
+.animate-scrollBanner {
+  animation: scrollBanner 15s linear infinite;
+}
+.grid-background {
+  background-image: 
+    linear-gradient(to right, rgba(0,0,0,0.2) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.2) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mix-blend-mode: multiply;
+  animation: moveGrid 10s linear infinite;
+}
+
+@keyframes moveGrid {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 40px 40px;
+  }
+}
+
+.hero-section {
+    position: relative;
+    padding-top: 150px;
+    padding-bottom: 150px;
+    background-color: #f0fdfa; /* A light teal background */
+    overflow: hidden;
+    text-align: center;
+}
+.hero-background {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150%;
+    height: 250px;
+    border-top-left-radius: 50%;
+    border-top-right-radius: 50%;
+    background-image: linear-gradient(to right, #0d9488, #22d3ee);
+}
+.hero-content {
+    position: relative;
+    z-index: 10;
+}
+.hero-image {
+    max-width: 220px;
+}
+.systems-section {
+    padding-top: 80px;
+    padding-bottom: 80px;
+    background-color: #ffffff;
+}
+.system-card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.system-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+}
+.system-card img {
+    height: 128px;
+    width: auto;
+    margin-bottom: 1.5rem;
+}
+.text-teal {
+    color: #0d9488;
+}
+.btn-orange {
+    background-color: #fb923c;
+    border-color: #fb923c;
+    color: white;
+}
+.btn-orange:hover {
+    background-color: #f97316;
+    border-color: #f97316;
+    color: white;
+}

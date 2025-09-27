@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../includes/head.ejs') %>
+    <style>
+        body { background-color: #ffffff; }
+        .hero-section {
+            position: relative;
+            padding-top: 150px;
+            padding-bottom: 150px;
+            background-color: #f0fdfa;
+            overflow: hidden;
+            text-align: center;
+        }
+        .hero-background {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150%;
+            height: 30%;
+            border-top-left-radius: 50%;
+            border-top-right-radius: 50%;
+            background-image: linear-gradient(to right, #0d9488, #22d3ee);
+        }
+        .hero-content { position: relative; z-index: 10; }
+        .hero-image { max-width: 220px; }
+        .systems-section { padding: 80px 0; background-color: #ffffff; }
+        .system-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .system-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
+        .system-card img { height: 128px; width: auto; margin-bottom: 1.5rem; }
+        .text-teal { color: #0d9488; }
+        .btn-orange { background-color: #fb923c; border-color: #fb923c; color: white; }
+        .btn-orange:hover { background-color: #f97316; border-color: #f97316; color: white; }
+    </style>
+</head>
+<body>
+    <%- include('../includes/tbcare/navbar-landing.ejs') %>
+
+    <section class="hero-section">
+        <div class="hero-background"></div>
+        <div class="container hero-content">
+            <div class="row align-items-center justify-content-center">
+                <div class="col-lg-3 d-none d-lg-block">
+                    <img src="/images/tbcare_landing/monster.png" alt="Monster Illustration" class="img-fluid hero-image">
+                </div>
+                <div class="col-lg-6 col-md-10">
+                    <h1 class="display-4 font-weight-bold text-teal">
+                        Know Your Cough,<br>Get The Right Treatment
+                    </h1>
+                    <p class="lead text-secondary mt-3">
+                        Sistem pintar untuk mendeteksi potensi TBC dari suara batuk, membantu pasien & dokter mendapatkan solusi lebih cepat dan tepat.
+                    </p>
+                    <a href="/login" class="btn btn-orange btn-lg rounded-pill mt-4 px-5">Log In</a>
+                </div>
+                <div class="col-lg-3 d-none d-lg-block">
+                    <img src="/images/tbcare_landing/device.png" alt="Device Illustration" class="img-fluid hero-image">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="systems-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="font-weight-bold text-teal">Our Systems</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card system-card p-4 text-center h-100">
+                        <img src="/images/tbcare_landing/device/Hardware.png" alt="Hardware" class="mx-auto">
+                        <div class="card-body">
+                            <h4 class="card-title text-teal font-weight-bold">Hardware</h4>
+                            <p class="card-text text-secondary">Perangkat khusus untuk merekam suara batuk dengan sensor audio sensitivitas tinggi.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card system-card p-4 text-center h-100">
+                        <img src="/images/tbcare_landing/device/Web.png" alt="Web Dashboard" class="mx-auto">
+                        <div class="card-body">
+                            <h4 class="card-title text-teal font-weight-bold">Web</h4>
+                            <p class="card-text text-secondary">Platform web untuk dokter mengelola data pasien dan melihat hasil analisis secara real-time.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card system-card p-4 text-center h-100">
+                        <img src="/images/tbcare_landing/device/mobile.png" alt="Mobile App" class="mx-auto">
+                        <div class="card-body">
+                            <h4 class="card-title text-teal font-weight-bold">Mobile App</h4>
+                            <p class="card-text text-secondary">Aplikasi mobile untuk pasien melakukan self-check dan mengunggah rekaman batuk.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../includes/tbcare/footer-landing.ejs') %>
+    
+    <%- include('../includes/end.ejs') %>
+</body>
+</html>

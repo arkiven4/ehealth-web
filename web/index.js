@@ -6,6 +6,7 @@ var bodyParser = require("body-parser");
 var cors = require("cors");
 const fs = require('fs');
 const helmet = require('helmet');
+const tbcareRoutes = require('./routes/tbcare');
 
 
 const csrfMiddleware = (req, res, next) => {
@@ -93,6 +94,14 @@ app.use(auth.clientAuth);
 
 // notification
 app.use(flash());
+
+
+// TBCARE
+app.use('/tbcare', tbcareRoutes); 
+
+routeNames.forEach(routeName => {
+  app.use(routes[routeName]);
+});
 
 // routing request
 routeNames.forEach(routeName => {
