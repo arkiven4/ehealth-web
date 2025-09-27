@@ -107,27 +107,27 @@ router.get(
 //   adminController.data_batuk_naracoba_edit_post
 // );
 
-// data-batuk-tb-primer
-// router.get(
-//   "/admin/data-batuk-tb-primer",
-//   auth.isAuth,
-//   checkingRole.isAdmin,
-//   adminController.data_batuk_tbprimer
-// );
+//data-batuk-tb-primer
+router.get(
+  "/admin/data-batuk-tb-primer",
+  auth.isAuth,
+  checkingRole.isAdmin,
+  adminController.data_batuk_tbprimer
+);
 
-// router.get(
-//   "/admin/data-batuk-tb-primer-edit",
-//   auth.isAuth,
-//   checkingRole.isAdmin,
-//   adminController.data_batuk_tbprimer_edit
-// );
+router.get(
+  "/admin/data-batuk-tb-primer-edit",
+  auth.isAuth,
+  checkingRole.isAdmin,
+  adminController.data_batuk_tbprimer_edit
+);
 
-// router.post(
-//   "/admin/data-batuk-tb-primer-post",
-//   auth.isAuth,
-//   checkingRole.isAdmin,
-//   adminController.data_batuk_tbprimer_edit_post
-// );
+router.post(
+  "/admin/data-batuk-tb-primer-post",
+  auth.isAuth,
+  checkingRole.isAdmin,
+  adminController.data_batuk_tbprimer_edit_post
+);
 
 // data-batuk-device-edit
 router.get(

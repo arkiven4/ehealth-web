@@ -27,4 +27,41 @@ router.post(
   doctorController.create_patient
 );
 
+// TBCare (PKM)
+router.get(
+  "/sub_1/doctor",
+  auth.isAuth,
+  checkingRole.isDoctor,
+  doctorController.tbcare_home 
+);
+
+router.get(
+  "/sub_1/add-patient",
+  auth.isAuth,
+  checkingRole.isDoctor,
+  doctorController.tbcare_add_patient 
+);
+
+router.post(
+  "/sub_1/create-patient",
+  auth.isAuth,
+  checkingRole.isDoctor,
+  doctorController.tbcare_create_patient 
+);
+
+router.get(
+  "/sub_1/predict",
+  auth.isAuth,
+  checkingRole.isDoctor,
+  doctorController.tbcare_predict_form
+);
+
+router.post(
+  "/sub_1/predict",
+  auth.isAuth,
+  checkingRole.isDoctor,
+  doctorController.tbcare_predict_post
+);
+
+
 module.exports = router;

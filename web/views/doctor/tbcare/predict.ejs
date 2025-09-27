@@ -1,0 +1,122 @@
+<%- include('../../includes/head.ejs') %>
+<style>
+   .file-selection-box {
+      max-height: 300px; 
+      overflow-y: auto;
+      border: 1px solid #e0e0e0;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+   }
+   .file-option {
+      display: block; 
+      margin-bottom: 5px;
+   }
+</style>
+</head>
+<body>
+   <div class="wrapper">
+      <%- include('../../includes/navigations-tbcare.ejs') %>
+      <div id="content-page" class="content-page">
+         <%- include('../../includes/top-navbar.ejs') %>
+         <div class="container-fluid">
+            <div class="row">
+               <div class="col-lg-12">
+                  <div class="iq-card">
+                     <div class="iq-card-header d-flex justify-content-between">
+                        <div class="iq-header-title">
+                           <h4 class="card-title"><%= pageHeader %></h4>
+                        </div>
+                     </div>
+                     <div class="iq-card-body">
+                        <form action='/sub_1/predict?_csrf=<%= csrfToken %>' method='post'>
+                           <div class="row">
+                              <div class="form-group col-md-12">
+                                 <label for="patientId">1. Select Patient:</label>
+                                 <select class="form-control" name="patientId" required>
+                                    <option value="">-- Choose a patient --</option>
+                                    <% if(patients.length > 0) { %>
+                                       <% patients.forEach(p => { %>
+                                          <option value="<%= p._id %>"><%= p.fullName.first %> <%= p.fullName.last %> (ID: <%= p.tbcareProfile.participantId %>)</option>
+                                       <% }) %>
+                                    <% } %>
+                                 </select>
+                              </div>
+                              <div class="form-group col-md-12">
+                                 <label>2. Select Cough Recording:</label>
+                                 <div class="row mb-3">
+                                    <div class="col-md-4">
+                                       <input type="text" id="searchInput" class="form-control" placeholder="Search by filename...">
+                                    </div>
+                                    <div class="col-md-4">
+                                       <input type="date" id="startDate" class="form-control">
+                                    </div>
+                                    <div class="col-md-4">
+                                       <input type="date" id="endDate" class="form-control">
+                                    </div>
+                                 </div>
+                                 <div class="file-selection-box" id="fileList">
+                                    <% if(coughFiles.length > 0) { %>
+                                       <% coughFiles.forEach((file, index) => { %>
+                                          <div class="custom-control custom-radio file-option" data-filename="<%= file.name.toLowerCase() %>" data-date="<%= file.displayDate %>">
+                                             <input type="radio" id="file_<%= index %>" name="coughFilePath" value="public/uploads/tbcare/<%= file.name %>" class="custom-control-input" required>
+                                             <label class="custom-control-label" for="file_<%= index %>"><%= file.name %> (<%= file.displayDate %>)</label>
+                                          </div>
+                                       <% }) %>
+                                    <% } else { %>
+                                       <p class="text-muted" id="noFilesMessage">No .wav files found in <code>public/uploads/tbcare/</code> folder.</p>
+                                    <% } %>
+                                 </div>
+                              </div>
+                           </div>
+                           <hr>
+                           <a href="/sub_1/doctor" class="btn iq-bg-danger">Cancel</a>
+                           <button type="submit" class="btn btn-primary">Start Prediction</button>
+                        </form>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <%- include('../../includes/footer.ejs') %>
+      </div>
+   </div>
+   <%- include('../../includes/end.ejs') %>
+
+   <script>
+      const searchInput = document.getElementById('searchInput');
+      const startDateInput = document.getElementById('startDate');
+      const endDateInput = document.getElementById('endDate');
+      const fileList = document.getElementById('fileList');
+      const allFiles = fileList.querySelectorAll('.file-option');
+
+      function filterFiles() {
+         const searchTerm = searchInput.value.toLowerCase();
+         const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+         if (endDate) endDate.setDate(endDate.getDate() + 1);
+
+         const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
+
+         allFiles.forEach(fileEl => {
+            const fileName = fileEl.dataset.filename;
+            const fileDate = new Date(fileEl.dataset.date);
+
+            const matchesSearch = fileName.includes(searchTerm);
+            const matchesDate = 
+               (!startDate || fileDate >= startDate) && 
+               (!endDate || fileDate < endDate);
+
+            if (matchesSearch && matchesDate) {
+               fileEl.style.display = 'block';
+            } else {
+               fileEl.style.display = 'none';
+            }
+         });
+      }
+
+      searchInput.addEventListener('input', filterFiles);
+      startDateInput.addEventListener('change', filterFiles);
+      endDateInput.addEventListener('change', filterFiles);
+   </script>
+</body>
+</html>
