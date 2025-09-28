@@ -19,9 +19,9 @@ exports.getAboutPage = (req, res, next) => {
   });
 };
 
-// exports.getTbcareLoginPage = (req, res, next) => {
-//   res.render('tbcare/login', {
-//     pageTitle: 'TBCare Login',
-//     csrfToken: req.csrfToken() 
-//   });
-// };
+exports.getTbcareLoginPage = (req, res, next) => {
+  res.render('tbcare/login', {
+    pageTitle: 'TBCare Login',
+    csrfToken: req.csrfToken() 
+  });
+};
