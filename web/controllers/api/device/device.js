@@ -25,11 +25,11 @@ exports.sendData = async (req, res, next) => {
         handleUploadFile(req.files[0], "./public/uploads/batuk/");
 
         // TODO: Gemastik save photo
-        // if (req.files[1])  {
-        //   tempJsonData.file_foto = req.files[1].filename +
-        //   "." + req.files[1].originalname.split(".")[1];
-        //   handleUploadFile(req.files[1], "./public/uploads/foto_indikasi/");
-        // }
+        if (req.files[1])  {
+          tempJsonData.file_foto = req.files[1].filename +
+          "." + req.files[1].originalname.split(".")[1];
+          handleUploadFile(req.files[1], "./public/uploads/foto_indikasi/");
+        }
   
         const device = await Device_Data_Cough.create({ uuid: uniqueID, device_id: req.params.device_id, json_data: JSON.stringify(tempJsonData), cough: 99, covid: 99 });
         if (device) {
