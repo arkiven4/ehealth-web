@@ -7,25 +7,30 @@ import tensorflow as tf
 import joblib
 import tensorflow_hub as hub
 import librosa
-import soundfile as sf
-from scipy.signal import lfilter
+import json
 from copy import deepcopy
 import speechproc 
 
 # --- Konfigurasi Path ---
-MODEL_PATH = "../models_tbcare/model2.keras"
-SCALER_PATH = "../models_tbcare/scaler2.pkl"
-YAMNET_MAP_PATH = "yamnet_class_map.csv"
+# Pastikan path ini benar relatif terhadap lokasi eksekusi skrip
+MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models_tbcare', 'model2.keras')
+SCALER_PATH = os.path.join(os.path.dirname(__file__), '..', 'models_tbcare', 'scaler2.pkl')
+YAMNET_MAP_PATH = os.path.join(os.path.dirname(__file__), 'yamnet_class_map.csv')
 
+
+# --- Blok Loading Model ---
 try:
-    model = tf.keras.models.load_model(MODEL_PATH)
+    model = tf.keras.models.load_model(MODEL_PATH, custom_objects={'TFSMLayer': hub.KerasLayer})
     scaler = joblib.load(SCALER_PATH)
     yamnet_model = hub.load("https://tfhub.dev/google/yamnet/1")
     class_names = list(pd.read_csv(YAMNET_MAP_PATH)['display_name'])
 except Exception as e:
-    print(f"Error loading models: {e}")
+    # Mengirim error sebagai JSON agar bisa ditangkap oleh Node.js
+    print(json.dumps({"status": "error", "message": f"Error loading models: {e}"}))
     sys.exit(1)
 
+# --- Fungsi-fungsi yang sudah ada (getVad, segment_audio, validate_cough, extract_features) ---
+# ... (Salin semua fungsi dari getVad hingga extract_features dari skrip asli Anda ke sini tanpa perubahan) ...
 def getVad(data, fs):
     winlen, ovrlen, pre_coef, nfilter, nftt = 0.025, 0.01, 0.97, 20, 512
     ftThres = 0.5
@@ -94,16 +99,25 @@ def extract_features(segments, sr):
     return np.array(X_all)
 
 def process_and_predict(file_path):
-    if not file_path.lower().endswith('.wav'):
-        return "Error: Hanya file .wav yang didukung"
+    output = {}
+
+    # 1. Muat audio asli untuk visualisasi
+    y, sr_orig = librosa.load(file_path, sr=None)
+    output["waveform"] = y[::10].tolist()
+    
+    # Ekstrak MFCC dari audio asli untuk visualisasi
+    mfccs_visual = librosa.feature.mfcc(y=y, sr=sr_orig, n_mfcc=13)
+    output["mfcc"] = mfccs_visual.tolist()
+
+    # 2. Lanjutkan dengan logika prediksi yang sudah ada
+    if not file_path.lower().endswith(('.wav', '.mp3', '.ogg')):
+        return {"status": "error", "message": "Format file tidak didukung."}
 
     segments, sr = segment_audio(file_path)
     if len(segments) == 0:
-        return "No audio segments found"
+        return {"status": "error", "message": "Tidak ada segmen audio yang ditemukan."}
         
     cough_scores = []
-    
-    # Tahap 1: Validasi batuk
     for seg in segments:
         if len(seg) > 0:
             is_cough = validate_cough(np.array(seg))
@@ -112,16 +126,15 @@ def process_and_predict(file_path):
             cough_scores.append(-1)
 
     if not any(score == 1 for score in cough_scores):
-        return "No valid cough segments detected"
+        return {"status": "error", "message": "Tidak ada segmen batuk yang valid."}
 
     valid_segments = [seg for seg, score in zip(segments, cough_scores) if score == 1]
     
     if not valid_segments:
-        return "No valid cough segments detected after validation"
+        return {"status": "error", "message": "Tidak ada segmen batuk setelah validasi."}
 
     features = extract_features(valid_segments, sr)
     
-    # Tahap 2: Prediksi TB
     predictions = []
     for feat in features:
         feat_scaled = scaler.transform(feat.reshape(1, -1))
@@ -130,21 +143,24 @@ def process_and_predict(file_path):
         predictions.append(pred)
 
     tb_count = sum(1 for p in predictions if p > 0.5)
-    non_tb_count = len(predictions) - tb_count
     
-    final_decision = "TB" if tb_count > 0 else "NON-TB"
+    output["status"] = "success"
+    output["prediction"] = "TB" if tb_count > 0 else "NON-TB"
+    output["detail"] = {
+        "tb_segments": tb_count,
+        "non_tb_segments": len(predictions) - tb_count,
+        "total_segments": len(predictions)
+    }
     
-    return f"{final_decision},{tb_count},{non_tb_count},{len(predictions)}"
+    return output
 
-
-# === Main Execution Block ===
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         audio_file_path = sys.argv[1]
         try:
             result = process_and_predict(audio_file_path)
-            print(result)
+            print(json.dumps(result))
         except Exception as e:
-            print(f"Error: {e}")
+            print(json.dumps({"status": "error", "message": str(e)}))
     else:
-        print("Error: No audio file path provided.")
+        print(json.dumps({"status": "error", "message": "No audio file path provided."}))

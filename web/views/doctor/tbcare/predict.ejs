@@ -1,104 +1,116 @@
 <%- include('../../includes/head.ejs') %>
-<style>
-   .file-selection-box { max-height: 300px; overflow-y: auto; border: 1px solid #e0e0e0; padding: 10px; border-radius: 5px; background-color: #f9f9f9; }
-   .file-option { display: block; margin-bottom: 5px; }
-</style>
-</head>
-<body>
-   <div class="wrapper">
-      <%- include('../../includes/navigations-tbcare.ejs') %>
-      <div id="content-page" class="content-page">
-         <%- include('../../includes/top-navbar.ejs') %>
-         <div class="container-fluid">
-            <div class="row">
-               <div class="col-lg-12">
-                  <div class="iq-card">
-                     <div class="iq-card-header d-flex justify-content-between">
-                        <div class="iq-header-title"><h4 class="card-title"><%= pageHeader %></h4></div>
-                     </div>
-                     <div class="iq-card-body">
-                        <form action='/sub_1/predict?_csrf=<%= csrfToken %>' method='post'>
-                           <div class="row">
-                              <div class="form-group col-md-12"><label>1. Select Patient:</label><select class="form-control" name="patientId" required><option value="">-- Choose a patient --</option><% if(patients.length > 0) { %><% patients.forEach(p => { %><option value="<%= p._id %>"><%= p.fullName.first %> <%= p.fullName.last %> (ID: <%= p.tbcareProfile ? p.tbcareProfile.participantId : 'N/A' %>)</option><% }) %><% } %></select></div>
-                              
-                              <div class="form-group col-md-6"><label>2. Sputum Condition:</label><select class="form-control" name="sputumStatus" id="sputumStatus" required><option value="">-- Select Status --</option><option value="Sputum +">Sputum +</option><option value="Sputum -">Sputum -</option></select></div>
-                              <div class="form-group col-md-6" id="sputumLevelContainer" style="display: none;"><label>Sputum+ Level:</label><select class="form-control" name="sputumLevel"><option value="Low">Low</option><option value="Moderate">Moderate</option><option value="High">High</option></select></div>
+<%- include('../../includes/navigations-tbcare.ejs') %>
 
-                              <div class="form-group col-md-12"><label>3. Select Cough Recording:</label>
-                                 <div class="row mb-3">
-                                    <div class="col-md-4"><input type="text" id="searchInput" class="form-control" placeholder="Search by filename..."></div>
-                                    <div class="col-md-4">
-                                        <select id="folderFilter" class="form-control">
-                                            <option value="">All Folders</option>
-                                            <% audioFolders.forEach(folder => { %>
-                                                <option value="<%= folder %>"><%= folder %></option>
-                                            <% }) %>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4"><input type="date" id="dateFilter" class="form-control"></div>
-                                 </div>
-                                 <div class="file-selection-box" id="fileList">
-                                    <% if(coughFiles.length > 0) { %><% coughFiles.forEach((file, index) => { %>
-                                       <div class="custom-control custom-radio file-option" data-filename="<%= file.name.toLowerCase() %>" data-date="<%= file.displayDate %>" data-folder="<%= file.folder %>">
-                                          <input type="radio" id="file_<%= index %>" name="coughFilePath" value="<%= file.path %>" class="custom-control-input" required>
-                                          <label class="custom-control-label" for="file_<%= index %>"><%= file.name %> <small class="text-muted">(<%= file.folder %> | <%= file.displayDate %>)</small></label>
-                                       </div>
-                                    <% }) %><% } else { %><p class="text-muted">No .wav files found in any subfolder of <code>public/uploads/tbcare/</code>.</p><% } %>
-                                 </div>
-                              </div>
-                           </div>
-                           <hr>
-                           <a href="/sub_1/doctor" class="btn iq-bg-danger">Cancel</a>
-                           <button type="submit" class="btn btn-primary">Start Prediction</button>
-                        </form>
-                     </div>
-                  </div>
-               </div>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <div class="header-title">
+                        <h4 class="card-title">Prediksi Audio Batuk</h4>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p>Unggah file audio (.wav, .mp3, .ogg) untuk memprediksi apakah terindikasi TB.</p>
+                    
+                    <form action="/tbcare/predict" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <div class="form-group">
+                            <label for="audioFile">File Audio:</label>
+                            <input type="file" class="form-control-file" id="audioFile" name="audiofile" accept=".wav,.mp3,.ogg" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Prediksi</button>
+                    </form>
+                </div>
             </div>
-         </div>
-         <%- include('../../includes/footer.ejs') %>
-      </div>
-   </div>
-   <%- include('../../includes/end.ejs') %>
-   <script>
-      document.addEventListener('DOMContentLoaded', function() {
-          // Logika untuk Sputum Level
-          const sputumStatusSelect = document.getElementById('sputumStatus');
-          const sputumLevelContainer = document.getElementById('sputumLevelContainer');
-          sputumStatusSelect.addEventListener('change', function() {
-              sputumLevelContainer.style.display = this.value === 'Sputum +' ? 'block' : 'none';
-          });
+        </div>
+    </div>
 
-          const searchInput = document.getElementById('searchInput');
-          const dateFilter = document.getElementById('dateFilter');
-          const folderFilter = document.getElementById('folderFilter');
-          const allFiles = document.querySelectorAll('.file-option');
+    <% if (hasResult) { %>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Hasil Prediksi</h4>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="card-text">Prediksi: 
+                            <span class="font-weight-bold <%= predictionResult === 'TB' ? 'text-danger' : 'text-success' %>">
+                                <%= predictionResult %>
+                            </span>
+                        </h3>
+                        <p>
+                            Detail: <%= predictionDetail.tb_segments %> segmen terdeteksi TB, 
+                            <%= predictionDetail.non_tb_segments %> segmen terdeteksi NON-TB 
+                            dari total <%= predictionDetail.total_segments %> segmen batuk yang valid.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Visualisasi Waveform</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="waveform-visualization"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Visualisasi MFCC (Mel-Frequency Cepstral Coefficients)</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="mfcc-visualization"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-          function filterFiles() {
-              const searchTerm = searchInput.value.toLowerCase();
-              const selectedDate = dateFilter.value;
-              const selectedFolder = folderFilter.value;
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
-              allFiles.forEach(fileEl => {
-                  const fileName = fileEl.dataset.filename;
-                  const fileDate = fileEl.dataset.date;
-                  const fileFolder = fileEl.dataset.folder;
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Gunakan <%- %> untuk memasukkan data JSON tanpa di-escape HTML
+                const waveData = <%- waveform %>;
+                const mfccData = <%- mfcc %>;
 
-                  const matchesSearch = fileName.includes(searchTerm);
-                  const matchesDate = !selectedDate || fileDate === selectedDate;
-                  const matchesFolder = !selectedFolder || fileFolder === selectedFolder;
+                // 1. Gambar grafik Waveform
+                const waveLayout = {
+                    title: 'Amplitudo Audio',
+                    xaxis: { title: 'Sampel (waktu)' },
+                    yaxis: { title: 'Amplitudo' }
+                };
+                Plotly.newPlot('waveform-visualization', [{ y: waveData, type: 'line' }], waveLayout);
 
-                  if (matchesSearch && matchesDate && matchesFolder) {
-                      fileEl.style.display = 'block';
-                  } else {
-                      fileEl.style.display = 'none';
-                  }
-              });
-          }
-          searchInput.addEventListener('input', filterFiles);
-          dateFilter.addEventListener('change', filterFiles);
-          folderFilter.addEventListener('change', filterFiles);
-      });
-   </script>
-</body>
-</html>
+                // 2. Gambar Heatmap MFCC
+                const mfccLayout = {
+                    title: 'Heatmap MFCC',
+                    xaxis: { title: 'Frame Waktu' },
+                    yaxis: { title: 'Koefisien MFCC' }
+                };
+                Plotly.newPlot('mfcc-visualization', [{
+                    z: mfccData,
+                    type: 'heatmap',
+                    colorscale: 'Jet'
+                }], mfccLayout);
+            });
+        </script>
+    <% } %>
+    
+    <% if (errorMessage) { %>
+        <div class="alert alert-danger" role="alert">
+            <div class="iq-alert-icon">
+                <i class="ri-information-line"></i>
+            </div>
+            <div class="iq-alert-text"><%= errorMessage %></div>
+        </div>
+    <% } %>
+</div>
+
+<%- include('../../includes/footer.ejs') %>
+<%- include('../../includes/end.ejs') %>
