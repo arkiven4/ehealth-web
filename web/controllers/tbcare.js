@@ -28,21 +28,21 @@ exports.getTbcareLoginPage = (req, res, next) => {
 
 const { PythonShell } = require('python-shell');
 const path = require('path');
+const TbcarePrediction = require('../models/tbcare_prediction');
+const TbcareProfile = require('../models/tbcare_profile');
 
-// Menampilkan halaman awal untuk unggah file prediksi
-exports.getPredict = (req, res, next) => {
-    res.render('doctor/tbcare/predict', {
-        pageTitle: 'Predict Cough Audio',
-        path: '/tbcare/predict',
-        hasResult: false, // Belum ada hasil saat halaman pertama kali dimuat
-        errorMessage: null,
-    });
-};
+// exports.getPredict = (req, res, next) => {
+//     res.render('doctor/tbcare/predict', {
+//         pageTitle: 'Predict Cough Audio',
+//         path: '/tbcare/predict',
+//         hasResult: false,
+//         errorMessage: null,
+//     });
+// };
 
-// Menangani permintaan POST setelah file diunggah
 exports.postPredict = (req, res, next) => {
+    // 1. Validasi apakah ada file yang diunggah
     if (!req.file) {
-        // Jika tidak ada file, render kembali halaman dengan pesan error
         return res.status(400).render('doctor/tbcare/predict', {
             pageTitle: 'Predict Cough Audio',
             path: '/tbcare/predict',
@@ -55,7 +55,6 @@ exports.postPredict = (req, res, next) => {
 
     const options = {
         mode: 'text',
-        // Sesuaikan 'python3' jika perlu, atau gunakan path absolut ke environment python Anda
         pythonPath: 'python3', 
         scriptPath: path.join(__dirname, '..', 'python-script'),
         args: [audioFilePath]
@@ -63,20 +62,18 @@ exports.postPredict = (req, res, next) => {
 
     PythonShell.run('tbcareScript.py', options).then(results => {
         try {
-            // Hasil dari skrip python adalah string JSON, jadi kita parse
             const data = JSON.parse(results[0]);
 
-            // Jika skrip Python mengembalikan status error
             if (data.status === 'error') {
+                console.error('Python Script Error:', data.message);
                 return res.status(500).render('doctor/tbcare/predict', {
                     pageTitle: 'Prediction Error',
                     path: '/tbcare/predict',
                     hasResult: false,
-                    errorMessage: data.message,
+                    errorMessage: data.message, 
                 });
             }
-            
-            // Render halaman hasil dengan semua data yang dibutuhkan
+
             res.render('doctor/tbcare/predict', {
                 pageTitle: 'Prediction Result',
                 path: '/tbcare/predict',
@@ -84,29 +81,26 @@ exports.postPredict = (req, res, next) => {
                 errorMessage: null,
                 predictionResult: data.prediction,
                 predictionDetail: data.detail,
-                // Kirim data visualisasi sebagai string JSON ke view
-                waveform: JSON.stringify(data.waveform), 
-                mfcc: JSON.stringify(data.mfcc), 
+                waveform: JSON.stringify(data.waveform),
+                mfcc: JSON.stringify(data.mfcc),
             });
 
         } catch (parseError) {
-            // Error jika output dari python bukan JSON yang valid
-            console.error('Error parsing python script output:', parseError);
+            console.error('JSON Parse Error:', parseError, 'Python Output:', results);
             res.status(500).render('doctor/tbcare/predict', {
-                 pageTitle: 'Prediction Error',
-                 path: '/tbcare/predict',
-                 hasResult: false,
-                 errorMessage: "Gagal membaca hasil prediksi dari skrip.",
+                pageTitle: 'Prediction Error',
+                path: '/tbcare/predict',
+                hasResult: false,
+                errorMessage: 'Gagal memproses hasil dari skrip analisis. Output tidak valid.',
             });
         }
     }).catch(err => {
-        // Error jika skrip python itu sendiri gagal dieksekusi
-        console.error('PythonShell execution error:', err);
+        console.error('PythonShell Execution Error:', err);
         res.status(500).render('doctor/tbcare/predict', {
-             pageTitle: 'Prediction Error',
-             path: '/tbcare/predict',
-             hasResult: false,
-             errorMessage: "Terjadi kesalahan saat menjalankan skrip analisis audio.",
+            pageTitle: 'Execution Error',
+            path: '/tbcare/predict',
+            hasResult: false,
+            errorMessage: 'Terjadi kesalahan sistem saat mencoba menjalankan skrip analisis audio.',
         });
     });
 };

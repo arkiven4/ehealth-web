@@ -26,13 +26,21 @@
         </div>
     </div>
 
+    <% if (errorMessage) { %>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="alert alert-danger" role="alert">
+                    <div class="iq-alert-text"><b>Error:</b> <%= errorMessage %></div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
     <% if (hasResult) { %>
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Hasil Prediksi</h4>
-                    </div>
+                    <div class="card-header"><h4 class="card-title">Hasil Prediksi</h4></div>
                     <div class="card-body">
                         <h3 class="card-text">Prediksi: 
                             <span class="font-weight-bold <%= predictionResult === 'TB' ? 'text-danger' : 'text-success' %>">
@@ -50,9 +58,7 @@
             
             <div class="col-lg-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Visualisasi Waveform</h4>
-                    </div>
+                    <div class="card-header"><h4 class="card-title">Visualisasi Waveform</h4></div>
                     <div class="card-body">
                         <div id="waveform-visualization"></div>
                     </div>
@@ -61,9 +67,7 @@
             
             <div class="col-lg-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">Visualisasi MFCC (Mel-Frequency Cepstral Coefficients)</h4>
-                    </div>
+                    <div class="card-header"><h4 class="card-title">Visualisasi MFCC</h4></div>
                     <div class="card-body">
                         <div id="mfcc-visualization"></div>
                     </div>
@@ -75,40 +79,32 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                // Gunakan <%- %> untuk memasukkan data JSON tanpa di-escape HTML
-                const waveData = <%- waveform %>;
-                const mfccData = <%- mfcc %>;
+                try {
+                    const waveData = <%- waveform %>;
+                    const mfccData = <%- mfcc %>;
 
-                // 1. Gambar grafik Waveform
-                const waveLayout = {
-                    title: 'Amplitudo Audio',
-                    xaxis: { title: 'Sampel (waktu)' },
-                    yaxis: { title: 'Amplitudo' }
-                };
-                Plotly.newPlot('waveform-visualization', [{ y: waveData, type: 'line' }], waveLayout);
+                    // Gambar grafik Waveform
+                    Plotly.newPlot('waveform-visualization', [{ y: waveData, type: 'line' }], {
+                        title: 'Amplitudo Audio',
+                        xaxis: { title: 'Sampel (waktu)' },
+                        yaxis: { title: 'Amplitudo' }
+                    });
 
-                // 2. Gambar Heatmap MFCC
-                const mfccLayout = {
-                    title: 'Heatmap MFCC',
-                    xaxis: { title: 'Frame Waktu' },
-                    yaxis: { title: 'Koefisien MFCC' }
-                };
-                Plotly.newPlot('mfcc-visualization', [{
-                    z: mfccData,
-                    type: 'heatmap',
-                    colorscale: 'Jet'
-                }], mfccLayout);
+                    // Gambar Heatmap MFCC
+                    Plotly.newPlot('mfcc-visualization', [{
+                        z: mfccData,
+                        type: 'heatmap',
+                        colorscale: 'Jet'
+                    }], {
+                        title: 'Heatmap MFCC',
+                        xaxis: { title: 'Frame Waktu' },
+                        yaxis: { title: 'Koefisien MFCC' }
+                    });
+                } catch (e) {
+                    console.error('Gagal membuat visualisasi:', e);
+                }
             });
         </script>
-    <% } %>
-    
-    <% if (errorMessage) { %>
-        <div class="alert alert-danger" role="alert">
-            <div class="iq-alert-icon">
-                <i class="ri-information-line"></i>
-            </div>
-            <div class="iq-alert-text"><%= errorMessage %></div>
-        </div>
     <% } %>
 </div>
 
