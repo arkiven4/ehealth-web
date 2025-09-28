@@ -63,5 +63,4 @@ router.post(
   doctorController.tbcare_predict_post
 );
 
-
 module.exports = router;

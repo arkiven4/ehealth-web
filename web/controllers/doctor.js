@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 
 const bcrypt = require("bcryptjs");
+const { spawn } = require('child_process');
+const path = require('path');
 
 exports.home = async (req, res, next) => {
   const pasient = await User.find({ role: "patient" , doctor : req.session.user._id});
@@ -158,20 +160,71 @@ exports.tbcare_create_patient = async (req, res, next) => {
 };
 
 exports.tbcare_predict_post = async (req, res, next) => {
-  const patientId = req.body.patientId;
-  const coughFilePath = req.body.coughFilePath;
+  const { patientId, coughFilePath } = req.body;
 
-  console.log("Patient ID:", patientId);
-  console.log("Cough File Path:", coughFilePath);
-
-  if (!coughFilePath) {
+  if (!patientId || !coughFilePath) {
+    req.flash('error', 'Please select a patient and a cough file.');
     return res.redirect('/sub_1/predict');
   }
 
-  // need ml logic here
+  const coughFileAbsolutePath = path.join(__dirname, '..', coughFilePath);
+  const pythonScriptPath = path.join(__dirname, '..', 'python-script', 'process_cough.py');
 
-  // temp
-  res.redirect("/sub_1/doctor");
+  const pythonProcess = spawn('python3', [pythonScriptPath, coughFileAbsolutePath]);
+
+  let predictionResult = '';
+  let errorOutput = '';
+
+  pythonProcess.stdout.on('data', (data) => {
+    predictionResult += data.toString().trim();
+  });
+
+  pythonProcess.stderr.on('data', (data) => {
+    errorOutput += data.toString();
+  });
+
+  pythonProcess.on('close', async (code) => {
+    if (code !== 0 || errorOutput) {
+      console.error(`Python Error: ${errorOutput}`);
+      req.flash('error', 'Prediction failed. Please check server logs.');
+      return res.redirect('/sub_1/predict');
+    }
+
+    console.log('Raw Prediction Result:', predictionResult);
+    
+    // Parse hasilnya: "KEPUTUSAN_AKHIR,JUMLAH_TB,JUMLAH_NON_TB,TOTAL_SEGMEN_BATUK"
+    const parts = predictionResult.split(',');
+    
+    if(parts.length < 4){
+        // Jika output bukan format yang diharapkan, anggap sebagai pesan error
+        req.flash('info', `Prediction Info: ${predictionResult}`);
+        return res.redirect('/sub_1/predict');
+    }
+
+    const [finalDecision, tbSegments, nonTbSegments, totalCoughSegments] = parts;
+
+    // --- Simpan hasil ke database ---
+    // Anda perlu membuat model baru untuk menyimpan data ini, misal `Prediction.js`
+    // try {
+    //   await Prediction.create({
+    //     patient: patientId,
+    //     audioFile: coughFilePath,
+    //     result: finalDecision,
+    //     tbSegmentCount: parseInt(tbSegments),
+    //     nonTbSegmentCount: parseInt(nonTbSegments),
+    //     totalCoughSegments: parseInt(totalCoughSegments),
+    //     predictedBy: req.session.user._id
+    //   });
+    // } catch (dbError) {
+    //    console.error('Database Error:', dbError);
+    //    req.flash('error', 'Failed to save prediction result.');
+    //    return res.redirect('/sub_1/predict');
+    // }
+
+    // Tampilkan hasil menggunakan flash message
+    req.flash('success', `Prediction Complete! Result: ${finalDecision} (TB Segments: ${tbSegments}, Non-TB: ${nonTbSegments})`);
+    res.redirect("/sub_1/doctor"); // Arahkan ke dashboard dokter
+  });
 };
 
 // pembatashhh
