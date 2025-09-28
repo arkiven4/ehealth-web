@@ -127,6 +127,10 @@ const userSchema = new Schema(
       type: String,
       enum: SUBROLE,
     },
+    tbcareProfile: {
+        type: Schema.Types.ObjectId,
+        ref: 'TbcareProfile' // Menunjuk ke model baru kita
+    }
   },
   { timestamps: true }
 );

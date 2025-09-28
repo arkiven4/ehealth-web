@@ -99,9 +99,9 @@ app.use(flash());
 // TBCARE
 app.use('/tbcare', tbcareRoutes); 
 
-routeNames.forEach(routeName => {
-  app.use(routes[routeName]);
-});
+// routeNames.forEach(routeName => {
+//   app.use(routes[routeName]);
+// });
 
 // routing request
 routeNames.forEach(routeName => {

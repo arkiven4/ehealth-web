@@ -53,6 +53,20 @@ exports.getLogout = (req, res, next) => {
   });
 };
 
+// exports.getLogout = (req, res, next) => {
+//   let redirectUrl = '/';
+//   if (req.session.user && req.session.user.accountType === 'tbcare') {
+//     redirectUrl = '/tbcare';
+//   }
+
+//   req.session.destroy((err) => {
+//     if (err) {
+//       console.log(err);
+//     }
+//     res.redirect(redirectUrl);
+//   });
+// };
+
 exports.getReset = (req, res, next) => {
   let message = req.flash("error");
   if (message.length > 0) {

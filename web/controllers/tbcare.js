@@ -14,7 +14,14 @@ exports.getDownloadPage = (req, res, next) => {
 
 exports.getAboutPage = (req, res, next) => {
   res.render('tbcare/about', {
-    pageTitle: 'About TBCare App',
+    pageTitle: 'About TBCare',
     isAuthenticated: req.session.isLoggedIn
   });
 };
+
+// exports.getTbcareLoginPage = (req, res, next) => {
+//   res.render('tbcare/login', {
+//     pageTitle: 'TBCare Login',
+//     csrfToken: req.csrfToken() 
+//   });
+// };

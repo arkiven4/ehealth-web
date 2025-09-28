@@ -1,17 +1,7 @@
 <%- include('../../includes/head.ejs') %>
 <style>
-   .file-selection-box {
-      max-height: 300px; 
-      overflow-y: auto;
-      border: 1px solid #e0e0e0;
-      padding: 10px;
-      border-radius: 5px;
-      background-color: #f9f9f9;
-   }
-   .file-option {
-      display: block; 
-      margin-bottom: 5px;
-   }
+   .file-selection-box { max-height: 300px; overflow-y: auto; border: 1px solid #e0e0e0; padding: 10px; border-radius: 5px; background-color: #f9f9f9; }
+   .file-option { display: block; margin-bottom: 5px; }
 </style>
 </head>
 <body>
@@ -24,48 +14,36 @@
                <div class="col-lg-12">
                   <div class="iq-card">
                      <div class="iq-card-header d-flex justify-content-between">
-                        <div class="iq-header-title">
-                           <h4 class="card-title"><%= pageHeader %></h4>
-                        </div>
+                        <div class="iq-header-title"><h4 class="card-title"><%= pageHeader %></h4></div>
                      </div>
                      <div class="iq-card-body">
                         <form action='/sub_1/predict?_csrf=<%= csrfToken %>' method='post'>
                            <div class="row">
-                              <div class="form-group col-md-12">
-                                 <label for="patientId">1. Select Patient:</label>
-                                 <select class="form-control" name="patientId" required>
-                                    <option value="">-- Choose a patient --</option>
-                                    <% if(patients.length > 0) { %>
-                                       <% patients.forEach(p => { %>
-                                          <option value="<%= p._id %>"><%= p.fullName.first %> <%= p.fullName.last %> (ID: <%= p.tbcareProfile.participantId %>)</option>
-                                       <% }) %>
-                                    <% } %>
-                                 </select>
-                              </div>
-                              <div class="form-group col-md-12">
-                                 <label>2. Select Cough Recording:</label>
+                              <div class="form-group col-md-12"><label>1. Select Patient:</label><select class="form-control" name="patientId" required><option value="">-- Choose a patient --</option><% if(patients.length > 0) { %><% patients.forEach(p => { %><option value="<%= p._id %>"><%= p.fullName.first %> <%= p.fullName.last %> (ID: <%= p.tbcareProfile ? p.tbcareProfile.participantId : 'N/A' %>)</option><% }) %><% } %></select></div>
+                              
+                              <div class="form-group col-md-6"><label>2. Sputum Condition:</label><select class="form-control" name="sputumStatus" id="sputumStatus" required><option value="">-- Select Status --</option><option value="Sputum +">Sputum +</option><option value="Sputum -">Sputum -</option></select></div>
+                              <div class="form-group col-md-6" id="sputumLevelContainer" style="display: none;"><label>Sputum+ Level:</label><select class="form-control" name="sputumLevel"><option value="Low">Low</option><option value="Moderate">Moderate</option><option value="High">High</option></select></div>
+
+                              <div class="form-group col-md-12"><label>3. Select Cough Recording:</label>
                                  <div class="row mb-3">
+                                    <div class="col-md-4"><input type="text" id="searchInput" class="form-control" placeholder="Search by filename..."></div>
                                     <div class="col-md-4">
-                                       <input type="text" id="searchInput" class="form-control" placeholder="Search by filename...">
+                                        <select id="folderFilter" class="form-control">
+                                            <option value="">All Folders</option>
+                                            <% audioFolders.forEach(folder => { %>
+                                                <option value="<%= folder %>"><%= folder %></option>
+                                            <% }) %>
+                                        </select>
                                     </div>
-                                    <div class="col-md-4">
-                                       <input type="date" id="startDate" class="form-control">
-                                    </div>
-                                    <div class="col-md-4">
-                                       <input type="date" id="endDate" class="form-control">
-                                    </div>
+                                    <div class="col-md-4"><input type="date" id="dateFilter" class="form-control"></div>
                                  </div>
                                  <div class="file-selection-box" id="fileList">
-                                    <% if(coughFiles.length > 0) { %>
-                                       <% coughFiles.forEach((file, index) => { %>
-                                          <div class="custom-control custom-radio file-option" data-filename="<%= file.name.toLowerCase() %>" data-date="<%= file.displayDate %>">
-                                             <input type="radio" id="file_<%= index %>" name="coughFilePath" value="public/uploads/tbcare/<%= file.name %>" class="custom-control-input" required>
-                                             <label class="custom-control-label" for="file_<%= index %>"><%= file.name %> (<%= file.displayDate %>)</label>
-                                          </div>
-                                       <% }) %>
-                                    <% } else { %>
-                                       <p class="text-muted" id="noFilesMessage">No .wav files found in <code>public/uploads/tbcare/</code> folder.</p>
-                                    <% } %>
+                                    <% if(coughFiles.length > 0) { %><% coughFiles.forEach((file, index) => { %>
+                                       <div class="custom-control custom-radio file-option" data-filename="<%= file.name.toLowerCase() %>" data-date="<%= file.displayDate %>" data-folder="<%= file.folder %>">
+                                          <input type="radio" id="file_<%= index %>" name="coughFilePath" value="<%= file.path %>" class="custom-control-input" required>
+                                          <label class="custom-control-label" for="file_<%= index %>"><%= file.name %> <small class="text-muted">(<%= file.folder %> | <%= file.displayDate %>)</small></label>
+                                       </div>
+                                    <% }) %><% } else { %><p class="text-muted">No .wav files found in any subfolder of <code>public/uploads/tbcare/</code>.</p><% } %>
                                  </div>
                               </div>
                            </div>
@@ -82,41 +60,45 @@
       </div>
    </div>
    <%- include('../../includes/end.ejs') %>
-
    <script>
-      const searchInput = document.getElementById('searchInput');
-      const startDateInput = document.getElementById('startDate');
-      const endDateInput = document.getElementById('endDate');
-      const fileList = document.getElementById('fileList');
-      const allFiles = fileList.querySelectorAll('.file-option');
+      document.addEventListener('DOMContentLoaded', function() {
+          // Logika untuk Sputum Level
+          const sputumStatusSelect = document.getElementById('sputumStatus');
+          const sputumLevelContainer = document.getElementById('sputumLevelContainer');
+          sputumStatusSelect.addEventListener('change', function() {
+              sputumLevelContainer.style.display = this.value === 'Sputum +' ? 'block' : 'none';
+          });
 
-      function filterFiles() {
-         const searchTerm = searchInput.value.toLowerCase();
-         const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
-         if (endDate) endDate.setDate(endDate.getDate() + 1);
+          const searchInput = document.getElementById('searchInput');
+          const dateFilter = document.getElementById('dateFilter');
+          const folderFilter = document.getElementById('folderFilter');
+          const allFiles = document.querySelectorAll('.file-option');
 
-         const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
+          function filterFiles() {
+              const searchTerm = searchInput.value.toLowerCase();
+              const selectedDate = dateFilter.value;
+              const selectedFolder = folderFilter.value;
 
-         allFiles.forEach(fileEl => {
-            const fileName = fileEl.dataset.filename;
-            const fileDate = new Date(fileEl.dataset.date);
+              allFiles.forEach(fileEl => {
+                  const fileName = fileEl.dataset.filename;
+                  const fileDate = fileEl.dataset.date;
+                  const fileFolder = fileEl.dataset.folder;
 
-            const matchesSearch = fileName.includes(searchTerm);
-            const matchesDate = 
-               (!startDate || fileDate >= startDate) && 
-               (!endDate || fileDate < endDate);
+                  const matchesSearch = fileName.includes(searchTerm);
+                  const matchesDate = !selectedDate || fileDate === selectedDate;
+                  const matchesFolder = !selectedFolder || fileFolder === selectedFolder;
 
-            if (matchesSearch && matchesDate) {
-               fileEl.style.display = 'block';
-            } else {
-               fileEl.style.display = 'none';
-            }
-         });
-      }
-
-      searchInput.addEventListener('input', filterFiles);
-      startDateInput.addEventListener('change', filterFiles);
-      endDateInput.addEventListener('change', filterFiles);
+                  if (matchesSearch && matchesDate && matchesFolder) {
+                      fileEl.style.display = 'block';
+                  } else {
+                      fileEl.style.display = 'none';
+                  }
+              });
+          }
+          searchInput.addEventListener('input', filterFiles);
+          dateFilter.addEventListener('change', filterFiles);
+          folderFilter.addEventListener('change', filterFiles);
+      });
    </script>
 </body>
 </html>
