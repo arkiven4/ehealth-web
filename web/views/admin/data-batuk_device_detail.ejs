@@ -1,0 +1,380 @@
+<%- include('../includes/head.ejs') %>
+<% function timeConverter(UNIX_timestamp) { var a=new Date(UNIX_timestamp * 1000).toLocaleString(); return a; } %>
+
+</head>
+
+<body>
+  <!-- Wrapper Start -->
+  <div class="wrapper">
+    <!-- Sidebar  -->
+    <%- include('../includes/navigations.ejs') %>
+    <!-- Page Content  -->
+    <div id="content-page" class="content-page">
+      <!-- TOP Nav Bar -->
+      <%- include('../includes/top-navbar.ejs') %>
+      <!-- TOP Nav Bar END -->
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="iq-card">
+              <div class="iq-card-header d-flex justify-content-between">
+                <div class="iq-header-title">
+                  <h4 class="card-title">Detail Data Batuk</h4>
+                </div>
+                <a href="device-detail?device_id=<%= batukData[0].device_id %>" class="btn btn-secondary">Kembali</a>
+              </div>
+              <div class="iq-card-body">
+                <div class="new-user-info">
+                  <%# Parsing the JSON data from the batukData object %>
+                  <% var parsedData = JSON.parse(batukData[0].json_data); %>
+                  
+                  <div class="row">
+                    <div class="form-group col-md-4">
+                      <label>UUID</label>
+                      <p class="form-control-plaintext"><%= batukData[0].uuid %></p>
+                    </div>
+                    <div class="form-group col-md-4">
+                      <label>Device ID</label>
+                      <p class="form-control-plaintext"><%= batukData[0].device_id %></p>
+                    </div>
+                    <div class="form-group col-md-4">
+                      <label>Nama Device</label>
+                      <p class="form-control-plaintext"><%= deviceData[0].device_name %></p>
+                    </div>
+                    <div class="form-group col-md-4">
+                      <label>Lokasi Device</label>
+                      <p class="form-control-plaintext"><%= deviceData[0].location %></p>
+                    </div>
+                    <div class="form-group col-md-4">
+                      <label>Nama Lengkap</label>
+                      <p class="form-control-plaintext"><%= parsedData.nama || '-' %></p>
+                    </div>
+                    
+                    <div class="form-group col-md-6">
+                      <label>Waktu Perekaman</label>
+                      <%# Formatting the date to a more readable format %>
+                      <p class="form-control-plaintext"><%= new Date(batukData[0].time).toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'long' }) %></p>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <hr>
+                        <h5>Hasil Analisis</h5>
+                    </div>
+                    <div class="form-group col-md-4">
+                      <label>Type</label>
+                      <p class="form-control-plaintext">
+                        <% if(batukData[0].cough == 1 ){ %>
+                          Batuk
+                        <% } else if(batukData[0].cough == 0 ){ %>
+                          Non-Batuk
+                        <% } else if(batukData[0].cough == 99 ){ %>
+                          Processing.....
+                        <% } %>
+                      </p>
+                    </div>
+                    <div class="form-group col-md-4">
+                      <label>Jenis Batuk</label>
+                      <p class="form-control-plaintext">
+                        <% if(batukData[0].cough == 1 && batukData[0].tbc == 0 ){ %>
+                          Batuk Normal
+                          <% } else if(batukData[0].tbc == 1 ){ %>
+                          <span class="text-danger">Terindikasi TB</span>
+                          <% } else if(batukData[0].tbc == 99 ){ %>
+                          Processing.....
+                          <% } else { %>
+                            -
+                          <% } %>
+                      </p>
+                    </div>
+                    <div class="form-group col-md-6">
+                      <button class="btn btn-primary" onclick="cekSuaraBatuk('<%= parsedData.file_audio %>');">
+                        Cek Suara Batuk
+                      </button>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <hr>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                      <div class="iq-card" id="hasilbatuk_div" style="display: none;" >
+                      <div class="iq-card-header d-flex justify-content-between">
+                        <div class="iq-header-title">
+                          <h4 class="card-title">Hasil Suara Batuk</h4>
+                        </div>
+                      </div>
+                      <div class="iq-card-body">
+                        <div id="waveform" style="margin-bottom: 10px;"></div>
+                        <div class="container">
+                          <div class="row">
+                            <div class="col text-center">
+                              <div class="controls">
+                                <button class="btn btn-primary" onclick="wavesurfer.playPause();"
+                                  style="margin-bottom: 10px;">
+                                  <i class="glyphicon glyphicon-play"></i>
+                                  Play
+                                  /
+                                  <i class="glyphicon glyphicon-pause"></i>
+                                  Pause
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div id="wave-spectrogram" style="margin-bottom: 10px;"></div>
+                      </div>
+                    </div>
+
+                    <% if (parsedData.doa_degree) { %>
+                    <div class="row">
+                      <div id="radar-container" class="iq-card radar-container form-group col-md-4" >
+                        <div class="iq-card-header d-flex justify-content-between">
+                          <div class="iq-header-title">
+                            <h4 class="card-title">Sumber Suara Batuk</h4>
+                          </div>
+                        </div>
+                        <div class="iq-card-body">
+                        <div id="radar-visual" data-degree="'<%= parsedData.doa_degree %>'">
+                            <svg viewBox="0 0 400 200">
+                                <defs>
+                                    <radialGradient id="glowGradient">
+                                        <stop offset="0%" stop-color="rgba(8, 155, 171, 0.8)" />
+                                        <stop offset="100%" stop-color="rgba(0, 255, 135, 0)" />
+                                    </radialGradient>
+                                </defs>
+  
+                                <g id="radar-base" opacity="0.3">
+                                    <path d="M 20 200 A 180 180 0 0 1 380 200" fill="none" stroke="#089bab" stroke-width="1"/>
+                                    <path d="M 80 200 A 120 120 0 0 1 320 200" fill="none" stroke="#089bab" stroke-width="1"/>
+                                    <path d="M 140 200 A 60 60 0 0 1 260 200" fill="none" stroke="#089bab" stroke-width="1"/>
+                                </g>
+  
+                                <line id="indicator-line" x1="200" y1="200" x2="200" y2="20" stroke="#089bab" stroke-width="2" />
+  
+                                <circle id="detection-point" cx="200" cy="20" r="8" fill="#089bab" />
+                                <circle id="detection-glow" cx="200" cy="20" r="20" fill="url(#glowGradient)" />
+                            </svg>
+                        </div>
+                        <div class="degree-display">
+                            Terdeteksi pada: <span><%= parsedData.doa_degree %>°</span> di depan alat
+                        </div>
+                      </div>
+                      </div>
+                      <% if (parsedData.file_foto) { %>
+                        <div class="iq-card form-group col-md-6 ml-4 pt-5">
+                          <div class="iq-header-title">
+                            <h4 class="card-title">Foto Terindikasi Sumber Suara Batuk</h4>
+                          </div>
+                          <img style="width: 100%" src="/uploads/foto_indikasi/<%= parsedData.file_foto %>" alt="foto-indikasi">
+                        </div>
+                      <% } %>
+                    </div>
+                    <% } %>
+                    </div>
+                  </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script src="/js/wavesurfer.js"></script>
+      <script src="/js/wavesurfer.spectrogram.js"></script>
+      <script>
+        // Set active class for navigation
+        document.getElementById("add-device").classList.add("active");
+      </script>
+      <script>
+        var wavesurfer = "";
+        WaveSurfer.util.fetchFile({
+          url: '../assets/hot-colormap.json',
+          responseType: 'json'
+        }).on('success', colorMap => {
+          //initAndLoadSpectrogram(colorMap); 
+          wavesurfer = WaveSurfer.create({
+            container: '#waveform',
+            waveColor: 'purple',
+            progressColor: 'blue',
+            plugins: [
+              WaveSurfer.spectrogram.create({
+                wavesurfer: wavesurfer,
+                container: "#wave-spectrogram",
+                labels: true,
+                colorMap: colorMap
+              })
+            ]
+          });
+
+        });
+      </script>
+      <script>
+        function cekSuaraBatuk(filebatuk) {
+          const hasilBatukDiv = document.getElementById("hasilbatuk_div")
+          hasilBatukDiv.style.display = hasilBatukDiv.style.display == '' ? 'none' : '';
+          wavesurfer.load('/uploads/batuk/' + filebatuk);
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+          const batukDataFromClient = <%- JSON.stringify(parsedData) %>;
+          console.log({batukDataFromClient});
+
+          // Draw radar
+          if(batukDataFromClient.doa_degree) {
+            drawRadarPosition(batukDataFromClient.doa_degree);
+          }
+        })
+        function drawRadarPosition(degreeProp = 0) {
+                const radarContainer = document.getElementById('radar-container');
+                const visualContainer = document.getElementById('radar-visual');
+                const indicatorLine = document.getElementById('indicator-line');
+                const detectionPoint = document.getElementById('detection-point');
+                const detectionGlow = document.getElementById('detection-glow');
+
+                radarContainer.style.display = '';
+
+                // Ambil nilai derajat dari data attribute
+                const degree = parseInt(degreeProp, 10);
+
+                // --- Konfigurasi dan Kalkulasi ---
+                const centerX = 200; // Titik X pusat pivot radar
+                const centerY = 200; // Titik Y pusat pivot radar
+                const radius = 180;  // Jarak titik deteksi dari pusat (sesuai busur terluar)
+
+                // Konversi derajat ke radian untuk fungsi Math.cos dan Math.sin
+                // Sudut 0 di SVG adalah jam 3. Kita ingin 0 derajat di kiri.
+                // Jadi, kita gunakan (180 - degree) untuk membalik arah.
+                const angleInRadians = (180 - degree) * Math.PI / 180;
+
+                // Hitung posisi X dan Y untuk ujung garis dan titik
+                const endX = centerX + radius * Math.cos(angleInRadians);
+                const endY = centerY - radius * Math.sin(angleInRadians); // Y dikurangi karena di SVG, Y=0 ada di atas
+
+                // --- Terapkan Transformasi ke Elemen SVG ---
+
+                // 1. Posisikan garis penunjuk
+                indicatorLine.setAttribute('x2', endX);
+                indicatorLine.setAttribute('y2', endY);
+
+                // 2. Posisikan titik deteksi
+                detectionPoint.setAttribute('cx', endX);
+                detectionPoint.setAttribute('cy', endY);
+
+                // 3. Posisikan efek glow
+                detectionGlow.setAttribute('cx', endX);
+                detectionGlow.setAttribute('cy', endY);
+            }
+      </script>
+      <script>
+        const AUDIOGRAM_CHART_OPTIONS = {
+          responsive: true,
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Frequency in Hertz (Hz)',
+                color: '#911',
+                font: {
+                  family: 'Times',
+                  size: 20,
+                  style: 'normal',
+                  lineHeight: 1.2
+                },
+                padding: {
+                  top: 30,
+                  left: 0,
+                  right: 0,
+                  bottom: 15
+                },
+
+              },
+              position: 'top'
+            },
+            y: {
+              id: 'A',
+              position: 'left',
+              type: 'linear',
+              display: true,
+              title: {
+                display: true,
+                position: 'left',
+                text: 'dB HL', //Hearing Level in dB
+                font: {
+                  size: 20,
+                  style: 'normal',
+                  lineHeight: 1.2
+                },
+                padding: {
+                  top: 30,
+                  left: 0,
+                  right: 0,
+                  bottom: 15
+                },
+              },
+              reverse: false, //true
+              min: 0,
+              max: 9
+            },
+          },
+          plugins: {
+            legend: {
+              display: true,
+              align: 'center',
+              position: 'bottom',
+              usePointStyle: true,
+            }
+          }
+        };
+      </script>
+
+      <style>
+        table {
+          font-family: arial, sans-serif;
+          border-collapse: collapse;
+          width: 100%;
+        }
+
+        td,
+        th {
+          border: 1px solid #dddddd;
+          text-align: left;
+          padding: 8px;
+          color: #000;
+        }
+
+        tr:nth-child(even) {
+          background-color: #dddddd;
+        }
+
+        .radar-container {
+            text-align: center;
+            padding-top: 20px;
+        }
+
+        #radar-visual svg {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+        }
+
+        .degree-display {
+            margin-top: 20px;
+            font-size: 1.5em;
+            color: #8892b0;
+        }
+
+        .degree-display span {
+            font-weight: bold;
+            color: #089bab; /* Warna highlight */
+        }
+      </style>
+      <!-- Footer -->
+      <%- include('../includes/footer.ejs') %>
+      <!-- Footer END -->
+    </div>
+  </div>
+  <!-- Wrapper END -->
+  <%- include('../includes/end.ejs') %>

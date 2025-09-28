@@ -166,6 +166,11 @@
                               <% } %>
                             </td>
                             <td>
+                              <% if (subrole == "sub2" || subrole == "master") { %>
+                                <a class="btn btn-primary mb-2" href="/admin/data-batuk-device-detail?uuid=<%= device_data[i].uuid %>">
+                                  Lihat Detail
+                                </a>
+                              <% } %>
                               <button class="btn btn-primary" onclick="cekSuaraBatuk('<%= parsedData.file_audio %>');">
                                 Cek Suara Batuk
                               </button>

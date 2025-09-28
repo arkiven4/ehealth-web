@@ -129,6 +129,13 @@ router.post(
   adminController.data_batuk_tbprimer_edit_post
 );
 
+router.get(
+  "/admin/data-batuk-device-detail",
+  auth.isAuth,
+  checkingRole.isAdmin,
+  adminController.data_batuk_device_detail
+);
+
 // data-batuk-device-edit
 router.get(
   "/admin/data-batuk-device-edit",

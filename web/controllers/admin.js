@@ -572,3 +572,20 @@ exports.coba = async (req, res, next) => {
     subrole: req.session.user.subrole,
   });
 };
+
+// Gemastik
+exports.data_batuk_device_detail = async (req, res, next) => { 
+  const batukData = await Device_Data_Cough.find({uuid: req.query.uuid});
+
+  const deviceData = await Device.find({device_id: batukData[0].device_id})
+
+  res.render("admin/data-batuk_device_detail", {
+    pageTitle: "E-Health Dashboard",
+    pageHeader: "Detail Data Batuk",
+    batukData: batukData,
+    deviceData: deviceData,
+    userdata: req.session.user,
+    role: req.session.user.role,
+    subrole: req.session.user.subrole,
+  });
+};
