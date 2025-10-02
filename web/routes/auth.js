@@ -12,6 +12,9 @@ router.get("/signup", auth.isUserEmpty, authController.getSignup);
 router.get("/reset", authController.getReset);
 router.get("/reset/:token", authController.getNewPassword);
 
+// Gemastik
+router.get("/adminv2/signin", authController.getLogin);
+
 router.post(
   "/login",
   [

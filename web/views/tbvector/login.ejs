@@ -1,0 +1,91 @@
+<%- include('../includes/head.ejs') %>
+        <!-- Sign in Start -->
+        <section class="login-page container-fluid">
+            <div class="login-banner">
+                <a class="login-logo mb-5" href="#"><img src="/images/tbvector/tbvector-logo.png" class="img-fluid" alt="logo"></a>
+                <img src="/images/tbvector/login-illustration.png" class="login-illustration img-fluid" alt="illustration">
+                <div class="bottom-messages text-center">
+                    <h5 class="mb-2">Welcome to TB Vector System</h5>
+                    <p class="mb-0">Smart Spatial Tracking of Tuberculosis Cough with Direction of Arrival & Inverse Beamforming</p>
+                </div>
+            </div>
+
+            <!-- Login FORM -->
+            <div class="sign-in-from">
+                <h1 class="title mb-0 font-title">Sign-in</h1>
+                <p class="description">Enter your email address and password to access admin panel.</p>
+                <form class="mt-4" action='/login?_csrf=<%= csrfToken %>' method='post'>
+                    <div class="form-group email-form">
+                        <label for="email">Email address</label>
+                        <input id="email" type="email" class="form-control mb-0" name="email" placeholder="Masukkan Email Disini" value="<%= oldInput.email %>">
+                    </div>
+                    <div class="form-group password-form">
+                        <label for="password">Password</label>
+                        <a href="#" class="float-right text-color-primary">Forgot password?</a>
+                        <input id="password" type="password" class="form-control mb-0" name="password" placeholder="Masukkan Password Disini" value="<%= oldInput.password %>">
+                    </div>
+                    <% if (errorMessage) { %>
+                        <div class="alert alert-danger" role="alert">
+                            <%= errorMessage %>
+                        </div>
+                    <% } %>
+                    <div class="form-submit d-inline-block w-100"> 
+                        <button type="submit" class="btn btn-submit">Sign in</button>
+                    </div>
+                    <% if (totalUser == 0) { %>
+                        <div class="sign-info">
+                            <span class="dark-color d-inline-block line-height-2">Don't have an account? <a href="/signup">Sign up</a></span>
+                        </div>
+                    <% } %>
+                </form>
+            </div>
+        </section>
+        <!-- <section class="sign-in-page">
+            <div class="container sign-in-page-bg">
+                <div class="row no-gutters">
+                    <div class="col-md-6 text-center">
+                        <div class="sign-in-detail text-white">
+                            <a class="sign-in-logo mb-5" href="#"><img src="/images/tbvector/tbvector-logo.png" class="img-fluid" alt="logo"></a>
+                            <img src="/images/tbvector/login-illustration.png" class="login-illustration img-fluid" alt="illustration">
+                            <div class="bottom-messages">
+                                <h5 class="mb-3">Welcome to TB Vector System</h5>
+                                <p class="mb-0">Smart Spatial Tracking of Tuberculosis Cough with Direction of Arrival & Inverse Beamforming</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 h-full position-relative">
+                        <div class="sign-in-from">
+                            <h1 class="title mb-0 font-title">Sign-in</h1>
+                            <p class="description">Enter your email address and password to access admin panel.</p>
+                            <form class="mt-4" action='/login?_csrf=<%= csrfToken %>' method='post'>
+                                <div class="form-group email-form">
+                                    <label for="email">Email address</label>
+                                    <input id="email" type="email" class="form-control mb-0" name="email" placeholder="Masukkan Email Disini" value="<%= oldInput.email %>">
+                                </div>
+                                <div class="form-group password-form">
+                                    <label for="password">Password</label>
+                                    <a href="#" class="float-right text-color-primary">Forgot password?</a>
+                                    <input id="password" type="password" class="form-control mb-0" name="password" placeholder="Masukkan Password Disini" value="<%= oldInput.password %>">
+                                </div>
+                                <% if (errorMessage) { %>
+                                    <div class="alert alert-danger" role="alert">
+                                        <%= errorMessage %>
+                                    </div>
+                                <% } %>
+                                <div class="form-submit d-inline-block w-100"> 
+                                    <button type="submit" class="btn btn-submit">Sign in</button>
+                                </div>
+                                <% if (totalUser == 0) { %>
+                                    <div class="sign-info">
+                                        <span class="dark-color d-inline-block line-height-2">Don't have an account? <a href="/signup">Sign up</a></span>
+                                    </div>
+                                <% } %>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section> -->
+        <!-- Sign in END -->
+
+<%- include('../includes/end.ejs') %>

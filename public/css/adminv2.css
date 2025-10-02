@@ -1,0 +1,255 @@
+@import url('https://fonts.googleapis.com/css?family=Playfair+Display:400,400i,700,700i,900,900i&display=swap');
+:root {
+  --primary-color: #077A7D;
+  --text-color-main: #06202B;
+  --bg-color: #F5EEDD;
+  --font-title: 'Playfair Display', serif;
+  --font-body: 'Poppins', sans-serif;
+}
+
+.font-title {
+  font-family: var(--font-title);
+  font-weight: bold;
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+.text-color-primary {
+  color: var(--primary-color);
+}
+.bg-color-primary {
+  background-color: var(--primary-color);
+}
+
+html, body {
+  height: 100%;
+}
+.login-page {
+  height: 100%;
+  position: relative;
+  padding-top: 20px;
+}
+.login-banner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background-color: var(--primary-color);
+  border-radius: 40px 40px 0 0;
+  margin-left: 0;
+  padding: 40px;
+}
+.login-banner .login-logo {
+  display: inline-block;
+  width: fit-content;
+}
+.login-banner .login-logo > img {
+  width: 100%;
+  max-width: 352px;
+  object-fit: contain;
+}
+.login-illustration {
+  width: 40%;
+  flex: 1;
+  max-width: 420px;
+  object-fit: contain;
+  display: none;
+}
+.bottom-messages h5 {
+  font-size: 24px;
+  font-family: var(--font-title);
+  font-weight: bold;
+  color: var(--bg-color);
+}
+.bottom-messages p {
+  font-size: 14px;
+  color: var(--bg-color);
+}
+
+.sign-in-from {
+  position: absolute !important;
+  z-index: 10;
+  top: 50%;
+  color: var(--text-color-main);
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  left: 50%;
+  width: 80svw;
+  right: auto;
+  transform: translate(-50%, -50%);
+}
+.sign-in-form .title {
+  font-size: 48px;
+}
+
+.sign-in-form .description {
+  font-size: 20px;
+}
+
+.form-submit .btn-submit {
+  width: 100%;
+  background: var(--primary-color);
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+}
+.form-submit .btn-submit:hover {
+  filter: brightness(80%);
+}
+.sign-in-from input {
+  border: 1px solid var(--text-color-main)
+}
+
+
+@media (min-width: 767px) {
+  .login-page {
+    padding: 48px 48px 0;
+  }
+  .login-banner {
+    padding: 20px 12px;
+    width: 75%;
+  }
+  .bottom-messages {
+    width: 80%;
+  }
+  .sign-in-from {
+    left: auto;
+    right: 48px;
+    width: 40svw;
+    max-width: 620px;
+    min-width: 320px;
+    padding: 16px 24px;
+  transform: translateY(-50%);
+  }
+  .login-illustration {
+    display: block
+  }
+  .bottom-messages h5 {
+    font-size: 36px;
+  }
+  .bottom-messages p {
+    font-size: 24px;
+  }
+}
+
+
+/* OLD */
+
+/* 
+.sign-in-page {
+  height: 100%;
+  max-height: 100svh;
+  overflow: hidden;
+}
+
+.sign-in-page-bg {
+  height: 100%;
+  padding-top: 2rem;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+.sign-in-page .sign-in-page-bg::after {
+  background: var(--primary-color);
+  border-radius: 40px 40px 0 0;
+  top: 64px;
+}
+.sign-in-page-bg > .row {
+  height: 100%;
+}
+
+.sign-in-logo > img {
+  object-fit: contain;
+}
+
+.login-illustration {
+  height: 100%;
+  width: auto;
+}
+
+.sign-in-from {
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-color-main);
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  padding: 20px 40px;
+}
+
+.sign-in-form .title {
+  font-size: 48px;
+}
+
+.sign-in-form .description {
+  font-size: 20px;
+}
+
+.form-submit .btn-submit {
+  width: 100%;
+  background: var(--primary-color);
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+}
+.form-submit .btn-submit:hover {
+  filter: brightness(80%);
+}
+.sign-in-from input {
+  border: 1px solid var(--text-color-main)
+}
+.sign-in-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-top: 40px;
+  padding-bottom: 16px;
+}
+.bottom-messages {
+  width: 200%;
+}
+.bottom-messages h5 {
+  font-size: 36px;
+  font-family: var(--font-title);
+  font-weight: bold;
+  color: var(--bg-color);
+}
+.bottom-messages p {
+  font-size: 28px;
+  color: var(--bg-color);
+}
+@media (min-width: 1200px){
+  .sign-in-page {
+    max-width: 90%;
+  }
+}
+@media (max-width: 768px) {
+  .sign-in-page .sign-in-page-bg {
+    overflow: auto;
+    max-height: fit-content;
+  }
+  .sign-in-page .sign-in-page-bg::after {
+    top: 32px;
+    bottom: 0;
+    border-radius: 24px 24px 0 0;
+  }
+  .sign-in-logo > img {
+    max-width: 240px;
+  }
+  .sign-in-from {
+    transform: none;
+    top: auto;
+    bottom: 0;
+  }
+  .login-illustration {
+    width: 50%;
+  }
+  .sign-in-detail {
+    padding: 24px 12px;
+  }
+}
+*/

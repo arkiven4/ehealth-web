@@ -14,7 +14,13 @@ exports.getLogin = (req, res, next) => {
     } else {
       message = null;
     }
-    res.render("auth/login", {
+
+    let styleVersion = "default";
+    if (req.originalUrl.startsWith("/adminv2")) {
+      styleVersion = "version2";
+    }
+
+    res.render(styleVersion === "version2" ? "tbvector/login" : "auth/login", {
       pageTitle: "Login",
       errorMessage: message,
       oldInput: {
@@ -23,6 +29,7 @@ exports.getLogin = (req, res, next) => {
       },
       validationErrors: [],
       totalUser: count,
+      styleVersion: styleVersion,
     });
   });
 };
