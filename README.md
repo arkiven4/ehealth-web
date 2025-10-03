@@ -21,6 +21,10 @@ sudo pacman -S docker docker-compose
 then try to run using minimum setting:
 
 ```sh
+lsblk -f
+sudo mount /dev/sdb1 /mnt/Data1
+sudo mount --bind /mnt/Data1/ServerMisc/ehealth-web/ /srv/ehealth-web/
+
 sudo groupadd -f docker
 sudo gpasswd -a $USER docker
 
@@ -29,6 +33,9 @@ newgrp docker
 
 sudo systemctl enable docker.service
 sudo systemctl start docker.service
+
+sudo chown -R $USER:docker ./public/uploads
+sudo chmod -R 775 ./public/uploads
 ```
 
 ### Change Docker Root Path
