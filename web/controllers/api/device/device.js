@@ -136,7 +136,7 @@ exports.sendData_TBPrimer = async (req, res, next) => {
     if (req.files) {
       if (req.files.length != 0) {
         tempJsonData.file_audio = req.files[0].filename + "." + req.files[0].originalname.split(".")[1];
-        handleUploadFile(req.files[0], "./public/uploads/batuk/");
+        handleUploadFile(req.files[0], "./public/uploads/batuk_tbprimer/");
   
         const device = await device_data_coughTBPrimerSchema.create({ uuid: uniqueID, device_id: req.params.device_id, json_data: JSON.stringify(tempJsonData), cough_type: tempJsonData.cough_type, cough: 99});
         if (device) {

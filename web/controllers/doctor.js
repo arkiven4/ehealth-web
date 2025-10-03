@@ -199,7 +199,14 @@ exports.tbcare_predict_form = async (req, res, next) => {
       userdata: req.session.user,
       patients: patients,
       coughFiles: allFiles,
-      audioFolders: audioFolders
+      audioFolders: audioFolders,
+      // Add these lines to fix the error
+      errorMessage: req.flash('error'),
+      hasResult: false, 
+      predictionResult: null,
+      predictionDetail: null,
+      waveform: null,
+      mfcc: null,
     });
   } catch (error) {
     console.log(error);

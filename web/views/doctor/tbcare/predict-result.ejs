@@ -1,0 +1,114 @@
+<%- include('../../includes/head.ejs') %>
+</head>
+<body>
+<div class="wrapper">
+    <%- include('../../includes/navigations-tbcare.ejs') %>
+    <div id="content-page" class="content-page">
+        <%- include('../../includes/top-navbar.ejs') %>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="iq-card">
+                        <div class="iq-card-header d-flex justify-content-between">
+                            <div class="iq-header-title"><h4 class="card-title">Hasil Prediksi Audio Batuk</h4></div>
+                        </div>
+                        <div class="iq-card-body">
+                            <!-- Informasi Pasien -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Informasi Pasien</h5>
+                                    <p><strong>Nama:</strong> <%= patient.fullName.first %> <%= patient.fullName.last %><br>
+                                    <strong>ID Peserta:</strong> <%= patient.tbcareProfile ? patient.tbcareProfile.participantId : 'N/A' %><br>
+                                    <strong>File Audio:</strong> <%= audioFile.split('/').pop() %></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Hasil Akhir</h5>
+                                    <h3 class="card-text">Prediksi: 
+                                        <span class="font-weight-bold <%= prediction === 'TB' ? 'text-danger' : 'text-success' %>">
+                                            <%= prediction %>
+                                        </span>
+                                    </h3>
+                                    <p>
+                                        <strong>Kondisi Sputum:</strong> <%= sputumCondition %><br>
+                                        <strong>Detail Segmen:</strong> <%= detail.tb_segments %> TB, <%= detail.non_tb_segments %> Non-TB (dari total <%= detail.total_segments %> segmen batuk valid).
+                                    </p>
+                                </div>
+                            </div>
+                            <hr>
+                            <!-- Tombol Aksi -->
+                            <div class="d-flex justify-content-end">
+                                <a href="/tbcare/predict" class="btn iq-bg-secondary mr-2">Cek Data Lain</a>
+                                <form action="/tbcare/save-prediction" method="POST">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="patientId" value="<%= patient._id %>">
+                                    <input type="hidden" name="audioFile" value="<%= audioFile %>">
+                                    <input type="hidden" name="sputumCondition" value="<%= sputumCondition %>">
+                                    <input type="hidden" name="result" value="<%= prediction %>">
+                                    <input type="hidden" name="tbSegmentCount" value="<%= detail.tb_segments %>">
+                                    <input type="hidden" name="nonTbSegmentCount" value="<%= detail.non_tb_segments %>">
+                                    <input type="hidden" name="totalCoughSegments" value="<%= detail.total_segments %>">
+                                    <button type="submit" class="btn btn-primary">Simpan Hasil Prediksi</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualisasi -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="iq-card">
+                        <div class="iq-card-header"><h4 class="card-title">Visualisasi Waveform</h4></div>
+                        <div class="iq-card-body">
+                            <div id="waveform-visualization" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="iq-card">
+                        <div class="iq-card-header"><h4 class="card-title">Visualisasi MFCC</h4></div>
+                        <div class="iq-card-body">
+                            <div id="mfcc-visualization" style="height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <%- include('../../includes/footer.ejs') %>
+    </div>
+</div>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        try {
+            const waveData = JSON.parse('<%- waveform %>');
+            const mfccData = JSON.parse('<%- mfcc %>');
+
+            if (waveData) {
+                Plotly.newPlot('waveform-visualization', [{ y: waveData, type: 'line', line: { color: '#007bff' } }], {
+                    title: 'Amplitudo Audio',
+                    xaxis: { title: 'Sampel (waktu)' },
+                    yaxis: { title: 'Amplitudo' }
+                });
+            }
+
+            if (mfccData) {
+                Plotly.newPlot('mfcc-visualization', [{
+                    z: mfccData,
+                    type: 'heatmap',
+                    colorscale: 'Jet'
+                }], {
+                    title: 'Heatmap MFCC',
+                    xaxis: { title: 'Frame Waktu' },
+                    yaxis: { title: 'Koefisien MFCC' }
+                });
+            }
+        } catch (e) {
+            console.error('Gagal membuat visualisasi:', e);
+            document.getElementById('waveform-visualization').innerHTML = '<p class="text-danger">Gagal memuat data visualisasi waveform.</p>';
+            document.getElementById('mfcc-visualization').innerHTML = '<p class="text-danger">Gagal memuat data visualisasi MFCC.</p>';
+        }
+    });
+</script>
+<%- include('../../includes/end.ejs') %>
