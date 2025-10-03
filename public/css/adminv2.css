@@ -1,11 +1,19 @@
-@import url('https://fonts.googleapis.com/css?family=Playfair+Display:400,400i,700,700i,900,900i&display=swap');
+@import url("https://fonts.googleapis.com/css?family=Playfair+Display:400,400i,700,700i,900,900i&display=swap");
+@import url("https://fonts.googleapis.com/css?family=Nunito:400,600,700&display=swap");
 :root {
-  --primary-color: #077A7D;
-  --text-color-main: #06202B;
-  --bg-color: #F5EEDD;
-  --font-title: 'Playfair Display', serif;
-  --font-body: 'Poppins', sans-serif;
+  --primary-color: #077a7d;
+  --warning-color: #ff8d28;
+  --danger-color: #ff383c;
+  --text-color-main: #06202b;
+  --bg-color: #f5eedd;
+  --secondary-bg-color: #e4f9f5;
+  --font-title: "Playfair Display", serif;
+  --font-body: "Poppins", sans-serif;
 }
+
+/*--------------------------------------------------------------------
+                            General
+---------------------------------------------------------------------*/
 
 .font-title {
   font-family: var(--font-title);
@@ -21,10 +29,63 @@
 .bg-color-primary {
   background-color: var(--primary-color);
 }
+.text-primary {
+  color: var(--primary-color);
+}
+.bg-primary {
+  background-color: var(--primary-color) !important;
+}
 
-html, body {
+
+html,
+body {
   height: 100%;
 }
+
+.btn-primary {
+  background: var(--primary-color);
+  border: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Nunito", sans-serif;
+  font-weight: 400;
+  margin: 0px;
+  line-height: 1.5;
+  color: var(--text-color-main);
+}
+
+.nav-card {
+  border-radius: 20px;
+  background: linear-gradient(
+    122deg,
+    var(--white, #fff) 30.71%,
+    var(--Primary, #7ae2cf) 237.82%
+  );
+  filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.25));
+}
+.nav-card .btn {
+  width: 100%;
+}
+.nav-card .iq-doc-info > h4 {
+  font-weight: 700;
+}
+
+/* active tab */
+.iq-edit-profile.nav-pills .nav-link.active,
+.iq-edit-profile.nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: var(--primary-color);
+}
+/*--------------------------------------------------------------------
+                            Login Page
+---------------------------------------------------------------------*/
+
 .login-page {
   height: 100%;
   position: relative;
@@ -101,9 +162,8 @@ html, body {
   filter: brightness(80%);
 }
 .sign-in-from input {
-  border: 1px solid var(--text-color-main)
+  border: 1px solid var(--text-color-main);
 }
-
 
 @media (min-width: 767px) {
   .login-page {
@@ -123,10 +183,10 @@ html, body {
     max-width: 620px;
     min-width: 320px;
     padding: 16px 24px;
-  transform: translateY(-50%);
+    transform: translateY(-50%);
   }
   .login-illustration {
-    display: block
+    display: block;
   }
   .bottom-messages h5 {
     font-size: 36px;
@@ -136,120 +196,166 @@ html, body {
   }
 }
 
+/*--------------------------------------------------------------------
+                            Layout Admin
+---------------------------------------------------------------------*/
 
-/* OLD */
-
-/* 
-.sign-in-page {
-  height: 100%;
-  max-height: 100svh;
-  overflow: hidden;
-}
-
-.sign-in-page-bg {
-  height: 100%;
-  padding-top: 2rem;
-  padding-left: 40px;
-  padding-right: 40px;
-}
-
-.sign-in-page .sign-in-page-bg::after {
+body > .wrapper {
   background: var(--primary-color);
-  border-radius: 40px 40px 0 0;
-  top: 64px;
 }
-.sign-in-page-bg > .row {
-  height: 100%;
+.content-page {
+  background: var(--secondary-bg-color);
+  border-radius: 0;
 }
-
-.sign-in-logo > img {
-  object-fit: contain;
-}
-
-.login-illustration {
-  height: 100%;
-  width: auto;
+.home-admin {
+  display: flex;
+  flex-direction: column;
 }
 
-.sign-in-from {
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-color-main);
-  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2);
+.iq-top-navbar {
+  flex: 1;
+  margin: 0;
+  left: 260px;
+  border-radius: 0;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+  width: calc(100% - 260px);
+}
+@media (max-width: 1299px) {
+  .iq-top-navbar {
+    left: 0;
+    width: 100%;
+  }
+}
+.iq-top-navbar .card-title {
+  font-family: var(--font-title);
+  font-size: 28px;
+  font-weight: 700;
+  padding: 24px 0;
+}
+.iq-top-navbar .iq-search-bar {
+  padding: 0 30px;
+}
+.navbar-list li:last-child > a {
+  padding-right: 30px;
+}
+.navbar-list li:last-child > a h6 {
+  font-family: "Nunito", sans-serif;
+  font-size: 24px;
+  text-transform: capitalize;
+}
+.navbar-list li:last-child > a .caption span {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 2px 8px;
+  font-size: 14px;
+  border-radius: 6px;
+  background: var(--primary-color);
+  color: var(--bg-color);
+}
+
+@media (max-width: 1699px) {
+  .iq-top-navbar .iq-search-bar .searchbox {
+    width: fit-content;
+  }
+  body.sidebar-main .iq-sidebar {
+    background: var(--primary-color);
+  }
+}
+
+.iq-footer .copyright-text a {
+  color: var(--primary-color);
+}
+
+/*--------------------------------------------------------------------
+                            Home Admin
+---------------------------------------------------------------------*/
+
+.device-count .iq-card-body {
   border-radius: 20px;
-  padding: 20px 40px;
+  background: linear-gradient(
+    100deg,
+    var(--Secondary, #077a7d) -17.58%,
+    var(--Text-Color, #06202b) 179.7%
+  ) !important;
+  filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.25));
+}
+.device-count .iq-card-body span {
+  font-size: 36px;
+}
+.device-count .iq-card-body span,
+.device-count .iq-card-body h5 {
+  color: white;
+  font-weight: 700;
+}
+.device-count .bg-success {
+  background: white !important;
+  color: var(--primary-color);
 }
 
-.sign-in-form .title {
-  font-size: 48px;
+.home-divider-navigation {
+  border-radius: 12px;
+  background: linear-gradient(0deg, #fff 0%, #fff 100%);
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2);
+  margin-top: 40px;
+}
+.home-divider-navigation .card-title {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 24px;
 }
 
-.sign-in-form .description {
+/*--------------------------------------------------------------------
+                            Device List
+---------------------------------------------------------------------*/
+.device-list__filter-card {
+  border-radius: 12px;
+  background: linear-gradient(0deg, #fff 0%, #fff 100%);
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2);
+}
+
+.device-list__filter-card .iq-search-bar {
+  padding: 0;
+}
+.device-list__summary-cards .iq-card {
+  border-radius: 20px;
+  filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.25));
+  background: transparent;
+}
+@media (min-width: 992px) {
+  .device-list__summary-cards .col-lg-3 {
+    -ms-flex: 0 0 33%;
+    flex: 0 0 33%;
+    max-width: 33%;
+  }
+}
+.device-list__summary-cards .iq-card .iq-card-body .counter {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: normal;
+}
+.device-list__summary-cards .iq-card .iq-card-body h5 {
   font-size: 20px;
 }
 
-.form-submit .btn-submit {
-  width: 100%;
-  background: var(--primary-color);
-  padding: 12px;
-  font-size: 16px;
-  font-weight: 500;
-  color: white;
+.device-list__summary-cards .iq-card .iq-bg-primary {
+  background: linear-gradient(
+    53deg,
+    #fff 47.7%,
+    var(--Primary, #7ae2cf) 274.11%
+  ) !important;
 }
-.form-submit .btn-submit:hover {
-  filter: brightness(80%);
+.device-list__summary-cards .iq-card .bg-success {
+  background: var(--primary-color) !important;
 }
-.sign-in-from input {
-  border: 1px solid var(--text-color-main)
+.device-list__summary-cards .iq-card .iq-bg-warning {
+  background: linear-gradient(53deg, #fff 47.7%, #ff8d28 274.11%) !important;
 }
-.sign-in-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  padding-top: 40px;
-  padding-bottom: 16px;
+.device-list__summary-cards .iq-card .bg-warning {
+  background: var(--warning-color) !important;
 }
-.bottom-messages {
-  width: 200%;
+.device-list__summary-cards .iq-card .iq-bg-danger {
+  background: linear-gradient(53deg, #fff 47.7%, #ff383c 274.11%) !important;
 }
-.bottom-messages h5 {
-  font-size: 36px;
-  font-family: var(--font-title);
-  font-weight: bold;
-  color: var(--bg-color);
+.device-list__summary-cards .iq-card .bg-danger {
+  background: var(--danger-color) !important;
 }
-.bottom-messages p {
-  font-size: 28px;
-  color: var(--bg-color);
-}
-@media (min-width: 1200px){
-  .sign-in-page {
-    max-width: 90%;
-  }
-}
-@media (max-width: 768px) {
-  .sign-in-page .sign-in-page-bg {
-    overflow: auto;
-    max-height: fit-content;
-  }
-  .sign-in-page .sign-in-page-bg::after {
-    top: 32px;
-    bottom: 0;
-    border-radius: 24px 24px 0 0;
-  }
-  .sign-in-logo > img {
-    max-width: 240px;
-  }
-  .sign-in-from {
-    transform: none;
-    top: auto;
-    bottom: 0;
-  }
-  .login-illustration {
-    width: 50%;
-  }
-  .sign-in-detail {
-    padding: 24px 12px;
-  }
-}
-*/

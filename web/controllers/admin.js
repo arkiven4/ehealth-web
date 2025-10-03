@@ -29,6 +29,13 @@ exports.home = async (req, res, next) => {
   const deviceDataList = await Device.find({
     admin: req.session.user._id,
   });
+
+  // style version using sub-role for adminv2 (Gemastik)
+  let styleVersion = "default";
+  if (req.session.user.subrole === "sub2") {
+    styleVersion = "version2";
+  }
+
   //console.log(req.session.user);
   res.render("admin/home-admin", {
     pageTitle: "E-Health Dashboard",
@@ -40,6 +47,7 @@ exports.home = async (req, res, next) => {
     totalDoctor: doctorData.length,
     totalDevice: deviceDataList.length,
     doctor: doctorData,
+    styleVersion: styleVersion,
   });
 };
 
@@ -72,8 +80,9 @@ exports.device_list = async (req, res, next) => {
     admin: req.session.user._id,
   });
 
+  // style version using sub-role for adminv2 (Gemastik)
   let styleVersion = "default";
-  if (req.originalUrl.startsWith("/adminv2")) {
+  if (req.session.user.subrole === "sub2") {
     styleVersion = "version2";
   }
 
@@ -104,6 +113,13 @@ exports.device_detail = async (req, res, next) => {
       device_id: device_id,
     }).sort({ time: "desc" });
   }
+  
+  // style version using sub-role for adminv2 (Gemastik)
+  let styleVersion = "default";
+  if (req.session.user.subrole === "sub2") {
+    styleVersion = "version2";
+  }
+
   res.render("admin/device-detail", {
     pageTitle: "E-Health Dashboard",
     pageHeader: "Device Detail: " + device_id,
@@ -112,6 +128,7 @@ exports.device_detail = async (req, res, next) => {
     device_data: deviceData_Datas,
     role: req.session.user.role,
     subrole: req.session.user.subrole,
+    styleVersion: styleVersion,
   });
 };
 
@@ -126,12 +143,18 @@ exports.add_doctor = async (req, res, next) => {
 };
 
 exports.add_device = async (req, res, next) => {
+  // style version using sub-role for adminv2 (Gemastik)
+  let styleVersion = "default";
+  if (req.session.user.subrole === "sub2") {
+    styleVersion = "version2";
+  }
   res.render("admin/add-device", {
     pageTitle: "E-Health Dashboard",
     pageHeader: "Add Device",
     role: req.session.user.role,
     subrole: req.session.user.subrole,
     userdata: req.session.user,
+    styleVersion: styleVersion,
   });
 };
 
@@ -151,6 +174,12 @@ exports.data_batuk = async (req, res, next) => {
   //   .filter((dirent) => dirent.isDirectory())
   //   .map((dirent) => dirent.name);
 
+  // style version using sub-role for adminv2 (Gemastik)
+  let styleVersion = "default";
+  if (req.session.user.subrole === "sub2") {
+    styleVersion = "version2";
+  }
+
   res.render("admin/data-batuk", {
     pageTitle: "E-Health Dashboard",
     pageHeader: "Data Batuk",
@@ -163,6 +192,7 @@ exports.data_batuk = async (req, res, next) => {
     totalCount: batukData_count,
     role: req.session.user.role,
     subrole: req.session.user.subrole,
+    styleVersion: styleVersion,
   });
 };
 
@@ -282,6 +312,12 @@ exports.data_batuk_tbprimer = async (req, res, next) => {
     .limit(resultsPerPage)
     .skip(resultsPerPage * (page - 1));
 
+  // style version using sub-role for adminv2 (Gemastik)
+  let styleVersion = "default";
+  if (req.session.user.subrole === "sub2") {
+    styleVersion = "version2";
+  }
+
   res.render("admin/data-batuk_tbprimer", {
     pageTitle: "E-Health Dashboard",
     pageHeader: "Data Batuk",
@@ -294,11 +330,18 @@ exports.data_batuk_tbprimer = async (req, res, next) => {
     totalCount: batukData_count,
     role: req.session.user.role,
     subrole: req.session.user.subrole,
+    styleVersion: styleVersion,
   });
 };
 
 exports.data_batuk_tbprimer_edit = async (req, res, next) => { 
   const batukData = await Device_Data_TBPrimer.find({uuid: req.query.uuid});
+
+  // style version using sub-role for adminv2 (Gemastik)
+  let styleVersion = "default";
+  if (req.session.user.subrole === "sub2") {
+    styleVersion = "version2";
+  }
 
   res.render("admin/data-batuk_tbprimer_edit", { 
     pageTitle: "E-Health Dashboard",
@@ -307,6 +350,7 @@ exports.data_batuk_tbprimer_edit = async (req, res, next) => {
     userdata: req.session.user,
     role: req.session.user.role,
     subrole: req.session.user.subrole,
+    styleVersion: styleVersion,
   });
 };
 
@@ -330,6 +374,12 @@ exports.data_batuk_tbprimer_edit_post = async (req, res, next) => {
 exports.data_batuk_device_edit = async (req, res, next) => { 
   const batukData = await Device_Data_Cough.find({uuid: req.query.uuid});
 
+  // style version using sub-role for adminv2 (Gemastik)
+  let styleVersion = "default";
+  if (req.session.user.subrole === "sub2") {
+    styleVersion = "version2";
+  }
+
   res.render("admin/data-batuk_device_edit", {
     pageTitle: "E-Health Dashboard",
     pageHeader: "Edit Data Batuk",
@@ -337,6 +387,7 @@ exports.data_batuk_device_edit = async (req, res, next) => {
     userdata: req.session.user,
     role: req.session.user.role,
     subrole: req.session.user.subrole,
+    styleVersion: styleVersion,
   });
 };
 
@@ -579,6 +630,12 @@ exports.data_batuk_device_detail = async (req, res, next) => {
 
   const deviceData = await Device.find({device_id: batukData[0].device_id})
 
+  // style version using sub-role for adminv2 (Gemastik)
+  let styleVersion = "default";
+  if (req.session.user.subrole === "sub2") {
+    styleVersion = "version2";
+  }
+
   res.render("admin/data-batuk_device_detail", {
     pageTitle: "E-Health Dashboard",
     pageHeader: "Detail Data Batuk",
@@ -587,5 +644,6 @@ exports.data_batuk_device_detail = async (req, res, next) => {
     userdata: req.session.user,
     role: req.session.user.role,
     subrole: req.session.user.subrole,
+    styleVersion: styleVersion
   });
 };

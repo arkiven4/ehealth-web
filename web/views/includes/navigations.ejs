@@ -1,8 +1,12 @@
 <div class="iq-sidebar">
     <div class="iq-sidebar-logo d-flex justify-content-between">
-       <a href="index.html">
-       <img src="/images/logo.png" class="img-fluid" alt="">
-       <span>E-Health</span>
+       <a href="/admin">
+         <% if (subrole == "sub2") { %>
+         <img src="/images/tbvector/tbvector-logo.png" class="img-fluid mb-4" alt="">
+         <% } else { %>
+         <img src="/images/logo.png" class="img-fluid" alt="">
+         <span>E-Health</span>
+         <% } %>
        </a>
        <div class="iq-menu-bt-sidebar">
             <div class="iq-menu-bt align-self-center">
@@ -48,11 +52,15 @@
                   <a href="/admin/add-doctor" class="iq-waves-effect"><i class="ri-user-add-fill"></i><span>Add Doctor</span></a>
                </li>
                <% } %> 
+
+               <% if (subrole == "sub1" || subrole == "master") { %>
                <li class="iq-menu-title"><i class="ri-subtract-line"></i><span>Patient</span></li>
                <li class="iq-menu-title"><i class="ri-subtract-line"></i><span>Vibio</span></li>
                <li id="pasien-vibio">
                   <a href="/admin/vibio/user-list" class="iq-waves-effect"><i class="ri-user-add-fill"></i><span>Data Pasien</span></a>
                </li>
+               <% } %> 
+
             <% } %> 
             <% if (role == "doctor") { %>
                <li id="home-doctor">

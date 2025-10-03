@@ -15,6 +15,7 @@ exports.getLogin = (req, res, next) => {
       message = null;
     }
 
+    // style version for adminv2 (Gemastik)
     let styleVersion = "default";
     if (req.originalUrl.startsWith("/adminv2")) {
       styleVersion = "version2";

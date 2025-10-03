@@ -8,14 +8,15 @@
       <!-- Sidebar  -->
       <%- include('../includes/navigations.ejs') %>
       <!-- Page Content  -->
-      <div id="content-page" class="content-page">
+      <div id="content-page" class="content-page home-admin">
          <!-- TOP Nav Bar -->
          <%- include('../includes/top-navbar.ejs') %>
          <!-- TOP Nav Bar END -->
          <div class="container-fluid">
             <div class="row">
                <div class="col-lg-12">
-                  <div class="row">
+                  <div class="row summary-cards">
+                     <% if (subrole == "sub1" || subrole == "master") { %>
                      <div class="col-md-6 col-lg-3">
                         <div class="iq-card iq-card-block iq-card-stretch iq-card-height">
                            <div class="iq-card-body iq-bg-primary rounded">
@@ -68,7 +69,8 @@
                            </div>
                         </div>
                      </div>
-                     <div class="col-md-6 col-lg-3">
+                     <% } %>
+                     <div class="col-md-6 col-lg-3 device-count">
                         <div class="iq-card iq-card-block iq-card-stretch iq-card-height">
                            <div class="iq-card-body iq-bg-danger rounded">
                               <div class="d-flex align-items-center justify-content-between">
@@ -84,7 +86,7 @@
                   </div>
                </div>
                <div class="col-sm-12">
-                  <div class="iq-card">
+                  <div class="iq-card home-divider-navigation">
                      <div class="iq-card-header d-flex justify-content-between">
                         <div class="iq-header-title">
                            <h4 class="card-title">Navigation</h4>
@@ -92,6 +94,8 @@
                      </div>
                   </div>
                </div>
+
+               <% if (subrole == "sub1" || subrole == "master") { %>
                <div class="col-sm-6 col-md-3">
                   <div class="iq-card">
                      <div class="iq-card-body text-center">
@@ -112,8 +116,10 @@
                      </div>
                   </div>
                </div>
+               <% } %>
+
                <div class="col-sm-6 col-md-3">
-                  <div class="iq-card">
+                  <div class="iq-card home-device-nav">
                      <div class="iq-card-body text-center">
                         <div class="doc-profile">
                            <div class="rounded-circle iq-card-icon bg-success"><i class="ri-cpu-line"></i></div>
