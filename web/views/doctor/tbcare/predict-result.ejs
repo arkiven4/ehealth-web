@@ -17,9 +17,18 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <h5>Informasi Pasien</h5>
-                                    <p><strong>Nama:</strong> <%= patient.fullName.first %> <%= patient.fullName.last %><br>
-                                    <strong>ID Peserta:</strong> <%= patient.tbcareProfile ? patient.tbcareProfile.participantId : 'N/A' %><br>
-                                    <strong>File Audio:</strong> <%= audioFile.split('/').pop() %></p>
+                                    <p>
+                                        <%# Perbaikan: Tambahkan pengecekan untuk fullName %>
+                                        <strong>Nama:</strong> 
+                                        <% if (patient.fullName && patient.fullName.first) { %>
+                                            <%= patient.fullName.first %> <%= patient.fullName.last %>
+                                        <% } else { %>
+                                            <%= patient.userName || 'Nama tidak tersedia' %>
+                                        <% } %>
+                                        <br>
+                                        <strong>ID Peserta:</strong> <%= patient.tbcareProfile ? patient.tbcareProfile.participantId : 'N/A' %><br>
+                                        <strong>File Audio:</strong> <%= audioFile.split('/').pop() %>
+                                    </p>
                                 </div>
                                 <div class="col-md-6">
                                     <h5>Hasil Akhir</h5>

@@ -9,28 +9,30 @@ import tensorflow_hub as hub
 import librosa
 import json
 from copy import deepcopy
-import speechproc 
+import speechproc
+from scipy.signal import lfilter
 
-# --- Konfigurasi Path ---
-# Pastikan path ini benar relatif terhadap lokasi eksekusi skrip
-MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'models_tbcare', 'model2.keras')
-SCALER_PATH = os.path.join(os.path.dirname(__file__), '..', 'models_tbcare', 'scaler2.pkl')
-YAMNET_MAP_PATH = os.path.join(os.path.dirname(__file__), 'yamnet_class_map.csv')
+script_dir = os.path.dirname(os.path.abspath(__file__))
+print(f"Script directory: {script_dir}")
+MODEL_PATH = os.path.join('python-script', 'models_tbcare', 'model2.keras')
+SCALER_PATH = os.path.join('python-script', 'models_tbcare', 'scaler2.pkl')
+YAMNET_MAP_PATH = os.path.join(script_dir, 'yamnet_class_map.csv')
 
-
-# --- Blok Loading Model ---
+print(MODEL_PATH)
 try:
-    model = tf.keras.models.load_model(MODEL_PATH, custom_objects={'TFSMLayer': hub.KerasLayer})
+    with open(f"{MODEL_PATH}/config.json") as f:
+        config = json.load(f)
+    model = tf.keras.models.model_from_json(json.dumps(config),
+                                            custom_objects={'TFSMLayer': hub.KerasLayer})
+    model.load_weights(f"{MODEL_PATH}/model.weights.h5")
+    
     scaler = joblib.load(SCALER_PATH)
     yamnet_model = hub.load("https://tfhub.dev/google/yamnet/1")
     class_names = list(pd.read_csv(YAMNET_MAP_PATH)['display_name'])
 except Exception as e:
-    # Mengirim error sebagai JSON agar bisa ditangkap oleh Node.js
-    print(json.dumps({"status": "error", "message": f"Error loading models: {e}"}))
+    print(json.dumps({"status": "error", "message": f"Error loading models or dependencies: {e}"}))
     sys.exit(1)
 
-# --- Fungsi-fungsi yang sudah ada (getVad, segment_audio, validate_cough, extract_features) ---
-# ... (Salin semua fungsi dari getVad hingga extract_features dari skrip asli Anda ke sini tanpa perubahan) ...
 def getVad(data, fs):
     winlen, ovrlen, pre_coef, nfilter, nftt = 0.025, 0.01, 0.97, 20, 512
     ftThres = 0.5
@@ -77,7 +79,7 @@ def validate_cough(waveform, sr=16000):
     scores_np = scores.numpy()
     cough_index = class_names.index('Cough')
     cough_score = float(np.max(scores_np[:, cough_index]))
-    return 1 if cough_score > 0.5 else -1 # 1=Cough, -1=Not Cough
+    return 1 if cough_score > 0.5 else -1
 
 def extract_features(segments, sr):
     X_all = []
@@ -100,23 +102,15 @@ def extract_features(segments, sr):
 
 def process_and_predict(file_path):
     output = {}
-
-    # 1. Muat audio asli untuk visualisasi
     y, sr_orig = librosa.load(file_path, sr=None)
     output["waveform"] = y[::10].tolist()
-    
-    # Ekstrak MFCC dari audio asli untuk visualisasi
     mfccs_visual = librosa.feature.mfcc(y=y, sr=sr_orig, n_mfcc=13)
     output["mfcc"] = mfccs_visual.tolist()
-
-    # 2. Lanjutkan dengan logika prediksi yang sudah ada
     if not file_path.lower().endswith(('.wav', '.mp3', '.ogg')):
         return {"status": "error", "message": "Format file tidak didukung."}
-
     segments, sr = segment_audio(file_path)
     if len(segments) == 0:
         return {"status": "error", "message": "Tidak ada segmen audio yang ditemukan."}
-        
     cough_scores = []
     for seg in segments:
         if len(seg) > 0:
@@ -124,26 +118,19 @@ def process_and_predict(file_path):
             cough_scores.append(is_cough)
         else:
             cough_scores.append(-1)
-
     if not any(score == 1 for score in cough_scores):
         return {"status": "error", "message": "Tidak ada segmen batuk yang valid."}
-
     valid_segments = [seg for seg, score in zip(segments, cough_scores) if score == 1]
-    
     if not valid_segments:
         return {"status": "error", "message": "Tidak ada segmen batuk setelah validasi."}
-
     features = extract_features(valid_segments, sr)
-    
     predictions = []
     for feat in features:
         feat_scaled = scaler.transform(feat.reshape(1, -1))
         feat_reshaped = feat_scaled.reshape((1, 1, feat_scaled.shape[1]))
         pred = model.predict(feat_reshaped, verbose=0)[0][0]
         predictions.append(pred)
-
     tb_count = sum(1 for p in predictions if p > 0.5)
-    
     output["status"] = "success"
     output["prediction"] = "TB" if tb_count > 0 else "NON-TB"
     output["detail"] = {
@@ -151,16 +138,17 @@ def process_and_predict(file_path):
         "non_tb_segments": len(predictions) - tb_count,
         "total_segments": len(predictions)
     }
-    
     return output
 
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        audio_file_path = sys.argv[1]
-        try:
-            result = process_and_predict(audio_file_path)
-            print(json.dumps(result))
-        except Exception as e:
-            print(json.dumps({"status": "error", "message": str(e)}))
-    else:
-        print(json.dumps({"status": "error", "message": "No audio file path provided."}))
+if len(sys.argv) > 1:
+    audio_file_path = sys.argv[1]
+    try:
+        if not os.path.isabs(audio_file_path):
+            audio_file_path = os.path.abspath(audio_file_path)
+        
+        result = process_and_predict(audio_file_path)
+        print(json.dumps(result))
+    except Exception as e:
+        print({"status": "error", "message": str(e)})
+else:
+    print(json.dumps({"status": "error", "message": "No audio file path provided."}))

@@ -7,7 +7,6 @@ const apiControllerDevice = require("../controllers/api/device/device");
 const apiTerapiController = require("../controllers/api/vibio/terapi");
 const apiVibioRecognitionController = require("../controllers/api/vibio/recognition");
 const isAuthApi = require('../middlewares/is-aut-user-api');
-
 const router = express.Router();
 
 //Auth API
@@ -36,6 +35,8 @@ router.post('/api/vibio/check_recognitionServer', apiVibioRecognitionController.
 //General Api
 router.post('/api/submit-data-batuk', isAuthApi ,  upload.any() , apiController.submit_data_batuk);
 
-
+// TBcare API mobile
+// router.post('/api/tbcare/mobile_login', apiController.mobile_login);
+// router.get('/api/tbcare/mobile_infoUser', isAuthApi, apiController.mobile_infoUser);
 
 module.exports = router;
