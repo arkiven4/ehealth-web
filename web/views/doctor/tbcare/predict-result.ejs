@@ -7,46 +7,84 @@
         <%- include('../../includes/top-navbar.ejs') %>
         <div class="container-fluid">
             <div class="row">
+                <!-- Main Result Card -->
                 <div class="col-lg-12">
                     <div class="iq-card">
                         <div class="iq-card-header d-flex justify-content-between">
-                            <div class="iq-header-title"><h4 class="card-title">Hasil Prediksi Audio Batuk</h4></div>
+                            <div class="iq-header-title">
+                                <h4 class="card-title">Hasil Prediksi Audio Batuk</h4>
+                            </div>
                         </div>
                         <div class="iq-card-body">
-                            <!-- Informasi Pasien -->
+                            <!-- Patient and Prediction Info -->
                             <div class="row">
                                 <div class="col-md-6">
                                     <h5>Informasi Pasien</h5>
-                                    <p>
-                                        <%# Perbaikan: Tambahkan pengecekan untuk fullName %>
-                                        <strong>Nama:</strong> 
+                                    <p class="mb-1">
+                                        <strong>Nama:</strong>
                                         <% if (patient.fullName && patient.fullName.first) { %>
                                             <%= patient.fullName.first %> <%= patient.fullName.last %>
                                         <% } else { %>
                                             <%= patient.userName || 'Nama tidak tersedia' %>
                                         <% } %>
-                                        <br>
-                                        <strong>ID Peserta:</strong> <%= patient.tbcareProfile ? patient.tbcareProfile.participantId : 'N/A' %><br>
-                                        <strong>File Audio:</strong> <%= audioFile.split('/').pop() %>
                                     </p>
+                                    <p class="mb-1"><strong>ID Partisipan:</strong> <%= patient.tbcareProfile ? patient.tbcareProfile.participantId : 'N/A' %></p>
+                                    <p class="mb-1"><strong>Kondisi Sputum:</strong> <%= sputumCondition %></p>
                                 </div>
                                 <div class="col-md-6">
-                                    <h5>Hasil Akhir</h5>
-                                    <h3 class="card-text">Prediksi: 
-                                        <span class="font-weight-bold <%= prediction === 'TB' ? 'text-danger' : 'text-success' %>">
-                                            <%= prediction %>
-                                        </span>
-                                    </h3>
-                                    <p>
-                                        <strong>Kondisi Sputum:</strong> <%= sputumCondition %><br>
-                                        <strong>Detail Segmen:</strong> <%= detail.tb_segments %> TB, <%= detail.non_tb_segments %> Non-TB (dari total <%= detail.total_segments %> segmen batuk valid).
-                                    </p>
+                                    <h5>Audio Diproses</h5>
+                                    <p class="mb-2"><strong>File:</strong> <%= audioFile.split('/').pop() %></p>
+                                    <audio controls style="width: 100%;">
+                                        <source src="<%= audioFile %>" type="audio/wav">
+                                        Browser Anda tidak mendukung elemen audio.
+                                    </audio>
                                 </div>
                             </div>
+
                             <hr>
-                            <!-- Tombol Aksi -->
-                            <div class="d-flex justify-content-end">
-                                <a href="/tbcare/predict" class="btn iq-bg-secondary mr-2">Cek Data Lain</a>
+
+                            <!-- Final Prediction Result -->
+                            <div class="text-center my-4">
+                                <h3>Hasil Akhir Prediksi</h3>
+                                <h1 class="font-weight-bold <%= prediction === 'TB' ? 'text-danger' : 'text-success' %>">
+                                    <%= prediction %>
+                                </h1>
+                            </div>
+
+                            <!-- Segment Details -->
+                            <h5>Detail Segmen Batuk</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card bg-danger-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Segmen TB</h6>
+                                            <h3 class="mb-0"><%= detail.tb_segments %></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-success-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Segmen Non-TB</h6>
+                                            <h3 class="mb-0"><%= detail.non_tb_segments %></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-info-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Total Segmen Valid</h6>
+                                            <h3 class="mb-0"><%= detail.total_segments %></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex justify-content-end mt-4">
+                                <a href="/tbcare/predict" class="btn iq-bg-secondary mr-2">Analisis Data Lain</a>
                                 <form action="/tbcare/save-prediction" method="POST">
                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <input type="hidden" name="patientId" value="<%= patient._id %>">
@@ -62,13 +100,13 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Visualisasi -->
-            <div class="row">
+                <!-- Visualization Cards -->
                 <div class="col-lg-12">
                     <div class="iq-card">
-                        <div class="iq-card-header"><h4 class="card-title">Visualisasi Waveform</h4></div>
+                        <div class="iq-card-header d-flex justify-content-between">
+                            <div class="iq-header-title"><h4 class="card-title">Visualisasi Waveform</h4></div>
+                        </div>
                         <div class="iq-card-body">
                             <div id="waveform-visualization" style="height: 300px;"></div>
                         </div>
@@ -76,7 +114,9 @@
                 </div>
                 <div class="col-lg-12">
                     <div class="iq-card">
-                        <div class="iq-card-header"><h4 class="card-title">Visualisasi MFCC</h4></div>
+                        <div class="iq-card-header d-flex justify-content-between">
+                            <div class="iq-header-title"><h4 class="card-title">Visualisasi MFCC</h4></div>
+                        </div>
                         <div class="iq-card-body">
                             <div id="mfcc-visualization" style="height: 400px;"></div>
                         </div>
@@ -87,14 +127,15 @@
         <%- include('../../includes/footer.ejs') %>
     </div>
 </div>
+
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         try {
-            const waveData = JSON.parse('<%- waveform %>');
-            const mfccData = JSON.parse('<%- mfcc %>');
+            const waveData = JSON.parse(`<%- waveform %>`);
+            const mfccData = JSON.parse(`<%- mfcc %>`);
 
-            if (waveData) {
+            if (waveData && waveData.length > 0) {
                 Plotly.newPlot('waveform-visualization', [{ y: waveData, type: 'line', line: { color: '#007bff' } }], {
                     title: 'Amplitudo Audio',
                     xaxis: { title: 'Sampel (waktu)' },
@@ -102,7 +143,7 @@
                 });
             }
 
-            if (mfccData) {
+            if (mfccData && mfccData.length > 0) {
                 Plotly.newPlot('mfcc-visualization', [{
                     z: mfccData,
                     type: 'heatmap',
@@ -115,9 +156,11 @@
             }
         } catch (e) {
             console.error('Gagal membuat visualisasi:', e);
-            document.getElementById('waveform-visualization').innerHTML = '<p class="text-danger">Gagal memuat data visualisasi waveform.</p>';
-            document.getElementById('mfcc-visualization').innerHTML = '<p class="text-danger">Gagal memuat data visualisasi MFCC.</p>';
+            document.getElementById('waveform-visualization').innerHTML = '<p class="text-danger text-center">Gagal memuat data visualisasi waveform.</p>';
+            document.getElementById('mfcc-visualization').innerHTML = '<p class="text-danger text-center">Gagal memuat data visualisasi MFCC.</p>';
         }
     });
 </script>
 <%- include('../../includes/end.ejs') %>
+</body>
+</html>
