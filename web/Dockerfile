@@ -44,7 +44,9 @@ RUN pip install --no-cache-dir \
     joblib \
     tensorflow \
     tensorflow_hub \
-    protobuf==3.20.3 
+    protobuf==3.20.3 \
+    torch \
+    torchaudio
 
 ENV NUMBA_CACHE_DIR=/tmp/
 RUN mkdir -m 777 /tmp/NUMBA_CACHE_DIR /tmp/MPLCONFIGDIR

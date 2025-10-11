@@ -157,12 +157,16 @@
                               <% } %>
                             </td>
                             <td>
-                              <% if(device_data[i].covid == 0 ){ %>
-                              Batuk Normal
-                              <% } else if(device_data[i].covid == 1 ){ %>
-                              Batuk Indikasi
-                              <% } else if(device_data[i].covid == 99 ){ %>
+                              <% if(device_data[i].covid == 99 || parsedData.tbc == 99){ %>
                               Processing.....
+                              <% } else if(device_data[i].covid == 1 ){ %>
+                              Terindikasi Covid
+                              <% } else if(parsedData.tbc == 1 ){ %>
+                              Terindikasi TB
+                              <% } else if(device_data[i].covid == 0 && parsedData.tbc == 0){ %>
+                              Batuk Normal
+                              <% } else { %>
+                                -
                               <% } %>
                             </td>
                             <td>

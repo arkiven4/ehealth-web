@@ -23,13 +23,6 @@ exports.sendData = async (req, res, next) => {
       if (req.files.length != 0 && !Object.prototype.hasOwnProperty.call(req.body, "audiogram")) {
         tempJsonData.file_audio = req.files[0].filename + "." + req.files[0].originalname.split(".")[1];
         handleUploadFile(req.files[0], "./public/uploads/batuk/");
-
-        // TODO: Gemastik save photo
-        if (req.files[1])  {
-          tempJsonData.file_foto = req.files[1].filename +
-          "." + req.files[1].originalname.split(".")[1];
-          handleUploadFile(req.files[1], "./public/uploads/foto_indikasi/");
-        }
   
         const device = await Device_Data_Cough.create({ uuid: uniqueID, device_id: req.params.device_id, json_data: JSON.stringify(tempJsonData), cough: 99, covid: 99 });
         if (device) {
@@ -90,6 +83,90 @@ exports.sendData = async (req, res, next) => {
         // } catch (error) {
         //   console.log(error);
         // }                               
+      }
+    } else if (Object.prototype.hasOwnProperty.call(req.body, "audiogram")) {
+      console.log(tempJsonData)
+      const device = await Device_Data_Audiometri.create({ uuid: uniqueID, device_id: req.params.device_id, json_data: JSON.stringify(tempJsonData) });
+      if (device) {
+        res.json({
+          status: "success",
+          code: 200,
+          message: "Success Insert Data",
+        });
+      } else {
+        res.json({
+          status: "error",
+          code: 404,
+          message: device,
+        });
+      }
+    } else {
+      res.json({
+        status: "error",
+        code: 400,
+        message: "Empty Request",
+      });
+    }
+
+    // User.updateOne(
+    //   { _id: req.session.user._id },
+    //   { $push: { patient: user.upserted[0]._id } }
+    // ).then((result) => {});
+  } else {
+    res.json({
+      status: "error",
+      code: 404,
+      message: "Empty Data",
+    });
+  }
+};
+
+exports.sendData_sub2 = async (req, res, next) => {
+  var uniqueID = new Date().getTime().toString(36);
+  let tempJsonData = JSON.parse(JSON.stringify(req.body));
+  console.log(req.body);
+  if (Object.keys(req.body).length != 0) {
+    if (req.files) {
+      if (req.files.length != 0 && !Object.prototype.hasOwnProperty.call(req.body, "audiogram")) {
+        tempJsonData.file_audio = req.files[0].filename + "." + req.files[0].originalname.split(".")[1];
+        handleUploadFile(req.files[0], "./public/uploads/batuk/");
+
+        // save photo
+        if (req.files[1])  {
+          tempJsonData.file_foto = req.files[1].filename +
+          "." + req.files[1].originalname.split(".")[1];
+          handleUploadFile(req.files[1], "./public/uploads/foto_indikasi/");
+        }
+
+        // set tbc loading
+        tempJsonData.tbc = 99;
+  
+        // all request are positive cough
+        const device = await Device_Data_Cough.create({ uuid: uniqueID, device_id: req.params.device_id, json_data: JSON.stringify(tempJsonData), cough: 1 });
+        if (device) {
+          res.json({
+            status: "success",
+            code: 200,
+            message: "Success Insert Data",
+          });
+        } else {
+          res.json({
+            status: "error",
+            code: 404,
+            message: device,
+          });
+        }
+  
+        PythonShell.run("./python-script/models_tbvector/determinationTB.py", { args: [tempJsonData.file_audio] }, function (err, results) {
+          if (err) throw err;
+          console.log("Result TB Vector: ", results);
+          const tbc = results[0];
+          tempJsonData.tbc = Number(results[0]);
+          tempJsonData.tb_confidence = results[1].replace('Confidence: ', '');
+          Device_Data_Cough.updateOne({ uuid: uniqueID }, { tbc: tbc, json_data: JSON.stringify(tempJsonData) }).then((result) => {
+            console.log(result);
+          });
+        });
       }
     } else if (Object.prototype.hasOwnProperty.call(req.body, "audiogram")) {
       console.log(tempJsonData)

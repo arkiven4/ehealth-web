@@ -75,12 +75,22 @@
                     <div class="form-group col-md-4">
                       <label>Jenis Batuk</label>
                       <p class="form-control-plaintext">
-                        <% if(batukData[0].cough == 1 && batukData[0].tbc == 0 ){ %>
+                        <% if(batukData[0].cough == 1 && parsedData.tbc == 0 ){ %>
                           Batuk Normal
-                          <% } else if(batukData[0].tbc == 1 ){ %>
+                          <% } else if(parsedData.tbc == 1 ){ %>
                           <span class="text-danger">Terindikasi TB</span>
-                          <% } else if(batukData[0].tbc == 99 ){ %>
+                          <% } else if(parsedData.tbc == 99 ){ %>
                           Processing.....
+                          <% } else { %>
+                            -
+                          <% } %>
+                      </p>
+                    </div>
+                    <div class="form-group col-md-4">
+                      <label>Confidence Score</label>
+                      <p class="form-control-plaintext">
+                        <% if(parsedData.tb_confidence ){ %>
+                          <span class="text-primary"><%= parsedData.tb_confidence %></span>
                           <% } else { %>
                             -
                           <% } %>
