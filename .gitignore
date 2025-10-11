@@ -8,8 +8,8 @@ workspace.code-workspace
 temp
 public/uploads/**/*.wav
 public/uploads/tbcare/*
-public/uploads/**/.pdf
-public/uploads/**/.png
-public/uploads/**/.jpeg
-public/uploads/**/.jpg
+public/uploads/**/*.pdf
+public/uploads/**/*.png
+public/uploads/**/*.jpeg
+public/uploads/**/*.jpg
 public/uploads/batuk/*
