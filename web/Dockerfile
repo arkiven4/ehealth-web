@@ -26,7 +26,8 @@ RUN apt-get update -yq && \
     zip \
     build-essential \
     gcc \
-    libsndfile1 && \
+    libsndfile1 \
+    libgl1 && \
     curl -L https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get install -yq nodejs && \
     rm -rf /var/lib/apt/lists/*
@@ -46,10 +47,13 @@ RUN pip install --no-cache-dir \
     tensorflow_hub \
     protobuf==3.20.3 \
     torch \
-    torchaudio
+    torchaudio \
+    pillow \
+    ultralytics
 
 ENV NUMBA_CACHE_DIR=/tmp/
-RUN mkdir -m 777 /tmp/NUMBA_CACHE_DIR /tmp/MPLCONFIGDIR
+ENV YOLO_CONFIG_DIR=/tmp/Ultralytics
+RUN mkdir -m 777 /tmp/NUMBA_CACHE_DIR /tmp/MPLCONFIGDIR $YOLO_CONFIG_DIR
 ENV NUMBA_CACHE_DIR=/tmp/NUMBA_CACHE_DIR/
 ENV MPLCONFIGDIR=/tmp/MPLCONFIGDIR/
 
