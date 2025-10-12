@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const tbcareProfileSchema = new Schema({
-    // Menghubungkan profil ini dengan user utamanya
     user: {
         type: Schema.Types.ObjectId,
         ref: 'User',

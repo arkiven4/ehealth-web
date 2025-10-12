@@ -5,7 +5,6 @@ const { PythonShell } = require('python-shell');
 const User = require('../models/user');
 const TbcarePrediction = require('../models/tbcare_prediction');
 
-// Fungsi-fungsi landing page tidak berubah
 exports.getLandingPage = (req, res, next) => {
   res.render('tbcare/landing', { pageTitle: 'Welcome to TBCare', isAuthenticated: req.session.isLoggedIn });
 };
@@ -19,12 +18,6 @@ exports.getTbcareLoginPage = (req, res, next) => {
   res.render('tbcare/login', { pageTitle: 'TBCare Login', csrfToken: req.csrfToken() });
 };
 
-// --- LOGIKA PREDIKSI ---
-
-/**
- * GET /predict
- * Menampilkan halaman formulir prediksi dengan daftar pasien dan file audio.
- */
 exports.getPredict = async (req, res, next) => {
   try {
     const patients = await User.find({ role: "patient", doctor: req.session.user._id }).populate('tbcareProfile');
@@ -56,7 +49,6 @@ exports.getPredict = async (req, res, next) => {
       audioFolders: [],
       csrfToken: req.csrfToken(),
       errorMessage: req.flash('error')[0],
-      // Menambahkan variabel dummy agar halaman tidak error saat pertama kali render
       hasResult: false,
       predictionResult: null,
       predictionDetail: null,
@@ -69,10 +61,6 @@ exports.getPredict = async (req, res, next) => {
   }
 };
 
-/**
- * POST /predict
- * Memproses data, menjalankan skrip Python, dan menampilkan hasil.
- */
 exports.postPredict = async (req, res, next) => {
   const { patientId, coughFilePath, sputumStatus, sputumLevel } = req.body;
 
@@ -80,11 +68,7 @@ exports.postPredict = async (req, res, next) => {
     req.flash('error', 'Harap lengkapi semua kolom yang diperlukan.');
     return res.redirect('/tbcare/predict');
   }
-
-  // Membuat path absolut dari file sistem berdasarkan path URL yang diterima
   const fileSystemPath = path.join(__dirname, '..', 'public', coughFilePath);
-
-  // Validasi: Cek apakah file benar-benar ada sebelum menjalankan skrip
   if (!fs.existsSync(fileSystemPath)) {
     console.error(`File not found at path: ${fileSystemPath}`);
     req.flash('error', `File audio tidak ditemukan di server: ${coughFilePath}`);
@@ -155,11 +139,6 @@ exports.postPredict = async (req, res, next) => {
   });
 };
 
-
-/**
- * POST /save-prediction
- * Menerima data dari halaman hasil dan menyimpannya ke database.
- */
 exports.savePrediction = async (req, res, next) => {
   try {
     const { patientId, audioFile, sputumCondition, result, tbSegmentCount, nonTbSegmentCount, totalCoughSegments } = req.body;

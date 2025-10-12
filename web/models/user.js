@@ -129,7 +129,7 @@ const userSchema = new Schema(
     },
     tbcareProfile: {
         type: Schema.Types.ObjectId,
-        ref: 'TbcareProfile' // Menunjuk ke model baru kita
+        ref: 'TbcareProfile'
     }
   },
   { timestamps: true }

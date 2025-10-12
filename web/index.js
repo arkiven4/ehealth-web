@@ -83,6 +83,10 @@ app.use(express.static(path.join(rootdir, "public")));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+const apiRoutesV2 = require('./routes/api_v2');
+app.use('/api/v2', apiRoutesV2);
+
+
 // API
 app.use(routes.api);
 app.use(routes.form);
@@ -98,6 +102,8 @@ app.use(flash());
 
 // TBCARE
 app.use('/tbcare', tbcareRoutes); 
+// const apiRoutesV2 = require('./routes/api_v2');
+// app.use('/api/v2', apiRoutesV2);
 
 // routeNames.forEach(routeName => {
 //   app.use(routes[routeName]);
