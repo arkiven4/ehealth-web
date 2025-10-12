@@ -1,5 +1,6 @@
 node_modules
 mongodata
+mongodata_dev
 package-lock.json
 .vscode
 Note
@@ -12,4 +13,7 @@ public/uploads/**/*.pdf
 public/uploads/**/*.png
 public/uploads/**/*.jpeg
 public/uploads/**/*.jpg
+
+public/uploads/foto_indikasi/*
+
 public/uploads/batuk/*
