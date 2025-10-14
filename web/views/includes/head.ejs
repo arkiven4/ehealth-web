@@ -38,8 +38,13 @@
 
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
       <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
-      <!-- <link rel="stylesheet" href="/web/views/tbcare/">  -->
-      <link rel="stylesheet" href="/web/views/tbcare/Landing.css"> </head>
+      <link rel="stylesheet" href="/web/views/tbcare/Landing.css">
+      <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+      <% if (typeof useTbcareTheme !== 'undefined' && useTbcareTheme) { %>
+         <!-- TBCare theme overrides for doctor pages -->
+         <link rel="stylesheet" href="/css/tbcare.css">
+      <% } %>
+   </head>
    <body>
 
 

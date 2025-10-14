@@ -2,87 +2,365 @@
 <html lang="en">
 <head>
     <%- include('../includes/head.ejs') %>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <style>
-        .hero-section { position: relative; padding: 150px 0; background-color: #f0fdfa; overflow: hidden; text-align: center; }
-        .hero-background { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 150%; height: 25%; border-top-left-radius: 50%; border-top-right-radius: 50%; background-image: linear-gradient(to right, #0d9488, #22d3ee); }
-        .hero-content { position: relative; z-index: 10; }
-        .hero-image { max-width: 220px; transition: transform 0.3s ease; }
-        .hero-image:hover { transform: scale(1.05) rotate(3deg); }
-        .systems-section { padding: 80px 0; background-color: #ffffff; }
-        .system-card { border: none; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .system-card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
-        .system-card img { height: 128px; width: auto; margin-bottom: 1.5rem; }
-        .text-teal { color: #0d9488; }
-        .btn-orange { background-color: #fb923c; border-color: #fb923c; color: white; transition: all 0.2s; }
-        .btn-orange:hover { background-color: #f97316; border-color: #f97316; color: white; transform: scale(1.1); }
+        :root {
+            --primary-color: #0d9488; /* Teal */
+            --secondary-color: #0284c7; /* Sky Blue */
+            --accent-color: #f97316; /* Orange */
+            --light-bg: #f8fafc;
+            --white-bg: #ffffff;
+            --dark-text: #0f172a;
+            --soft-text: #64748b;
+        }
+
+        html {
+            scroll-padding-top: 80px;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+            line-height: 1.7;
+        }
+
+        .hero-padding {
+            padding-top: 40px;
+        }
+
+        .section-padding {
+            padding: 100px 0;
+        }
+        .section-title {
+            font-weight: 700;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        .section-subtitle {
+            color: var(--soft-text);
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 4rem;
+        }
+
+        /* Navbar */
+        nav.navbar {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            padding: 120px 0;
+            background: linear-gradient(135deg, #f0fdfa 0%, #ecfeff 100%);
+            overflow: hidden;
+        }
+        .hero-title {
+            font-weight: 700;
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            color: var(--primary-color);
+            line-height: 1.2;
+        }
+        .hero-subtitle {
+            font-size: 1.15rem;
+            color: var(--soft-text);
+            margin: 1.5rem 0 2.5rem;
+        }
+        .hero-btn {
+            background: linear-gradient(90deg, var(--accent-color), #fb923c);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 1rem 2.8rem;
+            border-radius: 9999px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 18px rgba(249, 115, 22, 0.3);
+        }
+        .hero-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(249, 115, 22, 0.4);
+        }
+        .hero-image {
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        /* ===== SCROLLING BANNER ===== */
+        .scrolling-banner {
+        position: relative;
+        background-color: #ffffff;
+        overflow: hidden;
+        white-space: nowrap;
+        padding: 0; /* Hapus padding biar mepet */
+        }
+
+        .scrolling-banner-inner {
+        display: flex;
+        width: max-content;
+        animation: scroll-loop 25s linear infinite;
+        }
+
+        .scrolling-content {
+        display: flex;
+        }
+
+        .scrolling-banner img {
+        height: 60px;
+        width: auto;
+        flex-shrink: 0;
+        margin: 0; /* Hapus jarak antar gambar */
+        padding: 0;
+        display: block;
+        }
+
+        /* Animasi mulus tanpa gap */
+        @keyframes scroll-loop {
+        from {
+            transform: translateX(0);
+        }
+        to {
+            transform: translateX(-50%);
+        }
+        }
+
+
+        /* Features Section */
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+        .feature-icon {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-right: 1.5rem;
+            background-color: #ecfdf5;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .feature-item h5 { font-weight: 600; margin-bottom: 0.5rem; }
+        .feature-item p { color: var(--soft-text); font-size: 0.95rem; }
+        
+        /* Systems Section (NOW DARK) */
+        .systems-section {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+        .systems-section .section-title, .systems-section .section-subtitle {
+            color: white;
+        }
+        .system-card {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 2.5rem 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        .system-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .system-card img { height: 100px; margin-bottom: 1.5rem; }
+        .system-card h4 { color: white; font-weight: 600; margin-bottom: 0.75rem; }
+        .system-card p { color: #d1fae5; }
+
+        /* How It Works Section (NOW LIGHT) */
+        .how-section {
+            background-color: var(--white-bg);
+        }
+        .how-step { text-align: center; padding: 1rem; }
+        .how-step .step-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #f0fdfa;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .how-step:hover .step-icon {
+            background-color: #ccfbf1;
+            transform: scale(1.1);
+        }
+        .how-step h4 { font-weight: 600; margin-bottom: 0.5rem; color: var(--dark-text); }
+        .how-step p { color: var(--soft-text); font-size: 0.95rem; }
+        
+        /* Footer */
+        .footer { background: var(--dark-text); color: #cbd5e1; padding: 4rem 0 2rem; }
+        .footer h5 { color: white; font-weight: 600; margin-bottom: 1rem; }
+        .footer a { color: var(--soft-text); text-decoration: none; transition: color 0.2s ease; }
+        .footer a:hover { color: var(--accent-color); }
+        .footer .copyright { border-top: 1px solid #334155; padding-top: 1.5rem; margin-top: 2rem; font-size: 0.9rem; color: var(--soft-text); }
     </style>
 </head>
 <body>
     <%- include('../includes/tbcare/navbar-landing.ejs') %>
 
-    <section class="hero-section">
-        <div class="hero-background"></div>
-        <div class="container hero-content">
-            <div class="row align-items-center justify-content-center">
-                <div class="col-lg-3 d-none d-lg-block wow fadeInLeft" data-wow-delay="0.4s">
-                    <img src="/images/tbcare_landing/monster.png" alt="Monster Illustration" class="img-fluid hero-image">
+    <!-- HERO SECTION -->
+    <section class="hero-section" id="home">
+        <div class="container hero-padding">
+            <div class="row align-items-center justify-content-between" data-aos="fade-up">
+                <div class="col-lg-6 text-center text-lg-left">
+                    <h1 class="hero-title">Intelligent Cough Analysis for Early Tuberculosis Detection</h1>
+                    <p class="hero-subtitle">
+                        Our AI-powered system detects potential Tuberculosis from the sound of a cough, empowering patients and clinicians with faster, more accurate diagnostics.
+                    </p>
+                    <a href="/tbcare/login" class="btn hero-btn">Access Clinical Dashboard</a>
                 </div>
-                <div class="col-lg-6 col-md-10 wow fadeInUp" data-wow-delay="0.2s">
-                    <h1 class="display-4 font-weight-bold text-teal">Know Your Cough,<br>Get The Right Treatment</h1>
-                    <p class="lead text-secondary mt-3">Sistem pintar untuk mendeteksi potensi TBC dari suara batuk, membantu pasien & dokter mendapatkan solusi lebih cepat dan tepat.</p>
-                    <a href="/login" class="btn btn-orange btn-lg rounded-pill mt-4 px-5">Log In</a>
-                </div>
-                <div class="col-lg-3 d-none d-lg-block wow fadeInRight" data-wow-delay="0.4s">
-                    <img src="/images/tbcare_landing/device.png" alt="Device Illustration" class="img-fluid hero-image">
+                <div class="col-lg-5 d-none d-lg-block text-center mt-5 mt-lg-0">
+                    <img src="/images/tbcare_landing/lungs.jpg" alt="Doctor analyzing lung scan with AI" class="img-fluid hero-image">
                 </div>
             </div>
         </div>
     </section>
 
-    <div class="scroll-banner-container">
-        <div class="scroll-banner-content"></div>
-    </div>
+    <div class="scrolling-banner">
+        <div class="scrolling-banner-inner">
+            <div class="scrolling-content">
+            <img src="/images/tbcare_landing/banner.png" alt="Banner">
+            <img src="/images/tbcare_landing/banner.png" alt="Banner">
+            <img src="/images/tbcare_landing/banner.png" alt="Banner">
+            <img src="/images/tbcare_landing/banner.png" alt="Banner">
+            </div>
+            <div class="scrolling-content">
+            <img src="/images/tbcare_landing/banner.png" alt="Banner">
+            <img src="/images/tbcare_landing/banner.png" alt="Banner">
+            <img src="/images/tbcare_landing/banner.png" alt="Banner">
+            <img src="/images/tbcare_landing/banner.png" alt="Banner">
+            </div>
+        </div>
+        </div>
+
     
-    <section class="systems-section">
+    <!-- FEATURES (WHY TBCare) SECTION -->
+    <section class="section-padding" id="features">
         <div class="container">
-            <div class="row">
-                <div class="col-12 text-center mb-5 wow fadeInDown">
-                    <h2 class="font-weight-bold text-teal">Our Systems</h2>
+             <div class="row align-items-center">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <h2 class="section-title">Why Choose TBCare?</h2>
+                    <p class="section-subtitle text-left ml-0 mb-5">Our platform is built on three core principles: accuracy, accessibility, and actionable insights for better patient outcomes.</p>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="ri-flashlight-line"></i></div>
+                        <div>
+                            <h5>Early & Rapid Detection</h5>
+                            <p>Identify potential risks sooner through accessible, non-invasive acoustic screening.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon"><i class="ri-lightbulb-line"></i></div>
+                        <div>
+                            <h5>Non-Invasive & Safe</h5>
+                            <p>A simple cough recording is all that's needed, reducing patient discomfort and risk.</p>
+                        </div>
+                    </div>
+                     <div class="feature-item">
+                        <div class="feature-icon"><i class="ri-bar-chart-2-line"></i></div>
+                        <div>
+                            <h5>Data-Driven Clinical Support</h5>
+                            <p>Provide clinicians with objective data to support their diagnostic decisions and workflow.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 d-none d-lg-block" data-aos="fade-left" data-aos-delay="200">
+                    <img src="/images/tbcare_landing/clinical.jpg" alt="Clinical Illustration" class="img-fluid rounded-lg">
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- SYSTEMS SECTION (NOW DARK) -->
+    <section class="section-padding systems-section" id="systems">
+        <div class="container text-center">
+            <h2 class="section-title">An Integrated Digital Health Ecosystem</h2>
+            <p class="section-subtitle" style="color: #a7f3d0;">
+                From data acquisition to clinical analysis, our platform provides a seamless workflow for healthcare professionals and patients.
+            </p>
             <div class="row">
-                <div class="col-md-4 mb-4 wow fadeInUp" data-wow-delay="0.2s">
-                    <div class="card system-card p-4 text-center h-100">
-                        <img src="/images/tbcare_landing/device/Hardware.png" alt="Hardware" class="mx-auto">
-                        <div class="card-body">
-                            <h4 class="card-title text-teal font-weight-bold">Hardware</h4>
-                            <p class="card-text text-secondary">Perangkat khusus untuk merekam suara batuk dengan sensor audio sensitivitas tinggi.</p>
-                        </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="0">
+                    <div class="system-card">
+                        <img src="/images/tbcare_landing/device/Hardware.png" alt="Precision Recording Device">
+                        <h4>Precision Recording Device</h4>
+                        <p>High-fidelity sensors capture nuanced audio data for accurate cough analysis.</p>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4 wow fadeInUp" data-wow-delay="0.4s">
-                    <div class="card system-card p-4 text-center h-100">
-                        <img src="/images/tbcare_landing/device/Web.png" alt="Web Dashboard" class="mx-auto">
-                        <div class="card-body">
-                            <h4 class="card-title text-teal font-weight-bold">Web</h4>
-                            <p class="card-text text-secondary">Platform web untuk dokter mengelola data pasien dan melihat hasil analisis secara real-time.</p>
-                        </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="system-card">
+                        <img src="/images/tbcare_landing/device/Web.png" alt="Clinical Analytics Dashboard">
+                        <h4>Clinical Analytics Dashboard</h4>
+                        <p>A secure web platform for clinicians to review patient data and AI-generated insights.</p>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4 wow fadeInUp" data-wow-delay="0.6s">
-                    <div class="card system-card p-4 text-center h-100">
-                        <img src="/images/tbcare_landing/device/mobile.png" alt="Mobile App" class="mx-auto">
-                        <div class="card-body">
-                            <h4 class="card-title text-teal font-weight-bold">Mobile App</h4>
-                            <p class="card-text text-secondary">Aplikasi mobile untuk pasien melakukan self-check dan mengunggah rekaman batuk.</p>
-                        </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="system-card">
+                        <img src="/images/tbcare_landing/device/mobile.png" alt="Patient & Provider Mobile App">
+                        <h4>Patient & Provider App</h4>
+                        <p>Empowers patients to perform self-screening and manage their health records.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- HOW IT WORKS SECTION (NOW LIGHT) -->
+    <section class="section-padding how-section" id="process">
+        <div class="container">
+            <div class="row text-center" data-aos="fade-in">
+                <div class="col">
+                    <h2 class="section-title">End-to-End Diagnostic Workflow</h2>
+                    <p class="section-subtitle">A simple and connected process from patient to physician.</p>
+                </div>
+            </div>
+            <div class="row text-center">
+                <div class="col-md-3 how-step" data-aos="fade-up" data-aos-delay="0">
+                    <div class="step-icon"><img src="https://img.icons8.com/ios/50/0d9488/microphone--v1.png" alt="Record Icon" height="40"></div>
+                    <h4>1. Record Cough</h4>
+                    <p>The patient records a cough sample using the TBCare hardware.</p>
+                </div>
+                <div class="col-md-3 how-step" data-aos="fade-up" data-aos-delay="100">
+                    <div class="step-icon"><img src="https://img.icons8.com/ios/50/0d9488/cloud-sync.png" alt="Server Icon" height="40"></div>
+                    <h4>2. AI Server Analysis</h4>
+                    <p>The recording is securely sent to our server and analyzed by the AI to determine TB suspicion.</p>
+                </div>
+                <div class="col-md-3 how-step" data-aos="fade-up" data-aos-delay="200">
+                    <div class="step-icon"><img src="https://img.icons8.com/ios/50/0d9488/medical-doctor.png" alt="Doctor Icon" height="40"></div>
+                    <h4>3. Review on Web Dashboard</h4>
+                    <p>Clinicians receive and review the preliminary results (TB/Non-TB) on their dashboard.</p>
+                </div>
+                <div class="col-md-3 how-step" data-aos="fade-up" data-aos-delay="300">
+                    <div class="step-icon"><img src="https://img.icons8.com/ios/50/0d9488/appointment-reminders--v1.png" alt="Notification Icon" height="40"></div>
+                    <h4>4. Patient Notification</h4>
+                    <p>Results are sent to the patient's mobile app. A notification is sent if a follow-up is required.</p>
+                </div>
+            </div>
+        </div>
+    </section>
     <%- include('../includes/tbcare/footer-landing.ejs') %>
     <%- include('../includes/end.ejs') %>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+      AOS.init({
+          duration: 700,
+          once: true
+      });
+    </script>
 </body>
 </html>

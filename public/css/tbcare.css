@@ -1,0 +1,71 @@
+:root {
+    --tb-primary: #0d9488; /* Teal */
+    --tb-secondary: #0284c7; /* Sky Blue */
+    --tb-accent: #f97316; /* Orange */
+    --tb-light-bg: #f8fafc;
+    --tb-white: #ffffff;
+    --tb-dark-text: #0f172a;
+    --tb-soft-text: #64748b;
+}
+
+/* All rules scoped to body.tbcare-admin so they only affect TBCare pages */
+body.tbcare-admin {
+    background-color: var(--tb-light-bg) !important;
+    color: var(--tb-dark-text) !important;
+    font-family: 'Poppins', sans-serif;
+}
+
+body.tbcare-admin .btn-primary, body.tbcare-admin .btn.btn-primary {
+    background: linear-gradient(90deg, var(--tb-accent), #fb923c) !important;
+    border-color: transparent !important;
+}
+
+body.tbcare-admin .iq-card, body.tbcare-admin .card, body.tbcare-admin .panel {
+    background: #fff !important;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(15,23,42,0.04);
+    box-shadow: 0 8px 18px rgba(15,23,42,0.03);
+}
+
+body.tbcare-admin .iq-card-header, body.tbcare-admin .card-header, body.tbcare-admin .page-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(15,23,42,0.03);
+}
+body.tbcare-admin .card-title, body.tbcare-admin .iq-header-title h4 {
+    color: var(--tb-primary) !important;
+    font-weight: 700;
+}
+
+body.tbcare-admin .iq-sidebar {
+    background: linear-gradient(180deg, #071726 0%, #0f172a 100%) !important;
+}
+body.tbcare-admin .iq-sidebar .iq-menu li a {
+    color: #cbd5e1 !important;
+}
+body.tbcare-admin .iq-sidebar .iq-menu li.active > a {
+    color: var(--tb-primary) !important;
+    background: linear-gradient(90deg, rgba(13,148,136,0.12), rgba(2,132,199,0.04)) !important;
+}
+
+body.tbcare-admin .form-control {
+    border-radius: 0.5rem;
+    border: 1px solid rgba(15,23,42,0.08);
+}
+
+body.tbcare-admin a, body.tbcare-admin a:visited {
+    color: var(--tb-secondary);
+}
+
+body.tbcare-admin .feature-icon, body.tbcare-admin .tbcare-badge {
+    background-color: #ecfdf5;
+    color: var(--tb-primary);
+}
+
+body.tbcare-admin .table thead th {
+    background: transparent;
+    color: var(--tb-dark-text);
+}
+
+body.tbcare-admin .modal-content { color: var(--tb-dark-text); }
+
+body.tbcare-admin .tb-accent-border { border-left: 4px solid var(--tb-primary); padding-left: 12px; }

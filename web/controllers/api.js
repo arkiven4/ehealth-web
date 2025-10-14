@@ -230,102 +230,143 @@ exports.submit_data_batuk = async (req, res, next) => {
   }
 };
 
-const TbcarePrediction = require("../models/tbcare_prediction");
+// const TbcarePrediction = require("../models/tbcare_prediction");
+// exports.patient_history = async (req, res, next) => {
+//   try {
+//     const patientId = req.query.patientId || req.body.patientId || req.userId;
+//     if (!patientId) {
+//       return res.status(400).json({ message: "Missing patientId" });
+//     }
+
+//     const patient = await User.findById(patientId).populate("tbcareProfile").lean();
+//     if (!patient) {
+//       return res.status(404).json({ message: "Patient not found" });
+//     }
+
+//     let profileDoc = patient.tbcareProfile || null;
+//     if (!profileDoc) {
+//       profileDoc = await TbcareProfile.findOne({ user: patient._id }).lean();
+//     }
+
+//     const profile = profileDoc
+//       ? {
+//           id: profileDoc._id,
+//           sex: profileDoc.sex || null,
+//           dateOfBirth: profileDoc.dateOfBirth || null,
+//           age: profileDoc.age || null,
+//           height: profileDoc.height || null,
+//           weight: profileDoc.weight || null,
+//           bmi: profileDoc.bmi || null,
+//           weightStatus: profileDoc.weightStatus || null,
+//           isCoughProductive: profileDoc.isCoughProductive || null,
+//           coughDurationDays: profileDoc.coughDurationDays || null,
+//           hasHemoptysis: profileDoc.hasHemoptysis || false,
+//           hasChestPain: profileDoc.hasChestPain || false,
+//           hasShortBreath: profileDoc.hasShortBreath || false,
+//           hasFever: profileDoc.hasFever || false,
+//           hasNightSweats: profileDoc.hasNightSweats || false,
+//           hasWeightLoss: profileDoc.hasWeightLoss || false,
+//           weightLossAmountKg: profileDoc.weightLossAmountKg || null,
+//           tobaccoUse: profileDoc.tobaccoUse || null,
+//           cigarettesPerDay: profileDoc.cigarettesPerDay || null,
+//           smokingSinceMonths: profileDoc.smokingSinceMonths || null,
+//           stoppedSmokingMonths: profileDoc.stoppedSmokingMonths || null,
+//           hadPriorTB: profileDoc.hadPriorTB || null,
+//           comorbidities: profileDoc.comorbidities || [],
+//           comorbiditiesOther: profileDoc.comorbiditiesOther || null,
+//         }
+//       : {};
+
+//     const history = await TbcarePrediction.find({ patient: patient._id })
+//       .populate("predictedBy", "userName role")
+//       .sort({ createdAt: -1 })
+//       .lean();
+
+//     const firstExam = history.length ? history[history.length - 1] : null;
+
+//     const patientOut = {
+//       id: patient._id,
+//       email: patient.email,
+//       userName: patient.userName || null,
+//       fullName: patient.fullName || null,
+//       city: patient.city || null,
+//       mobileNumber1: patient.mobileNumber1 || null,
+//       mobileNumber2: patient.mobileNumber2 || null,
+//       address1: patient.address1 || null,
+//       address2: patient.address2 || null,
+//       country: patient.country || null,
+//       pinCode: patient.pinCode || null,
+//       role: patient.role || null,
+//       tbcareProfile: profile,
+//     };
+
+//     return res.status(200).json({
+//       patient: patientOut,
+//       history: history.map((h) => ({
+//         id: h._id,
+//         audioFile: h.audioFile || null,
+//         result: h.result || null,
+//         confidence: h.confidence || null,
+//         sputumCondition: h.sputumCondition || null,
+//         tbSegmentCount: h.tbSegmentCount || null,
+//         nonTbSegmentCount: h.nonTbSegmentCount || null,
+//         totalCoughSegments: h.totalCoughSegments || null,
+//         predictedBy: h.predictedBy ? { id: h.predictedBy._id, userName: h.predictedBy.userName, role: h.predictedBy.role } : null,
+//         createdAt: h.createdAt,
+//         detail: h.detail || null,
+//       })),
+//       firstExam: firstExam
+//         ? {
+//             id: firstExam._id,
+//             result: firstExam.result,
+//             confidence: firstExam.confidence,
+//             createdAt: firstExam.createdAt,
+//             sputumCondition: firstExam.sputumCondition || null,
+//           }
+//         : null,
+//     });
+//   } catch (err) {
+//     console.log(err);
+//     return res.status(500).json({ message: "Internal server error." });
+//   }
+// };
+
+// const User = require('../models/user'); // Make sure User model is imported
+const TbcarePrediction = require('../models/tbcare_prediction');
+
 exports.patient_history = async (req, res, next) => {
   try {
-    const patientId = req.query.patientId || req.body.patientId || req.userId;
+    // Use req.userId from the authentication middleware for security
+    const patientId = req.userId; 
     if (!patientId) {
-      return res.status(400).json({ message: "Missing patientId" });
+      // 401 Unauthorized is more appropriate if the user ID is missing
+      return res.status(401).json({ message: "Authentication failed: Missing patientId" });
     }
 
-    const patient = await User.findById(patientId).populate("tbcareProfile").lean();
+    // 1. Get all patient data and populated profile in one efficient query
+    const patient = await User.findById(patientId)
+      .populate("tbcareProfile") // This joins the profile data
+      .select("-password")       // IMPORTANT: Exclude the password for security
+      .lean();                   // .lean() makes the query faster
+
     if (!patient) {
       return res.status(404).json({ message: "Patient not found" });
     }
 
-    let profileDoc = patient.tbcareProfile || null;
-    if (!profileDoc) {
-      profileDoc = await TbcareProfile.findOne({ user: patient._id }).lean();
-    }
-
-    const profile = profileDoc
-      ? {
-          id: profileDoc._id,
-          sex: profileDoc.sex || null,
-          age: profileDoc.age || null,
-          height: profileDoc.height || null,
-          weight: profileDoc.weight || null,
-          bmi: profileDoc.bmi || null,
-          weightStatus: profileDoc.weightStatus || null,
-          isCoughProductive: profileDoc.isCoughProductive || null,
-          coughDurationDays: profileDoc.coughDurationDays || null,
-          hasHemoptysis: profileDoc.hasHemoptysis || false,
-          hasChestPain: profileDoc.hasChestPain || false,
-          hasShortBreath: profileDoc.hasShortBreath || false,
-          hasFever: profileDoc.hasFever || false,
-          hasNightSweats: profileDoc.hasNightSweats || false,
-          hasWeightLoss: profileDoc.hasWeightLoss || false,
-          weightLossAmountKg: profileDoc.weightLossAmountKg || null,
-          tobaccoUse: profileDoc.tobaccoUse || null,
-          cigarettesPerDay: profileDoc.cigarettesPerDay || null,
-          smokingSinceMonths: profileDoc.smokingSinceMonths || null,
-          stoppedSmokingMonths: profileDoc.stoppedSmokingMonths || null,
-          hadPriorTB: profileDoc.hadPriorTB || null,
-          comorbidities: profileDoc.comorbidities || [],
-          comorbiditiesOther: profileDoc.comorbiditiesOther || null,
-        }
-      : {};
-
-    const history = await TbcarePrediction.find({ patient: patient._id })
-      .populate("predictedBy", "userName role")
+    // 2. Get all prediction history for the patient
+    const history = await TbcarePrediction.find({ patient: patientId })
+      .populate("predictedBy", "userName role") // Get info about who made the prediction
       .sort({ createdAt: -1 })
       .lean();
 
-    const firstExam = history.length ? history[history.length - 1] : null;
-
-    const patientOut = {
-      id: patient._id,
-      email: patient.email,
-      userName: patient.userName || null,
-      fullName: patient.fullName || null,
-      city: patient.city || null,
-      mobileNumber1: patient.mobileNumber1 || null,
-      mobileNumber2: patient.mobileNumber2 || null,
-      address1: patient.address1 || null,
-      address2: patient.address2 || null,
-      country: patient.country || null,
-      pinCode: patient.pinCode || null,
-      role: patient.role || null,
-      tbcareProfile: profile,
-    };
-
+    // 3. Send the complete objects in the response
     return res.status(200).json({
-      patient: patientOut,
-      history: history.map((h) => ({
-        id: h._id,
-        audioFile: h.audioFile || null,
-        result: h.result || null,
-        confidence: h.confidence || null,
-        sputumCondition: h.sputumCondition || null,
-        tbSegmentCount: h.tbSegmentCount || null,
-        nonTbSegmentCount: h.nonTbSegmentCount || null,
-        totalCoughSegments: h.totalCoughSegments || null,
-        predictedBy: h.predictedBy ? { id: h.predictedBy._id, userName: h.predictedBy.userName, role: h.predictedBy.role } : null,
-        createdAt: h.createdAt,
-        detail: h.detail || null,
-      })),
-      firstExam: firstExam
-        ? {
-            id: firstExam._id,
-            result: firstExam.result,
-            confidence: firstExam.confidence,
-            createdAt: firstExam.createdAt,
-            sputumCondition: firstExam.sputumCondition || null,
-          }
-        : null,
+      patient: patient, // This object now contains ALL profile data, including location and dateOfBirth
+      history: history  // This contains the full, unmapped history objects
     });
+
   } catch (err) {
-    console.log(err);
+    console.error("API Error in patient_history:", err);
     return res.status(500).json({ message: "Internal server error." });
   }
 };

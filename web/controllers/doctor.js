@@ -114,27 +114,19 @@ function calculateAge(dateOfBirth) {
 exports.tbcare_home = async (req, res, next) => {
   try {
     const doctorId = req.session.user._id;
-
-    // 1. Ambil semua pasien TBCare yang ditangani dokter ini
     const allPatients = await User.find({ 
       role: "patient", 
       accountType: 'tbcare', 
       doctor: doctorId 
-    });
-
-    // 2. Hitung jumlah total pasien
+    }).populate('tbcareProfile'); 
     const totalPatientCount = allPatients.length;
 
-    // 3. Hitung kasus TB yang ditemukan
-    // Ambil semua prediksi 'TB' untuk pasien dokter ini
     const tbPredictions = await Prediction.find({ 
       predictedBy: doctorId, 
-      result: { $regex: /TB/i } // Mencari hasil yang mengandung "TB" (case-insensitive)
-    }).distinct('patient'); // Ambil ID pasien yang unik
+      result: { $regex: /TB/i } 
+    }).distinct('patient'); 
 
     const tbCasesCount = tbPredictions.length;
-
-    // 4. Hitung statistik per kecamatan di Surabaya
     const surabayaPatients = await TbcareProfile.find({ 
       user: { $in: allPatients.map(p => p._id) }, // Hanya dari pasien dokter ini
       city: 'Surabaya' 
@@ -157,12 +149,12 @@ exports.tbcare_home = async (req, res, next) => {
       pageHeader: "TBCare Dashboard",
       role: req.session.user.role,
       subrole: req.session.user.subrole,
-      pasien: allPatients, // Kirim daftar pasien lengkap
+      pasien: allPatients,
       userdata: req.session.user,
-      // Kirim data statistik ke view
       totalPatientCount: totalPatientCount,
       tbCasesCount: tbCasesCount,
-      regionalStats: districtCounts // Data untuk chart
+      regionalStats: districtCounts,
+      csrfToken: req.csrfToken()
     });
   } catch(err) {
       console.log(err);

@@ -1,3 +1,4 @@
+<% var useTbcareTheme = true; %>
 <%- include('../../includes/head.ejs') %>
 </head>
 <body>
@@ -34,7 +35,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-12 col-lg-6">
+                
+                <div class="col-lg-12">
                     <div class="iq-card iq-card-block iq-card-stretch iq-card-height">
                          <div class="iq-card-header d-flex justify-content-between">
                             <div class="iq-header-title">
@@ -42,7 +44,7 @@
                             </div>
                          </div>
                         <div class="iq-card-body">
-                            <canvas id="regionalBarChart"></canvas>
+                            <canvas id="regionalBarChart" style="height: 400px;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -77,7 +79,13 @@
                                           <td><%= p.fullName.first %> <%= p.fullName.last %></td>
                                           <td><%= p.mobileNumber1 || 'N/A' %></td>
                                           <td><%= p.email %></td>
-                                          <td><%= p.tbcareProfile ? `${p.tbcareProfile.city || ''}, ${p.tbcareProfile.district || ''}` : 'N/A' %></td>
+                                          <td>
+                                            <% if (p.tbcareProfile && (p.tbcareProfile.city || p.tbcareProfile.district)) { %>
+                                                <%= `${p.tbcareProfile.city || ''}${p.tbcareProfile.city && p.tbcareProfile.district ? ', ' : ''}${p.tbcareProfile.district || ''}` %>
+                                            <% } else { %>
+                                                N/A
+                                            <% } %>
+                                          </td>
                                           <td>
                                              <div class="d-flex align-items-center">
                                                 <a class="btn btn-sm btn-primary mr-2" data-toggle="tooltip" title="View History" href="/tbcare/patient-history/<%= p._id %>"><i class="ri-eye-line"></i></a>
@@ -132,12 +140,7 @@
                },
                options: {
                    scales: {
-                       y: {
-                           beginAtZero: true,
-                           ticks: {
-                               stepSize: 1
-                           }
-                       }
+                       y: { beginAtZero: true, ticks: { stepSize: 1 } }
                    },
                    responsive: true,
                    maintainAspectRatio: false

@@ -1,33 +1,209 @@
+<%
+    const isActive = (path) => {
+        // This logic helps determine the active page. Adjust the paths if needed.
+        if (path === 'dashboard' && pageTitle.includes('Dashboard')) return 'active';
+        if (path === 'add' && pageTitle.includes('Add Patient')) return 'active';
+        if (path === 'history' && pageTitle.includes('History')) return 'active';
+        if (path === 'predict' && pageTitle.includes('Prediction')) return 'active';
+        return '';
+    };
+    const isPatientSectionActive = isActive('add') || isActive('history');
+%>
+
+<style>
+    :root {
+        --primary-color: #0d9488;
+        --primary-color-light: #f0fdfa;
+        --dark-text: #0f172a;
+        --soft-text: #64748b;
+
+        /* New sidebar palette */
+        --sidebar-bg: #0f172a;
+        --sidebar-text: #cbd5e1;
+        --sidebar-muted: #0d8a7a;
+        --sidebar-accent: #06b6d4;
+        --sidebar-active-bg: rgba(6, 182, 212, 0.12);
+    }
+
+    .iq-sidebar {
+        background: var(--sidebar-bg);
+        border-right: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .iq-sidebar-logo {
+        padding: 22px 20px;
+    }
+    .iq-sidebar-logo a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+    .iq-sidebar-logo span {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        font-size: 1.5rem;
+        color: var(--sidebar-text);
+    }
+    
+    .iq-sidebar-menu .iq-menu {
+        padding: 0 15px;
+    }
+
+    .iq-sidebar-menu .iq-menu li {
+        margin-bottom: 8px;
+    }
+
+    .iq-sidebar-menu .iq-menu li a {
+        font-family: 'Poppins', sans-serif;
+        color: var(--sidebar-text);
+        font-weight: 500;
+        border-radius: 8px;
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.18s ease;
+    }
+    .iq-sidebar-menu .iq-menu li a i {
+        font-size: 1.4rem;
+        color: var(--sidebar-text);
+    }
+
+    .iq-sidebar-menu .iq-menu li a:hover {
+        background: var(--sidebar-active-bg);
+        color: var(--sidebar-accent);
+    }
+    
+    .iq-sidebar-menu .iq-menu li.active > a {
+        background: linear-gradient(90deg, rgba(6,182,212,0.18), rgba(13,148,136,0.06));
+        color: var(--sidebar-accent);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+    }
+
+    /* Dropdown styles */
+    .iq-sidebar-menu .iq-menu ul {
+        padding-left: 25px; /* Indent sub-menu */
+        margin-top: 5px;
+    }
+    .iq-sidebar-menu .iq-menu ul li a {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+        color: var(--sidebar-text);
+    }
+    .iq-sidebar-menu .iq-menu ul li a:before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        background-color: var(--sidebar-muted);
+        border-radius: 50%;
+        margin-right: 15px;
+        transition: all 0.3s ease;
+    }
+    .iq-sidebar-menu .iq-menu ul li.active a {
+        background-color: transparent;
+        color: var(--sidebar-accent);
+        font-weight: 600;
+    }
+    .iq-sidebar-menu .iq-menu ul li.active a:before {
+        background-color: var(--sidebar-accent);
+    }
+    .iq-sidebar-menu .iq-menu li a[aria-expanded="true"] {
+        background: var(--sidebar-active-bg);
+        color: var(--sidebar-accent);
+    }
+    .iq-sidebar-menu .iq-menu li a .right-icon {
+        margin-left: auto;
+        transition: transform 0.3s ease;
+        color: var(--sidebar-text);
+    }
+     .iq-sidebar-menu .iq-menu li a[aria-expanded="true"] .right-icon {
+        transform: rotate(90deg);
+    }
+
+    /* small tweak for the menu title icon/text */
+    .iq-menu-title {
+        color: var(--sidebar-text);
+        font-weight: 600;
+        padding: 10px 15px;
+    }
+    .iq-menu-title i {
+        color: var(--sidebar-text);
+        margin-right: 8px;
+    }
+</style>
+
 <div class="iq-sidebar">
     <div class="iq-sidebar-logo d-flex justify-content-between">
-        <a href="/sub_1/doctor">
-            <img src="/images/logo.png" class="img-fluid" alt="">
-            <span>TBCare</span>
+        <a href="/tbcare/doctor">
+            <img src="/images/tbcare_landing/logo.png" class="img-fluid" alt="TBCare Logo" style="height: 40px;">
         </a>
     </div>
     <div id="sidebar-scrollbar">
         <nav class="iq-sidebar-menu">
             <ul id="iq-sidebar-toggle" class="iq-menu">
-                <li class="iq-menu-title"><i class="ri-separator"></i><span>Main</span></li>
+                <li class="iq-menu-title"><i class="ri-separator text-black"></i><span>Main Menu</span></li>
                 
-                <li id="home">
-                    <a href="/sub_1/doctor" class="iq-waves-effect"><i class="ri-home-4-line"></i><span>Dashboard</span></a>
+                <li class="<%= isActive('dashboard') %>">
+                    <a href="/sub_1/doctor" class="iq-waves-effect">
+                        <i class="ri-home-4-line"></i><span>Dashboard</span>
+                    </a>
                 </li>
 
-                <li id="add-patient">
-                    <a href="/sub_1/add-patient" class="iq-waves-effect"><i class="ri-user-add-line"></i><span>Add Patient</span></a>
+                <li class="<%= isPatientSectionActive ? 'active' : '' %>">
+                    <a href="#patient-submenu" class="iq-waves-effect" data-toggle="collapse" aria-expanded="<%= isPatientSectionActive ? 'true' : 'false' %>">
+                        <i class="ri-group-line"></i>
+                        <span>Patient</span>
+                        <i class="ri-arrow-right-s-line right-icon"></i>
+                    </a>
+                    <ul id="patient-submenu" class="collapse <%= isPatientSectionActive ? 'show' : '' %> iq-submenu" data-parent="#iq-sidebar-toggle">
+                        <li class="<%= isActive('add') %>">
+                            <a href="/sub_1/add-patient"><i class="ri-user-add-line"></i>Add Patient</a>
+                        </li>
+                        <li class="<%= isActive('history') %>">
+                            <a href="/tbcare/patient-history"><i class="ri-file-text-line"></i>Patient History</a>
+                        </li>
+                    </ul>
                 </li>
 
-                <li id="predict">
-                    <a href="/tbcare/predict" class="iq-waves-effect"><i class="ri-computer-line"></i><span>Start Prediction</span></a>
+                <li class="<%= isActive('predict') %>">
+                    <a href="/tbcare/predict" class="iq-waves-effect">
+                        <i class="ri-heart-pulse-line"></i><span>Start Prediction</span>
+                    </a>
                 </li>
-
-                <li id="history">
-                    <a href="/tbcare/patient-history" class="iq-waves-effect"><i class="ri-history-fill"></i><span>Patient History</span></a>
-                </li>
-
             </ul>
         </nav>
         <div class="p-3"></div>
     </div>
 </div>
+
+<script>
+(function(){
+  try {
+    const path = window.location.pathname || '';
+    const patientToggle = document.querySelector('a[href="#patient-submenu"]');
+    const submenu = document.getElementById('patient-submenu');
+    if (!patientToggle || !submenu) return;
+
+    // Jika URL menunjukkan add-patient atau patient-history -> buka submenu
+    if (/add-patient|patient-history|\/tbcare\/patient-history|\/sub_1\/add-patient/.test(path)) {
+      submenu.classList.add('show');
+      patientToggle.setAttribute('aria-expanded', 'true');
+      const parentLi = patientToggle.closest('li');
+      if (parentLi) parentLi.classList.add('active');
+
+      // Tandai item spesifik sebagai active
+      if (/add-patient/.test(path)) {
+        const addLi = submenu.querySelector('a[href="/sub_1/add-patient"]')?.closest('li');
+        if (addLi) addLi.classList.add('active');
+      }
+      if (/patient-history/.test(path)) {
+        const histLi = submenu.querySelector('a[href="/tbcare/patient-history"]')?.closest('li');
+        if (histLi) histLi.classList.add('active');
+      }
+    }
+  } catch (e) {
+    // silent
+  }
+})();
+</script>
