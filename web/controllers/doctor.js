@@ -92,6 +92,7 @@ exports.tbcare_add_patient = async (req, res, next) => {
 
 exports.tbcare_create_patient = async (req, res, next) => {
   if (req.body.pass !== req.body.rpass) {
+    // Handle jika password tidak cocok
     req.flash('error', 'Passwords do not match.');
     return res.redirect('/sub_1/add-patient');
   }
@@ -114,8 +115,9 @@ exports.tbcare_create_patient = async (req, res, next) => {
     
     const savedUser = await newUser.save();
 
+    // 2. Buat dokumen TbcareProfile yang terhubung dengan User
     const newProfile = new TbcareProfile({
-      user: savedUser._id,
+      user: savedUser._id, // Hubungkan dengan ID user yang baru dibuat
       participantId: req.body.participantId,
       sex: req.body.sex,
       age: req.body.age,
@@ -155,119 +157,122 @@ exports.tbcare_create_patient = async (req, res, next) => {
   }
 };
 
-exports.tbcare_getEditPatient = async (req, res, next) => {
-    try {
-        const patientId = req.params.patientId;
-        const patient = await User.findById(patientId).populate('tbcareProfile');
-        if (!patient || patient.doctor.toString() !== req.session.user._id.toString()) {
-            req.flash('error', 'Patient not found or you do not have permission to edit.');
-            return res.redirect('/tbcare/patient-history');
-        }
+exports.tbcare_predict_form = async (req, res, next) => {
+  try {
+    const patients = await User.find({ role: "patient", doctor: req.session.user._id });
+    const uploadsPath = path.join(__dirname, '..', 'public', 'uploads', 'tbcare');
 
-        res.render('doctor/tbcare/edit-patient', {
-            pageTitle: 'Edit Patient',
-            pageHeader: `Edit Patient: ${patient.fullName.first}`,
-            userdata: req.session.user,
-            patient: patient,
-            csrfToken: req.csrfToken(),
-            errorMessage: req.flash('error')[0]
-        });
-    } catch (error) {
-        next(error);
-    }
+    let audioFolders = [];
+    let allFiles = [];
+
+    const mainFolders = fs.readdirSync(uploadsPath, { withFileTypes: true })
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name);
+
+    mainFolders.forEach(folder => {
+        const folderPath = path.join(uploadsPath, folder);
+        const files = fs.readdirSync(folderPath)
+            .filter(file => file.endsWith('.wav'))
+            .map(file => {
+                const stats = fs.statSync(path.join(folderPath, file));
+                return {
+                    name: file,
+                    folder: folder, 
+                    path: `public/uploads/tbcare/${folder}/${file}`,
+                    modifiedTime: stats.mtime.getTime(),
+                    displayDate: stats.mtime.toISOString().split('T')[0]
+                };
+            });
+        if(files.length > 0) {
+            audioFolders.push(folder);
+            allFiles.push(...files);
+        }
+    });
+
+    allFiles.sort((a, b) => b.modifiedTime - a.modifiedTime);
+
+    res.render("doctor/tbcare/predict", {
+      pageTitle: "TBCare - Cough Prediction",
+      pageHeader: "Cough Recording Prediction",
+      role: req.session.user.role,
+      subrole: req.session.user.subrole,
+      userdata: req.session.user,
+      patients: patients,
+      coughFiles: allFiles,
+      audioFolders: audioFolders,
+      // Add these lines to fix the error
+      errorMessage: req.flash('error'),
+      hasResult: false, 
+      predictionResult: null,
+      predictionDetail: null,
+      waveform: null,
+      mfcc: null,
+    });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
 };
 
-/**
- * @description Memproses form update data pasien TBCare.
- */
-exports.tbcare_postUpdatePatient = async (req, res, next) => {
-    try {
-        const { 
-            patientId,
-            fname, lname, email, mobno, add1, city,
-            age, sex, height, weight, bmi, weightStatus,
-            isCoughProductive, coughDurationDays, hasWeightLoss, weightLossAmountKg,
-            hasHemoptysis, hasChestPain, hasShortBreath, hasFever, hasNightSweats,
-            hadPriorTB, tobaccoUse, cigarettesPerDay, smokingSinceMonths, stoppedSmokingMonths,
-            comorbidities, comorbiditiesOther
-        } = req.body;
+exports.tbcare_predict_post = async (req, res, next) => {
+  const { patientId, coughFilePath, sputumStatus, sputumLevel } = req.body;
 
-        const user = await User.findById(patientId);
-        if (!user) {
-            req.flash('error', 'Patient not found.');
-            return res.redirect('/tbcare/patient-history');
-        }
+  if (!patientId || !coughFilePath || !sputumStatus) {
+    req.flash('error', 'Please complete all required fields.');
+    return res.redirect('/sub_1/predict');
+  }
 
-        // Update User model
-        user.fullName.first = fname;
-        user.fullName.last = lname;
-        user.email = email;
-        user.mobileNumber1 = mobno;
-        user.address1 = add1;
-        user.city = city;
-        await user.save();
+  let sputumConditionLabel = sputumStatus;
+  if (sputumStatus === 'Sputum +' && sputumLevel) {
+    sputumConditionLabel += ` (${sputumLevel})`;
+  }
 
-        // Update TbcareProfile model
-        const profile = await TbcareProfile.findOne({ user: patientId });
-        if (profile) {
-            profile.age = age;
-            profile.sex = sex;
-            profile.height = height;
-            profile.weight = weight;
-            profile.bmi = bmi;
-            profile.weightStatus = weightStatus;
-            profile.isCoughProductive = isCoughProductive;
-            profile.coughDurationDays = coughDurationDays;
-            profile.hasWeightLoss = hasWeightLoss;
-            profile.weightLossAmountKg = weightLossAmountKg;
-            profile.hasHemoptysis = hasHemoptysis;
-            profile.hasChestPain = hasChestPain;
-            profile.hasShortBreath = hasShortBreath;
-            profile.hasFever = hasFever;
-            profile.hasNightSweats = hasNightSweats;
-            profile.hadPriorTB = hadPriorTB;
-            profile.tobaccoUse = tobaccoUse;
-            profile.cigarettesPerDay = cigarettesPerDay;
-            profile.smokingSinceMonths = smokingSinceMonths;
-            profile.stoppedSmokingMonths = stoppedSmokingMonths;
-            profile.comorbidities = comorbidities;
-            profile.comorbiditiesOther = comorbiditiesOther;
-            await profile.save();
-        }
+  const coughFileAbsolutePath = path.join(__dirname, '..', coughFilePath);
+  const pythonScriptPath = path.join(__dirname, '..', 'python-script', 'process_cough.py');
+  const pythonProcess = spawn('python3', [pythonScriptPath, coughFileAbsolutePath]);
 
-        res.redirect('/tbcare/patient-history');
-    } catch (error) {
-        console.log("Error updating patient:", error);
-        req.flash('error', 'Failed to update patient data.');
-        res.redirect('/tbcare/patient-history');
+  let predictionResult = '';
+  let errorOutput = '';
+
+  pythonProcess.stdout.on('data', (data) => { predictionResult += data.toString().trim(); });
+  pythonProcess.stderr.on('data', (data) => { errorOutput += data.toString(); });
+
+  pythonProcess.on('close', async (code) => {
+    if (code !== 0 || errorOutput) {
+      console.error(`Python Error: ${errorOutput}`);
+      req.flash('error', 'Prediction failed. Please check server logs.');
+      return res.redirect('/sub_1/predict');
     }
-};
 
-/**
- * @description Menghapus pasien TBCare dan semua data terkaitnya
- */
-exports.tbcare_deletePatient = async (req, res, next) => {
-    try {
-        const { patientId } = req.params;
-
-        const patient = await User.findById(patientId);
-        if (!patient || patient.doctor.toString() !== req.session.user._id.toString()) {
-            return res.status(403).json({ message: 'Forbidden: You do not have permission to delete this patient.' });
-        }
-
-        await TbcarePrediction.deleteMany({ patient: patientId });
-        await TbcareProfile.deleteOne({ user: patientId });
-        const result = await User.findByIdAndDelete(patientId);
-
-        if (!result) {
-            return res.status(404).json({ message: 'Gagal menghapus: Pasien tidak ditemukan.' });
-        }
-
-        res.status(200).json({ message: 'Pasien dan semua data riwayatnya berhasil dihapus.' });
-    } catch (error) {
-        console.error("Error deleting patient:", error);
-        res.status(500).json({ message: 'Gagal menghapus pasien.', details: error.message });
+    const parts = predictionResult.split(',');
+    if (parts.length < 4) {
+      req.flash('info', `Prediction Info: ${predictionResult}`);
+      return res.redirect('/sub_1/predict');
     }
+
+    const [finalDecision, tbSegments, nonTbSegments, totalCoughSegments] = parts;
+
+    try {
+      await Prediction.create({
+        patient: patientId,
+        predictedBy: req.session.user._id,
+        audioFile: coughFilePath,
+        sputumCondition: sputumConditionLabel,
+        result: finalDecision,
+        tbSegmentCount: parseInt(tbSegments),
+        nonTbSegmentCount: parseInt(nonTbSegments),
+        totalCoughSegments: parseInt(totalCoughSegments)
+      });
+
+      req.flash('success', `Prediction Saved! Result: ${finalDecision}`);
+      res.redirect("/sub_1/doctor");
+
+    } catch (dbError) {
+      console.error('Database Error:', dbError);
+      req.flash('error', 'Failed to save prediction result.');
+      return res.redirect('/sub_1/predict');
+    }
+  });
 };
 
 // pembatashhh

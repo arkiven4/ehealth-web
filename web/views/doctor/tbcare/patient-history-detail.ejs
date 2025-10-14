@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             const predictionId = this.dataset.id;
             if (confirm('Are you sure you want to permanently delete this prediction record?')) {
-                fetch('/api/prediction/' + predictionId, { // Ganti ke /api/ jika sudah dipindah
+                fetch('/api/v2/prediction/' + predictionId, {
                     method: 'DELETE',
                     headers: { 'csrf-token': csrfToken }
                 })

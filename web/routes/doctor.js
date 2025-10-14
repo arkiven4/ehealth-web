@@ -49,23 +49,18 @@ router.post(
   doctorController.tbcare_create_patient 
 );
 
-router.get('/sub_1/edit-patient/:patientId', 
-  auth.isAuth, 
-  checkingRole.isDoctor,
-  doctorController.tbcare_getEditPatient
-);
+// router.get(
+//   "/sub_1/predict",
+//   auth.isAuth,
+//   checkingRole.isDoctor,
+//   doctorController.tbcare_predict_form
+// );
 
-router.post('/sub_1/update-patient', 
-  auth.isAuth, 
-  checkingRole.isDoctor,
-  doctorController.tbcare_postUpdatePatient
-);
-
-router.delete(
-    '/sub_1/tbcare/patient/:patientId',
-    auth.isAuth,
-    checkingRole.isDoctor,
-    doctorController.tbcare_deletePatient
-);
+// router.post(
+//   "/sub_1/predict",
+//   auth.isAuth,
+//   checkingRole.isDoctor,
+//   doctorController.tbcare_predict_post
+// );
 
 module.exports = router;
