@@ -15,16 +15,74 @@
                         </div>
                      </div>
                      <div class="iq-card-body">
-                        <form action='/sub_1/create-patient?_csrf=<%= csrfToken %>' method='post'>
+                        <form action="/sub_1/create-patient" method="POST">
+                           <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                            
+                           <h5 class="mb-3">Patient Identity & Account</h5>
+                           <div class="row">
+                              <div class="form-group col-md-6"><label>First Name:</label><input type="text" class="form-control" name="fname" required></div>
+                              <div class="form-group col-md-6"><label>Last Name:</label><input type="text" class="form-control" name="lname"></div>
+                              <div class="form-group col-md-6"><label>Email:</label><input type="email" class="form-control" name="email" required></div>
+                              <div class="form-group col-md-6"><label>Username:</label><input type="text" class="form-control" name="uname" required></div>
+                              <div class="form-group col-md-6"><label>Password:</label><input type="password" class="form-control" name="pass" required></div>
+                              <div class="form-group col-md-6"><label>Repeat Password:</label><input type="password" class="form-control" name="rpass" required></div>
+                           </div>
+                           <hr>
+                           
+                           <h5 class="mb-3">Patient Location</h5>
+                           <div class="row">
+                               <div class="form-group col-md-4">
+                                   <label for="province-select">Provinsi:</label>
+                                   <select class="form-control" id="province-select" name="province" required>
+                                       <option value="">-- Pilih Provinsi --</option>
+                                       <% provinces.forEach(province => { %>
+                                           <option value="<%= province %>"><%= province %></option>
+                                       <% }); %>
+                                   </select>
+                               </div>
+                               <div class="form-group col-md-4" id="city-container" style="display: none;">
+                                   <label for="city-select">Kota/Kabupaten:</label>
+                                   <select class="form-control" id="city-select" name="city">
+                                       <option value="">-- Pilih Kota/Kabupaten --</option>
+                                       <option value="Surabaya">Surabaya</option>
+                                   </select>
+                               </div>
+                               <div class="form-group col-md-4" id="district-container" style="display: none;">
+                                   <label for="district-select">Kecamatan:</label>
+                                   <select class="form-control" id="district-select" name="district">
+                                       <option value="">-- Pilih Kecamatan --</option>
+                                        <% surabayaDistricts.forEach(district => { %>
+                                           <option value="<%= district %>"><%= district %></option>
+                                       <% }); %>
+                                   </select>
+                               </div>
+                           </div>
+                           <hr>
+
                            <h5 class="mb-3">Clinical Data</h5>
                            <div class="row">
-                              <div class="form-group col-md-4"><label>Age:</label><input type="number" class="form-control" name="age" required></div>
+                              <div class="form-group col-md-4">
+                                 <label for="dateOfBirth">Birthdate</label>
+                                 <input 
+                                    type="date" 
+                                    class="form-control" 
+                                    id="dateOfBirth" 
+                                    name="dateOfBirth" 
+                                    required
+                                    <% if (typeof patient !== 'undefined' && patient.tbcareProfile.dateOfBirth) { %>
+                                          value="<%= patient.tbcareProfile.dateOfBirth.toISOString().split('T')[0] %>"
+                                    <% } %>
+                                 >
+                              </div>
+                              <div class="form-group col-md-2">
+                                 <label>Age</label>
+                                 <input type="text" class="form-control" id="age-display" readonly placeholder="(auto)">
+                              </div>
                               <div class="form-group col-md-4"><label>Sex:</label><select class="form-control" name="sex" required><option value="Male">Male</option><option value="Female">Female</option></select></div>
-                              <div class="form-group col-md-3"><label>Height (cm):</label><input type="number" step="0.1" class="form-control" id="height" name="height"></div>
-                              <div class="form-group col-md-3"><label>Weight (Kg):</label><input type="number" step="0.1" class="form-control" id="weight" name="weight"></div>
-                              <div class="form-group col-md-3"><label>BMI:</label><input type="text" class="form-control" id="bmi" name="bmi" readonly></div>
-                              <div class="form-group col-md-3"><label>Weight Status:</label><input type="text" class="form-control" id="weightStatus" name="weightStatus" readonly></div>
+                              <div class="form-group col-md-4"><label>Height (cm):</label><input type="number" step="0.1" class="form-control" id="height" name="height"></div>
+                              <div class="form-group col-md-4"><label>Weight (Kg):</label><input type="number" step="0.1" class="form-control" id="weight" name="weight"></div>
+                              <div class="form-group col-md-4"><label>BMI:</label><input type="text" class="form-control" id="bmi" name="bmi" readonly></div>
+                              <div class="form-group col-md-4"><label>Weight Status:</label><input type="text" class="form-control" id="weightStatus" name="weightStatus" readonly></div>
                            </div>
                            <hr>
 
@@ -66,22 +124,8 @@
                                 <div class="form-group mt-2"><label>Other:</label><input type="text" class="form-control" name="comorbiditiesOther" placeholder="Sebutkan penyakit lain..."></div>
                            </div>
                            <hr>
-                           
-                           <h5 class="mb-3">Patient Identity & Account</h5>
-                           <div class="row">
-                              <div class="form-group col-md-6"><label>First Name:</label><input type="text" class="form-control" name="fname" required></div>
-                              <div class="form-group col-md-6"><label>Last Name:</label><input type="text" class="form-control" name="lname" required></div>
-                              <div class="form-group col-md-6"><label>Address:</label><input type="text" class="form-control" name="add1" required></div>
-                              <div class="form-group col-md-6"><label>City:</label><input type="text" class="form-control" name="city" required></div>
-                              <div class="form-group col-md-6"><label>Mobile Number:</label><input type="text" class="form-control" name="mobno" required></div>
-                              <div class="form-group col-md-6"><label>Email:</label><input type="email" class="form-control" name="email" required></div>
-                              <div class="form-group col-md-4"><label>Username:</label><input type="text" class="form-control" name="uname" required></div>
-                              <div class="form-group col-md-4"><label>Password:</label><input type="password" class="form-control" name="pass" required></div>
-                              <div class="form-group col-md-4"><label>Repeat Password:</label><input type="password" class="form-control" name="rpass" required></div>
-                           </div>
-                           <hr>
 
-                           <a href="/sub_1/doctor" class="btn iq-bg-danger">Cancel</a>
+                           <a href="/tbcare/patient-history" class="btn iq-bg-danger">Cancel</a>
                            <button type="submit" class="btn btn-primary">Add New Patient</button>
                         </form>
                      </div>
@@ -111,7 +155,6 @@
                   const bmi = weight / (heightInMeters * heightInMeters);
                   bmiInput.value = bmi.toFixed(2);
 
-                  // Determine weight status
                   if (bmi < 18.5) {
                       weightStatusInput.value = 'Underweight';
                   } else if (bmi >= 18.5 && bmi < 24.9) {
@@ -126,24 +169,24 @@
                   weightStatusInput.value = '';
               }
           }
-          heightInput.addEventListener('input', calculateBmi);
-          weightInput.addEventListener('input', calculateBmi);
-
-          // Conditional Cough Duration
+          if (heightInput && weightInput) {
+            heightInput.addEventListener('input', calculateBmi);
+            weightInput.addEventListener('input', calculateBmi);
+          }
+          
+          // Conditional Fields
           const isCoughProductiveSelect = document.getElementById('isCoughProductive');
           const coughDurationContainer = document.getElementById('coughDurationContainer');
           isCoughProductiveSelect.addEventListener('change', function() {
               coughDurationContainer.style.display = this.value === 'Yes' ? 'block' : 'none';
           });
 
-          // Conditional Weight Loss Amount
           const hasWeightLossSelect = document.getElementById('hasWeightLoss');
           const weightLossAmountContainer = document.getElementById('weightLossAmountContainer');
           hasWeightLossSelect.addEventListener('change', function() {
               weightLossAmountContainer.style.display = this.value === 'Yes' ? 'block' : 'none';
           });
 
-          // Conditional Tobacco Details
           const tobaccoUseSelect = document.getElementById('tobaccoUse');
           const tobaccoDetailsContainer = document.getElementById('tobaccoDetailsContainer');
           const cigarettesPerDayContainer = document.getElementById('cigarettesPerDayContainer');
@@ -153,7 +196,7 @@
           tobaccoUseSelect.addEventListener('change', function() {
               const value = this.value;
               if (value === 'current' || value === 'stopped') {
-                  tobaccoDetailsContainer.style.display = 'flex'; // Use flex for row display
+                  tobaccoDetailsContainer.style.display = 'flex';
                   cigarettesPerDayContainer.style.display = value === 'current' ? 'block' : 'none';
                   smokingSinceContainer.style.display = value === 'current' ? 'block' : 'none';
                   stoppedSmokingContainer.style.display = value === 'stopped' ? 'block' : 'none';
@@ -161,7 +204,57 @@
                   tobaccoDetailsContainer.style.display = 'none';
               }
           });
+
+          // Dynamic Location Dropdowns
+          const provinceSelect = document.getElementById('province-select');
+          const cityContainer = document.getElementById('city-container');
+          const citySelect = document.getElementById('city-select');
+          const districtContainer = document.getElementById('district-container');
+          const districtSelect = document.getElementById('district-select');
+
+          function toggleDropdowns() {
+              const selectedProvince = provinceSelect.value;
+              const selectedCity = citySelect.value;
+
+              if (selectedProvince === 'JAWA TIMUR') {
+                  cityContainer.style.display = 'block';
+              } else {
+                  cityContainer.style.display = 'none';
+                  citySelect.value = '';
+              }
+
+              if (selectedProvince === 'JAWA TIMUR' && selectedCity === 'Surabaya') {
+                  districtContainer.style.display = 'block';
+              } else {
+                  districtContainer.style.display = 'none';
+                  districtSelect.value = '';
+              }
+          }
+
+          provinceSelect.addEventListener('change', toggleDropdowns);
+          citySelect.addEventListener('change', toggleDropdowns);
       });
+      const dobInput = document.getElementById('dateOfBirth');
+      const ageDisplay = document.getElementById('age-display');
+
+      function displayAge() {
+         if (!dobInput.value) {
+            ageDisplay.value = '';
+            return;
+         }
+         const birthDate = new Date(dobInput.value);
+         const today = new Date();
+         let age = today.getFullYear() - birthDate.getFullYear();
+         const m = today.getMonth() - birthDate.getMonth();
+         if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+         }
+         ageDisplay.value = age + " tahun";
+      }
+
+      dobInput.addEventListener('input', displayAge);
+
+      displayAge();
    </script>
 </body>
 </html>

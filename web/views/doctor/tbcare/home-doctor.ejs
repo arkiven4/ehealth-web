@@ -6,6 +6,47 @@
       <div id="content-page" class="content-page">
          <%- include('../../includes/top-navbar.ejs') %>
          <div class="container-fluid">
+
+            <div class="row">
+                <div class="col-md-6 col-lg-3">
+                    <div class="iq-card iq-card-block iq-card-stretch iq-card-height">
+                        <div class="iq-card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle iq-card-icon bg-primary"><i class="ri-user-line"></i></div>
+                                <div class="text-left ml-3">
+                                    <h2 class="mb-0"><span class="counter"><%= totalPatientCount %></span></h2>
+                                    <h5 class="">Total Pasien</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="iq-card iq-card-block iq-card-stretch iq-card-height">
+                        <div class="iq-card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle iq-card-icon bg-danger"><i class="ri-checkbox-circle-line"></i></div>
+                                <div class="text-left ml-3">
+                                    <h2 class="mb-0"><span class="counter"><%= tbCasesCount %></span></h2>
+                                    <h5 class="">Kasus TB Ditemukan</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 col-lg-6">
+                    <div class="iq-card iq-card-block iq-card-stretch iq-card-height">
+                         <div class="iq-card-header d-flex justify-content-between">
+                            <div class="iq-header-title">
+                               <h4 class="card-title">Statistik Pasien per Kecamatan (Surabaya)</h4>
+                            </div>
+                         </div>
+                        <div class="iq-card-body">
+                            <canvas id="regionalBarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row">
                <div class="col-sm-12">
                   <div class="iq-card">
@@ -14,7 +55,7 @@
                            <h4 class="card-title">TBCare Patient List</h4>
                         </div>
                         <div class="iq-card-header-toolbar d-flex align-items-center">
-                           <a href="/sub_1/add-patient" class="btn btn-primary">Add New Patient</a>
+                           <a href="/tbcare/add-patient" class="btn btn-primary">Add New Patient</a>
                         </div>
                      </div>
                      <div class="iq-card-body">
@@ -25,21 +66,27 @@
                                     <th>Name</th>
                                     <th>Contact</th>
                                     <th>Email</th>
-                                    <th>City</th>
+                                    <th>City/District</th>
                                     <th>Action</th>
                                  </tr>
                               </thead>
                               <tbody>
-                                 <% if(pasient.length > 0) { %>
-                                    <% pasient.forEach(p => { %>
+                                 <% if(pasien.length > 0) { %>
+                                    <% pasien.forEach(p => { %>
                                        <tr>
                                           <td><%= p.fullName.first %> <%= p.fullName.last %></td>
-                                          <td><%= p.mobileNumber1 %></td>
+                                          <td><%= p.mobileNumber1 || 'N/A' %></td>
                                           <td><%= p.email %></td>
-                                          <td><%= p.city %></td>
+                                          <td><%= p.tbcareProfile ? `${p.tbcareProfile.city || ''}, ${p.tbcareProfile.district || ''}` : 'N/A' %></td>
                                           <td>
-                                             <div class="flex align-items-center list-user-action">
-                                                <a class="iq-bg-primary" data-toggle="tooltip" data-placement="top" title="" data-original-title="View" href="#"><i class="ri-eye-line"></i></a>
+                                             <div class="d-flex align-items-center">
+                                                <a class="btn btn-sm btn-primary mr-2" data-toggle="tooltip" title="View History" href="/tbcare/patient-history/<%= p._id %>"><i class="ri-eye-line"></i></a>
+                                                <a class="btn btn-sm btn-info mr-2" data-toggle="tooltip" title="Edit Patient" href="/tbcare/edit-patient/<%= p._id %>"><i class="ri-pencil-line"></i></a>
+                                                <form action="/tbcare/delete-patient" method="POST" onsubmit="return confirm('Are you sure you want to delete this patient?');" style="display: inline;">
+                                                   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                   <input type="hidden" name="patientId" value="<%= p._id %>">
+                                                   <button type="submit" class="btn btn-sm btn-danger" data-toggle="tooltip" title="Delete Patient"><i class="ri-delete-bin-line"></i></button>
+                                                </form>
                                              </div>
                                           </td>
                                        </tr>
@@ -60,8 +107,44 @@
          <%- include('../../includes/footer.ejs') %>
          </div>
    </div>
-   <script>
-      // Untuk menandai menu navigasi yang aktif
-      document.getElementById("home").classList.add("active");
-   </script>
    <%- include('../../includes/end.ejs') %>
+
+   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <script>
+   document.addEventListener('DOMContentLoaded', function () {
+       const ctx = document.getElementById('regionalBarChart');
+       if (ctx) {
+           const regionalStatsData = <%- JSON.stringify(regionalStats || {}) %>;
+           const labels = Object.keys(regionalStatsData);
+           const data = Object.values(regionalStatsData);
+
+           new Chart(ctx, {
+               type: 'bar',
+               data: {
+                   labels: labels,
+                   datasets: [{
+                       label: 'Jumlah Pasien',
+                       data: data,
+                       backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                       borderColor: 'rgba(54, 162, 235, 1)',
+                       borderWidth: 1
+                   }]
+               },
+               options: {
+                   scales: {
+                       y: {
+                           beginAtZero: true,
+                           ticks: {
+                               stepSize: 1
+                           }
+                       }
+                   },
+                   responsive: true,
+                   maintainAspectRatio: false
+               }
+           });
+       }
+   });
+   </script>
+</body>
+</html>

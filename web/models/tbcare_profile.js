@@ -7,7 +7,11 @@ const tbcareProfileSchema = new Schema({
         ref: 'User',
         required: true
     },
+    province: { type: String },
+    city: { type: String },
+    district: { type: String },
     sex: { type: String, enum: ['Male', 'Female'] },
+    dateOfBirth: { type: Date },
     age: { type: Number },
     height: { type: Number },
     weight: { type: Number },

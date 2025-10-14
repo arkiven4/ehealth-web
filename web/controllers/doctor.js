@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 const { spawn } = require('child_process');
 const TbcareProfile = require('../models/tbcare_profile');
 const Prediction = require('../models/tbcare_prediction');
+const regions = require('../helpers/region');
 
 exports.home = async (req, res, next) => {
   const pasient = await User.find({ role: "patient" , doctor : req.session.user._id});
@@ -60,6 +61,9 @@ exports.create_patient = async (req, res, next) => {
         if (req.body.age || req.body.sex) {
           const newProfile = new TbcareProfile({
             user: newUserId,
+            province: req.body.province || '',
+            city: req.body.city || '',
+            district: req.body.district || '',
             sex: req.body.sex || null,
             age: req.body.age || null,
             height: req.body.height || null,
@@ -95,16 +99,75 @@ exports.create_patient = async (req, res, next) => {
 };
 
 // TBCare (PKM)
+function calculateAge(dateOfBirth) {
+  if (!dateOfBirth) return null;
+  const birthDate = new Date(dateOfBirth);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDifference = today.getMonth() - birthDate.getMonth();
+  if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 exports.tbcare_home = async (req, res, next) => {
-  const pasien = await User.find({ role: "patient", doctor: req.session.user._id });
-  res.render("doctor/tbcare/home-doctor", {
-    pageTitle: "TBCare Dashboard",
-    pageHeader: "TBCare Dashboard",
-    role: req.session.user.role,
-    subrole: req.session.user.subrole,
-    pasient: pasien,
-    userdata: req.session.user,
-  });
+  try {
+    const doctorId = req.session.user._id;
+
+    // 1. Ambil semua pasien TBCare yang ditangani dokter ini
+    const allPatients = await User.find({ 
+      role: "patient", 
+      accountType: 'tbcare', 
+      doctor: doctorId 
+    });
+
+    // 2. Hitung jumlah total pasien
+    const totalPatientCount = allPatients.length;
+
+    // 3. Hitung kasus TB yang ditemukan
+    // Ambil semua prediksi 'TB' untuk pasien dokter ini
+    const tbPredictions = await Prediction.find({ 
+      predictedBy: doctorId, 
+      result: { $regex: /TB/i } // Mencari hasil yang mengandung "TB" (case-insensitive)
+    }).distinct('patient'); // Ambil ID pasien yang unik
+
+    const tbCasesCount = tbPredictions.length;
+
+    // 4. Hitung statistik per kecamatan di Surabaya
+    const surabayaPatients = await TbcareProfile.find({ 
+      user: { $in: allPatients.map(p => p._id) }, // Hanya dari pasien dokter ini
+      city: 'Surabaya' 
+    }).select('district');
+      
+    const districtCounts = {};
+    // Inisialisasi semua kecamatan Surabaya dengan 0
+    regions.surabayaDistricts.forEach(district => {
+        districtCounts[district] = 0; 
+    });
+    // Hitung pasien di setiap kecamatan
+    surabayaPatients.forEach(p => {
+        if(p.district && districtCounts.hasOwnProperty(p.district)) {
+            districtCounts[p.district]++;
+        }
+    });
+
+    res.render("doctor/tbcare/home-doctor", {
+      pageTitle: "TBCare Dashboard",
+      pageHeader: "TBCare Dashboard",
+      role: req.session.user.role,
+      subrole: req.session.user.subrole,
+      pasien: allPatients, // Kirim daftar pasien lengkap
+      userdata: req.session.user,
+      // Kirim data statistik ke view
+      totalPatientCount: totalPatientCount,
+      tbCasesCount: tbCasesCount,
+      regionalStats: districtCounts // Data untuk chart
+    });
+  } catch(err) {
+      console.log(err);
+      next(err);
+  }
 };
 
 exports.tbcare_add_patient = async (req, res, next) => {
@@ -113,7 +176,10 @@ exports.tbcare_add_patient = async (req, res, next) => {
     pageHeader: "Add New TBCare Patient",
     role: req.session.user.role,
     subrole: req.session.user.subrole,
-    userdata: req.session.user
+    userdata: req.session.user,
+    csrfToken: req.csrfToken(),
+    provinces: regions.provinces,
+    surabayaDistricts: regions.surabayaDistricts
   });
 };
 
@@ -141,37 +207,36 @@ exports.tbcare_create_patient = async (req, res, next) => {
     
     const savedUser = await newUser.save();
 
-    // 2. Buat dokumen TbcareProfile yang terhubung dengan User
-    const newProfile = new TbcareProfile({
-      user: savedUser._id,
-      sex: req.body.sex,
-      age: req.body.age,
-      height: req.body.height,
-      weight: req.body.weight,
-      bmi: req.body.bmi,
-      weightStatus: req.body.weightStatus,
-      isCoughProductive: req.body.isCoughProductive,
-      coughDurationDays: req.body.coughDurationDays,
-      hasHemoptysis: req.body.hasHemoptysis,
-      hasChestPain: req.body.hasChestPain,
-      hasShortBreath: req.body.hasShortBreath,
-      hasFever: req.body.hasFever,
-      hasNightSweats: req.body.hasNightSweats,
-      hasWeightLoss: req.body.hasWeightLoss,
-      weightLossAmountKg: req.body.weightLossAmountKg,
-      tobaccoUse: req.body.tobaccoUse,
-      cigarettesPerDay: req.body.cigarettesPerDay,
-      smokingSinceMonths: req.body.smokingSinceMonths,
-      stoppedSmokingMonths: req.body.stoppedSmokingMonths,
-      hadPriorTB: req.body.hadPriorTB,
-      comorbidities: req.body.comorbidities,
-      comorbiditiesOther: req.body.comorbiditiesOther,
-    });
+    // simpan/attach tbcare profile termasuk lokasi jika ada
+    try {
+      const profileData = {
+        user: savedUser._id,
+        participantId: req.body.participantId || '',
+        province: req.body.province || '',
+        city: req.body.city || '',
+        district: req.body.district || '',
+        dateOfBirth: req.body.dateOfBirth ? new Date(req.body.dateOfBirth) : null,
+        height: req.body.height ? parseFloat(req.body.height) : null,
+        weight: req.body.weight ? parseFloat(req.body.weight) : null,
+        bmi: req.body.bmi ? parseFloat(req.body.bmi) : null,
+        weightStatus: req.body.weightStatus || '',
+        isCoughProductive: req.body.isCoughProductive || '',
+        coughDurationDays: req.body.coughDurationDays ? parseInt(req.body.coughDurationDays) : null,
+        hadPriorTB: req.body.hadPriorTB || '',
+        tobaccoUse: req.body.tobaccoUse || '',
+        cigarettesPerDay: req.body.cigarettesPerDay ? parseInt(req.body.cigarettesPerDay) : null,
+        smokingSinceMonths: req.body.smokingSinceMonths ? parseInt(req.body.smokingSinceMonths) : null,
+        stoppedSmokingMonths: req.body.stoppedSmokingMonths ? parseInt(req.body.stoppedSmokingMonths) : null,
+        comorbidities: Array.isArray(req.body.comorbidities) ? req.body.comorbidities : (req.body.comorbidities ? [req.body.comorbidities] : []),
+        comorbiditiesOther: req.body.comorbiditiesOther || ''
+      };
 
-    const savedProfile = await newProfile.save();
-
-    savedUser.tbcareProfile = savedProfile._id;
-    await savedUser.save();
+      const savedProfile = await TbcareProfile.create(profileData);
+      savedUser.tbcareProfile = savedProfile._id;
+      await savedUser.save();
+    } catch (e) {
+      console.error('Failed to create tbcare profile:', e);
+    }
 
     res.redirect("/sub_1/doctor");
 
@@ -318,6 +383,8 @@ exports.tbcare_get_edit_patient = async (req, res, next) => {
       userdata: req.session.user,
       patient: patient,
       csrfToken: req.csrfToken(),
+      provinces: regions.provinces,
+      surabayaDistricts: regions.surabayaDistricts,
       role: req.session.user.role,
       subrole: req.session.user.subrole
     });
@@ -339,7 +406,6 @@ exports.tbcare_post_edit_patient = async (req, res, next) => {
     email,
     uname,
     sex,
-    age,
     height,
     weight,
     bmi,
@@ -363,6 +429,7 @@ exports.tbcare_post_edit_patient = async (req, res, next) => {
   } = req.body;
 
   try {
+    // update basic user fields
     await User.updateOne({ _id: patientId, doctor: req.session.user._id }, {
       $set: {
         'fullName.first': fname,
@@ -372,32 +439,71 @@ exports.tbcare_post_edit_patient = async (req, res, next) => {
       }
     });
 
-    await TbcareProfile.updateOne({ user: patientId }, {
-      $set: {
-        sex: sex,
-        age: age,
-        height: height,
-        weight: weight,
-        bmi: bmi,
-        weightStatus: weightStatus,
-        isCoughProductive: isCoughProductive,
-        coughDurationDays: coughDurationDays,
-        hasHemoptysis: hasHemoptysis,
-        hasChestPain: hasChestPain,
-        hasShortBreath: hasShortBreath,
-        hasFever: hasFever,
-        hasNightSweats: hasNightSweats,
-        hasWeightLoss: hasWeightLoss,
-        weightLossAmountKg: weightLossAmountKg,
-        tobaccoUse: tobaccoUse,
-        cigarettesPerDay: cigarettesPerDay,
-        smokingSinceMonths: smokingSinceMonths,
-        stoppedSmokingMonths: stoppedSmokingMonths,
-        hadPriorTB: hadPriorTB,
-        comorbidities: comorbidities,
-        comorbiditiesOther: comorbiditiesOther
-      }
-    });
+    // compute age from dateOfBirth if provided
+    const computedAge = calculateAge(req.body.dateOfBirth);
+
+    // normalize/parsing values
+    const parsedHeight = height ? parseFloat(height) : null;
+    const parsedWeight = weight ? parseFloat(weight) : null;
+    const parsedBmi = bmi ? parseFloat(bmi) : (parsedHeight && parsedWeight ? +(parsedWeight / ((parsedHeight/100)*(parsedHeight/100))).toFixed(2) : null);
+    const parsedCoughDuration = coughDurationDays ? parseInt(coughDurationDays) : null;
+    const parsedWeightLoss = weightLossAmountKg ? parseFloat(weightLossAmountKg) : null;
+    const parsedCigarettes = cigarettesPerDay ? parseInt(cigarettesPerDay) : null;
+    const parsedSmokingSince = smokingSinceMonths ? parseInt(smokingSinceMonths) : null;
+    const parsedStoppedSmoking = stoppedSmokingMonths ? parseInt(stoppedSmokingMonths) : null;
+
+    // boolean checkboxes (checkbox may be 'on' or 'true' or undefined)
+    const bool = v => (typeof v !== 'undefined' && v !== null && (v === 'on' || v === 'true' || v === true));
+
+    const parsedHasHemoptysis = bool(hasHemoptysis);
+    const parsedHasChestPain = bool(hasChestPain);
+    const parsedHasShortBreath = bool(hasShortBreath);
+    const parsedHasFever = bool(hasFever);
+    const parsedHasNightSweats = bool(hasNightSweats);
+    const parsedHasWeightLoss = bool(hasWeightLoss);
+
+    // comorbidities: accept string (comma separated) or array
+    let parsedComorbidities = [];
+    if (Array.isArray(comorbidities)) parsedComorbidities = comorbidities.map(c => (c || '').toString().trim()).filter(Boolean);
+    else if (typeof comorbidities === 'string' && comorbidities.trim() !== '') {
+      parsedComorbidities = comorbidities.split(',').map(c => c.trim()).filter(Boolean);
+    }
+
+    // upsert profile: jika belum ada maka buat
+    await TbcareProfile.updateOne(
+      { user: patientId },
+      {
+        $set: {
+          province: req.body.province || null,
+          city: req.body.city || null,
+          district: req.body.district || null,
+          dateOfBirth: req.body.dateOfBirth || null,
+          sex: sex || null,
+          age: computedAge || null,
+          height: parsedHeight,
+          weight: parsedWeight,
+          bmi: parsedBmi,
+          weightStatus: weightStatus || null,
+          isCoughProductive: isCoughProductive || null,
+          coughDurationDays: parsedCoughDuration,
+          hasHemoptysis: parsedHasHemoptysis,
+          hasChestPain: parsedHasChestPain,
+          hasShortBreath: parsedHasShortBreath,
+          hasFever: parsedHasFever,
+          hasNightSweats: parsedHasNightSweats,
+          hasWeightLoss: parsedHasWeightLoss,
+          weightLossAmountKg: parsedWeightLoss,
+          tobaccoUse: tobaccoUse || null,
+          cigarettesPerDay: parsedCigarettes,
+          smokingSinceMonths: parsedSmokingSince,
+          stoppedSmokingMonths: parsedStoppedSmoking,
+          hadPriorTB: hadPriorTB || null,
+          comorbidities: parsedComorbidities,
+          comorbiditiesOther: comorbiditiesOther || null
+        }
+      },
+      { upsert: true }
+    );
 
     req.flash('success', 'Patient data updated successfully.');
     res.redirect('/tbcare/patient-history');
