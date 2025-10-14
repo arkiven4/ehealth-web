@@ -7,7 +7,6 @@ const tbcareProfileSchema = new Schema({
         ref: 'User',
         required: true
     },
-    participantId: { type: String, unique: true },
     sex: { type: String, enum: ['Male', 'Female'] },
     age: { type: Number },
     height: { type: Number },

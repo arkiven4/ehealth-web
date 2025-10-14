@@ -49,18 +49,4 @@ router.post(
   doctorController.tbcare_create_patient 
 );
 
-// router.get(
-//   "/sub_1/predict",
-//   auth.isAuth,
-//   checkingRole.isDoctor,
-//   doctorController.tbcare_predict_form
-// );
-
-// router.post(
-//   "/sub_1/predict",
-//   auth.isAuth,
-//   checkingRole.isDoctor,
-//   doctorController.tbcare_predict_post
-// );
-
 module.exports = router;

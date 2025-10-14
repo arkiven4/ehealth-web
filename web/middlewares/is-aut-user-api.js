@@ -13,9 +13,7 @@ module.exports = (req, res, next) => {
   try {
     decodedToken = jwt.verify(token, initParam.SECRETE_USER_API_KEY);
   } catch (err) {
-    res.status(500).json({
-      message: "Token cannot to be verified.",
-    });
+    res.status(401).json({ message: "Invalid or expired token." });
   }
   if (!decodedToken) {
     res.status(401).json({
