@@ -1,20 +1,25 @@
 const path = require('path');
 const fs = require('fs');
+const { PythonShell } = require('python-shell');
+
+// Panggil semua model yang kita butuhkan
 const TbcareProfile = require('../models/tbcare_profile');
 const TbcarePrediction = require('../models/tbcare_prediction');
 const User = require('../models/user');
-const { PythonShell } = require('python-shell');
 
+/**
+ * @description Membuat entri prediksi baru, menjalankan script Python, dan menyimpan hasilnya.
+ */
 exports.postStartPrediction = async (req, res, next) => {
     try {
         const { participantId, filename, sputumStatus, sputumLevel } = req.body;
+        
         if (!participantId || !filename || !sputumStatus) {
             return res.status(400).json({ 
                 message: 'Operasi Gagal: participantId, filename, dan sputumStatus wajib diisi.'
             });
         }
 
-        // cari profil pasien
         const patientProfile = await TbcareProfile.findOne({ participantId });
         if (!patientProfile) {
             return res.status(404).json({ 
@@ -23,12 +28,9 @@ exports.postStartPrediction = async (req, res, next) => {
         }
 
         const patientUser = await User.findById(patientProfile.user);
-        const doctorUser = await User.findOne({ role: 'doctor' });
-        const uploadsPath = path.join(__dirname, '..', 'public', 'uploads', 'batuk_tbprimer');
-        const filePath = path.join(uploadsPath, filename);
-
-        console.log(`[DEBUG] Mencari file audio di: ${filePath}`);
-
+        const doctorUser = await User.findOne({ role: 'doctor' }); // Ambil dokter mana saja untuk referensi
+        
+        const filePath = path.join(__dirname, '..', 'public', 'uploads', 'batuk_tbprimer', filename);
         if (!fs.existsSync(filePath)) {
             return res.status(404).json({ 
                 message: `File audio tidak ditemukan di server: ${filePath}`
@@ -36,68 +38,68 @@ exports.postStartPrediction = async (req, res, next) => {
         }
 
         let sputumConditionLabel = sputumStatus;
-        // Jika statusnya "Sputum +" dan levelnya diisi, gabungkan keduanya
         if (sputumStatus === 'Sputum +' && sputumLevel) {
             sputumConditionLabel += ` (${sputumLevel})`;
         }
 
         const options = {
             mode: 'text',
-            pythonPath: 'python3', // Sesuaikan jika perlu
-            scriptPath: path.join(__dirname, '..', 'python-script'), // Path ke folder script python
-            args: [filePath] // Kirim path file audio sebagai argumen
+            pythonPath: 'python3',
+            scriptPath: path.join(__dirname, '..', 'python-script'),
+            args: [filePath]
         };
 
         PythonShell.run('tbcareScript.py', options, async (err, results) => {
             if (err) {
-                // Jika script python-nya error, kita tangkap di sini
                 console.error('PythonShell execution error:', err);
-                return res.status(500).json({ message: 'Gagal menjalankan skrip analisis Python.'});
+                return res.status(500).json({ message: 'Gagal menjalankan skrip analisis Python.' });
             }
 
             try {
-                // 'results' akan berisi output dari script python
-                // Kita asumsikan outputnya adalah JSON string
                 const jsonString = results[0].replace(/'/g, '"');
-                const data = JSON.parse(jsonString);
+                const dataFromPython = JSON.parse(jsonString);
 
-                if (data.status === 'error') {
-                     return res.status(500).json({ message: `Prediksi gagal: ${data.message}`});
+                if (dataFromPython.status === 'error') {
+                    return res.status(500).json({ message: `Prediksi gagal: ${dataFromPython.message}` });
                 }
+
+                const details = dataFromPython.detail;
+                const confidenceScore = details.total_segments > 0 
+                    ? (details.tb_segments / details.total_segments) 
+                    : 0;
                 
-                // Ganti blok const newPrediction = new TbcarePrediction({...}); dengan ini:
+                const completeDetailObject = {
+                    ...details,
+                    waveform: dataFromPython.waveform,
+                    mfcc: dataFromPython.mfcc
+                };
 
                 const newPrediction = new TbcarePrediction({
                     patient: patientUser._id,
                     predictedBy: doctorUser ? doctorUser._id : patientUser._id,
                     audioFile: `/uploads/batuk_tbprimer/${filename}`,
                     sputumCondition: sputumConditionLabel,
-                    result: data.prediction,
-                    confidence: parseFloat(data.detail.confidence),
-                    
-                    // --- PERBAIKAN NAMA KEY DENGAN 's' DI AKHIR ---
-                    tbSegmentCount: data.detail.tb_segments,
-                    nonTbSegmentCount: data.detail.non_tb_segments,
-                    totalCoughSegments: data.detail.total_segments,
-                    detail: data.detail 
+                    result: dataFromPython.prediction,
+                    confidence: confidenceScore,
+                    tbSegmentCount: details.tb_segments,
+                    nonTbSegmentCount: details.non_tb_segments,
+                    totalCoughSegments: details.total_segments,
+                    detail: completeDetailObject
                 });
+
                 await newPrediction.save();
 
                 res.status(201).json({
-                    message: 'Prediksi dari model AI berhasil dilakukan!',
-                    data: {
-                        patientName: patientUser ? patientUser.userName : 'N/A',
-                        participantId: patientProfile.participantId,
-                        predictionId: newPrediction._id,
-                        result: newPrediction.result,
-                        confidence: newPrediction.confidence
-                    }
+                    message: 'Prediksi berhasil disimpan dengan data visualisasi!',
+                    predictionId: newPrediction._id,
+                    result: newPrediction.result,
+                    confidence: newPrediction.confidence
                 });
-                
+
             } catch (parseError) {
                 console.error('Failed to parse JSON from Python script:', parseError);
                 console.error('Original Python output:', results);
-                return res.status(500).json({ message: 'Gagal memproses hasil dari skrip analisis.'});
+                return res.status(500).json({ message: 'Gagal memproses hasil dari skrip analisis.' });
             }
         });
 
@@ -111,35 +113,33 @@ exports.postStartPrediction = async (req, res, next) => {
     }
 };
 
-// === FUNGSI BARU YANG LEBIH LENGKAP UNTUK MEMBUAT DATA UJI COBA ===
+/**
+ * @description Membuat data User dan TbcareProfile baru untuk keperluan testing.
+ */
 exports.postCreateTestPatient = async (req, res, next) => {
     try {
         const timestamp = Date.now();
         
-        // 1. Buat User baru dengan data unik
         const newTestUser = new User({
             email: `testuser-${timestamp}@tbcare.dev`,
             userName: `testuser-${timestamp}`,
-            password: 'password_test_123', // Password ini tidak akan di-hash, tidak apa-apa untuk testing
+            password: 'password_test_123',
             accountType: 'tbcare',
             role: 'patient'
         });
         const savedUser = await newTestUser.save();
 
-        // 2. Buat TbcareProfile baru dan hubungkan dengan user di atas
         const newTestProfile = new TbcareProfile({
-            user: savedUser._id, // Hubungkan ke user yang baru dibuat
+            user: savedUser._id,
             participantId: `TEST-PATIENT-${timestamp}`,
             sex: 'Female',
             age: 35
         });
         const savedProfile = await newTestProfile.save();
 
-        // 3. (Opsional tapi praktik yang baik) Simpan referensi profil kembali ke user
         savedUser.tbcareProfile = savedProfile._id;
         await savedUser.save();
         
-        // 4. Kirim kembali data pasien yang baru dibuat
         res.status(201).json({
             message: 'Pasien Uji Coba LENGKAP (User + Profile) BERHASIL dibuat!',
             note: 'Gunakan participantId di bawah ini untuk testing /start-prediction',
@@ -161,19 +161,20 @@ exports.postCreateTestPatient = async (req, res, next) => {
     }
 };
 
+/**
+ * @description Mengambil semua riwayat prediksi milik satu pasien.
+ */
 exports.getPatientHistory = async (req, res, next) => {
     try {
         const { participantId } = req.params;
 
-        // 1. Cari profil pasien
         const patientProfile = await TbcareProfile.findOne({ participantId });
         if (!patientProfile) {
             return res.status(404).json({ message: 'Pasien tidak ditemukan.' });
         }
 
-        // 2. Cari SEMUA data prediksi yang merujuk ke profil pasien ini
         const predictions = await TbcarePrediction.find({ patient: patientProfile.user })
-            .sort({ createdAt: -1 }); // Urutkan dari yang terbaru
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             message: `Berhasil mengambil ${predictions.length} data riwayat untuk pasien ${participantId}.`,
@@ -182,32 +183,31 @@ exports.getPatientHistory = async (req, res, next) => {
 
     } catch (error) {
         console.error('ERROR di /api/v2/patient-history:', error);
-        res.status(500).json({ message: 'Gagal mengambil data history.' });
+        res.status(500).json({ message: 'Gagal mengambil data history.', details: error.message });
     }
 };
 
+/**
+ * @description Mengubah data prediksi, seperti mapping pasien atau sputum condition.
+ */
 exports.updatePrediction = async (req, res, next) => {
     try {
-        const { predictionId } = req.params; // Ambil ID prediksi dari URL
+        const { predictionId } = req.params;
         const { newParticipantId, sputumStatus, sputumLevel } = req.body;
 
-        // 1. Cari data prediksi yang mau diubah
         const prediction = await TbcarePrediction.findById(predictionId);
         if (!prediction) {
             return res.status(404).json({ message: 'Data prediksi tidak ditemukan.' });
         }
 
-        // 2. Logika untuk mengubah mapping pasien (jika ada)
         if (newParticipantId) {
             const newPatientProfile = await TbcareProfile.findOne({ participantId: newParticipantId });
             if (!newPatientProfile) {
                 return res.status(404).json({ message: `Pasien baru dengan ID ${newParticipantId} tidak ditemukan.` });
             }
-            // Ganti patient ID di data prediksi
             prediction.patient = newPatientProfile.user;
         }
         
-        // 3. Logika untuk mengubah sputum condition (jika ada)
         if (sputumStatus) {
             let sputumConditionLabel = sputumStatus;
             if (sputumStatus === 'Sputum +' && sputumLevel) {
@@ -216,7 +216,6 @@ exports.updatePrediction = async (req, res, next) => {
             prediction.sputumCondition = sputumConditionLabel;
         }
 
-        // 4. Simpan perubahan ke database
         const updatedPrediction = await prediction.save();
 
         res.status(200).json({
@@ -230,13 +229,13 @@ exports.updatePrediction = async (req, res, next) => {
     }
 };
 
-
-// === FUNGSI BARU UNTUK DELETE PREDIKSI ===
+/**
+ * @description Menghapus satu data prediksi dari database.
+ */
 exports.deletePrediction = async (req, res, next) => {
     try {
-        const { predictionId } = req.params; // Ambil ID prediksi dari URL
+        const { predictionId } = req.params;
 
-        // Cari dan hapus data prediksi berdasarkan ID-nya
         const result = await TbcarePrediction.findByIdAndDelete(predictionId);
 
         if (!result) {

@@ -222,41 +222,58 @@ exports.submit_data_batuk = async (req, res, next) => {
         message: "Empty Data",
       });
     }
-    // const resultsPerPage = 10;
-    // let page = req.body.page >= 1 ? req.body.page : 1;
-
-    // const deviceData = await Device.find({
-    //   admin: req.userId,
-    //   device_id: req.body.device_id,
-    // });
-
-    // const deviceData_Datas = await Device_Data.find({
-    //   device_id: req.body.device_id,
-    // })
-    //   .limit(resultsPerPage)
-    //   .skip(resultsPerPage * (page - 1))
-    //   .sort({ time: "desc" });
-
-    // deviceData_count = deviceData_Datas.length;
-
-    // for (let index = 0; index < deviceData_Datas.length; index++) {
-    //   var JsonData = JSON.parse(deviceData_Datas[index].json_data);
-    //   JsonData.file_audio = 'https://elbicare.my.id/uploads/batuk/' + JsonData.file_audio;
-    //   deviceData_Datas[index].json_data = JSON.stringify(JsonData);
-    // }
-    // // http://localhost/uploads/batuk/5b7897cd2284caca26569c19eff469ad.wav
-
-    // res.status(200).json({
-    //   device_data: deviceData_Datas,
-    //   device_detail: deviceData,
-    //   currentPage: page,
-    //   pages: Math.ceil(deviceData_count / resultsPerPage),
-    //   lastIndex: resultsPerPage * (page - 1),
-    //   totalCount: deviceData_count,
-    // });
   } catch (err) {
     console.log(err);
     // next(err);
     // res.status(500).json({ message: "internal server error" });
   }
 };
+
+const TbcarePrediction = require("../models/tbcare_prediction");
+exports.patient_history = async (req, res, next) => {
+  try {
+    const patientId = req.query.patientId || req.body.patientId || req.userId; 
+    if (!patientId) {
+      return res.status(400).json({ message: "Missing patientId" });
+    }
+
+    const patient = await User.findById(patientId).populate("tbcareProfile").lean();
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    const history = await TbcarePrediction.find({ patient: patient._id })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const firstExam = history.length ? history[history.length - 1] : null;
+
+    return res.status(200).json({
+      patient: {
+        id: patient._id,
+        email: patient.email,
+        fullName: patient.fullName || null,
+        tbcareProfile: patient.tbcareProfile || null
+      },
+      history: history.map(h => ({
+        id: h._id,
+        audioFile: h.audioFile,
+        result: h.result,
+        confidence: h.confidence,
+        createdAt: h.createdAt
+      })),
+      firstExam: firstExam
+        ? {
+            id: firstExam._id,
+            result: firstExam.result,
+            confidence: firstExam.confidence,
+            createdAt: firstExam.createdAt
+          }
+        : null
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+

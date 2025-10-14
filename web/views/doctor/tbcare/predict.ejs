@@ -1,7 +1,8 @@
 <%- include('../../includes/head.ejs') %>
 <style>
-    .file-selection-box { max-height: 300px; overflow-y: auto; border: 1px solid #e0e0e0; padding: 10px; border-radius: 5px; background-color: #f9f9f9; }
-    .file-option { display: block; margin-bottom: 5px; }
+    .file-selection-box { max-height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; padding: 10px; border-radius: 5px; background-color: #f9f9f9; }
+    .file-option { display: block; margin-bottom: 15px; }
+    .file-option label { width: 100%; }
 </style>
 </head>
 <body>
@@ -55,29 +56,29 @@
                                     </div>
 
                                     <div class="form-group col-md-12">
-                                        <label>3. Select Cough Recording:</label>
+                                        <label>3. Select Unprocessed Cough Recording:</label>
                                         <div class="row mb-3">
-                                            <div class="col-md-4"><input type="text" id="searchInput" class="form-control" placeholder="Search by filename..."></div>
-                                            <div class="col-md-4">
-                                                <select id="folderFilter" class="form-control">
-                                                    <option value="">All Folders</option>
-                                                    <% audioFolders.forEach(folder => { %>
-                                                        <option value="<%= folder %>"><%= folder %></option>
-                                                    <% }) %>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-4"><input type="date" id="dateFilter" class="form-control"></div>
+                                            <div class="col-md-6"><input type="text" id="searchInput" class="form-control" placeholder="Search by filename..."></div>
+                                            <div class="col-md-6"><input type="date" id="dateFilter" class="form-control"></div>
                                         </div>
                                         <div class="file-selection-box" id="fileList">
                                             <% if(coughFiles.length > 0) { %>
                                                 <% coughFiles.forEach((file, index) => { %>
-                                                    <div class="custom-control custom-radio file-option" data-filename="<%= file.name.toLowerCase() %>" data-date="<%= file.displayDate %>" data-folder="<%= file.folder %>">
+                                                    <div class="custom-control custom-radio file-option" data-filename="<%= file.name.toLowerCase() %>" data-date="<%= file.displayDate %>">
                                                         <input type="radio" id="file_<%= index %>" name="coughFilePath" value="<%= file.path %>" class="custom-control-input" required>
-                                                        <label class="custom-control-label" for="file_<%= index %>"><%= file.name %> <small class="text-muted">(<%= file.folder %> | <%= file.displayDate %>)</small></label>
+                                                        <label class="custom-control-label" for="file_<%= index %>">
+                                                            <%= file.name %> <small class="text-muted">(<%= file.displayDate %>)</small>
+                                                            <div class="mt-2">
+                                                                <audio controls controlsList="nodownload" style="width: 100%;">
+                                                                    <source src="<%= file.path %>" type="audio/wav">
+                                                                    Your browser does not support the audio element.
+                                                                </audio>
+                                                            </div>
+                                                        </label>
                                                     </div>
                                                 <% }) %>
                                             <% } else { %>
-                                                <p class="text-muted">No .wav files found in any subfolder of <code>public/uploads/batuk_primer/</code>.</p>
+                                                <p class="text-center text-muted mt-3">All audio recordings have been processed. ✔️</p>
                                             <% } %>
                                         </div>
                                     </div>
@@ -97,7 +98,6 @@
 <%- include('../../includes/end.ejs') %>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Logika untuk Sputum Level
         const sputumStatusSelect = document.getElementById('sputumStatus');
         const sputumLevelContainer = document.getElementById('sputumLevelContainer');
         sputumStatusSelect.addEventListener('change', function() {
@@ -106,24 +106,20 @@
 
         const searchInput = document.getElementById('searchInput');
         const dateFilter = document.getElementById('dateFilter');
-        const folderFilter = document.getElementById('folderFilter');
         const allFiles = document.querySelectorAll('.file-option');
 
         function filterFiles() {
             const searchTerm = searchInput.value.toLowerCase();
             const selectedDate = dateFilter.value;
-            const selectedFolder = folderFilter.value;
 
             allFiles.forEach(fileEl => {
                 const fileName = fileEl.dataset.filename;
                 const fileDate = fileEl.dataset.date;
-                const fileFolder = fileEl.dataset.folder;
 
                 const matchesSearch = fileName.includes(searchTerm);
                 const matchesDate = !selectedDate || fileDate === selectedDate;
-                const matchesFolder = !selectedFolder || fileFolder === selectedFolder;
 
-                if (matchesSearch && matchesDate && matchesFolder) {
+                if (matchesSearch && matchesDate) {
                     fileEl.style.display = 'block';
                 } else {
                     fileEl.style.display = 'none';
@@ -132,7 +128,6 @@
         }
         searchInput.addEventListener('input', filterFiles);
         dateFilter.addEventListener('change', filterFiles);
-        folderFilter.addEventListener('change', filterFiles);
     });
 </script>
 </body>

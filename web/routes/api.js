@@ -37,7 +37,6 @@ router.post('/api/vibio/check_recognitionServer', apiVibioRecognitionController.
 router.post('/api/submit-data-batuk', isAuthApi ,  upload.any() , apiController.submit_data_batuk);
 
 // TBcare API mobile
-// router.post('/api/tbcare/mobile_login', apiController.mobile_login);
-// router.get('/api/tbcare/mobile_infoUser', isAuthApi, apiController.mobile_infoUser);
+router.get('/api/tbcare/patient_history', isAuthApi, apiController.patient_history);
 
 module.exports = router;
