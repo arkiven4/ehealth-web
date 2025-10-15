@@ -27,7 +27,10 @@ RUN apt-get update -yq && \
     build-essential \
     gcc \
     libsndfile1 \
-    libgl1 && \
+    libgl1 \
+    libhdf5-dev \
+    libjpeg-dev \
+    libpng-dev && \
     curl -L https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get install -yq nodejs && \
     rm -rf /var/lib/apt/lists/*
