@@ -331,38 +331,32 @@ exports.submit_data_batuk = async (req, res, next) => {
 //   }
 // };
 
-// const User = require('../models/user'); // Make sure User model is imported
 const TbcarePrediction = require('../models/tbcare_prediction');
 
 exports.patient_history = async (req, res, next) => {
   try {
-    // Use req.userId from the authentication middleware for security
     const patientId = req.userId; 
     if (!patientId) {
-      // 401 Unauthorized is more appropriate if the user ID is missing
       return res.status(401).json({ message: "Authentication failed: Missing patientId" });
     }
 
-    // 1. Get all patient data and populated profile in one efficient query
     const patient = await User.findById(patientId)
-      .populate("tbcareProfile") // This joins the profile data
-      .select("-password")       // IMPORTANT: Exclude the password for security
-      .lean();                   // .lean() makes the query faster
+      .populate("tbcareProfile")
+      .select("-password")
+      .lean();
 
     if (!patient) {
       return res.status(404).json({ message: "Patient not found" });
     }
 
-    // 2. Get all prediction history for the patient
     const history = await TbcarePrediction.find({ patient: patientId })
-      .populate("predictedBy", "userName role") // Get info about who made the prediction
+      .populate("predictedBy", "userName role") 
       .sort({ createdAt: -1 })
       .lean();
 
-    // 3. Send the complete objects in the response
     return res.status(200).json({
-      patient: patient, // This object now contains ALL profile data, including location and dateOfBirth
-      history: history  // This contains the full, unmapped history objects
+      patient: patient,
+      history: history
     });
 
   } catch (err) {

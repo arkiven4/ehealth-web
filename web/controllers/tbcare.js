@@ -6,6 +6,7 @@ const { spawn } = require('child_process');
 const User = require('../models/user');
 const TbcarePrediction = require('../models/tbcare_prediction');
 const TbcareProfile = require('../models/tbcare_profile');
+const DeviceDataCoughTBPrimer = require("../models/device_data_cough_tbprimer");
 
 exports.getLandingPage = (req, res, next) => {
   res.render('tbcare/landing', { pageTitle: 'Welcome to TBCare', isAuthenticated: req.session.isLoggedIn });
@@ -51,7 +52,7 @@ exports.getPredict = async (req, res, next) => {
             pageHeader: "Cough Recording Prediction",
             userdata: req.session.user,
             patients: patients,
-            coughFiles: allFiles, // <-- Diubah di sini: Langsung gunakan 'allFiles' tanpa difilter
+            coughFiles: allFiles,
             audioFolders: [],
             csrfToken: req.csrfToken(),
             errorMessage: req.flash('error')[0]
@@ -61,139 +62,121 @@ exports.getPredict = async (req, res, next) => {
         next(error);
     }
 };
+async function runPythonScript(pythonPath, args = []) {
+    return new Promise((resolve, reject) => {
+        const py = spawn('python3', [pythonPath, ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
+        let out = '';
+        let err = '';
+
+        py.stdout.on('data', (d) => {
+            out += d.toString();
+        });
+
+        py.stderr.on('data', (d) => {
+            err += d.toString();
+        });
+
+        py.on('close', (code) => {
+            if (code !== 0 && !out) {
+                return reject(new Error(`Python script exited with code ${code}. stderr: ${err}`));
+            }
+
+            try {
+                const lines = out.trim().split('\n');
+                const jsonLine = lines.reverse().find(line =>
+                    line.trim().startsWith('{') && line.trim().endsWith('}')
+                );
+
+                if (!jsonLine) {
+                    throw new Error(`Tidak ditemukan JSON pada output Python.\nOutput:\n${out}\nStderr:\n${err}`);
+                }
+
+                const parsed = JSON.parse(jsonLine);
+                resolve({ parsed, stdout: out, stderr: err, code });
+            } catch (e) {
+                reject(new Error(`Gagal parsing output Python.\nstdout:\n${out}\nstderr:\n${err}\n\n${e}`));
+            }
+        });
+
+        py.on('error', (e) => reject(e));
+    });
+}
 
 /**
- * @description (VERSI FINAL) Memproses form prediksi, menjalankan Python, menyimpan riwayat, dan menampilkan hasilnya.
+ * @description Memproses form prediksi, menjalankan Python, menyimpan riwayat, dan menampilkan hasilnya.
  */
 exports.postPredict = async (req, res, next) => {
-    const { patientId, coughFilePath, sputumStatus, sputumLevel } = req.body;
-
-    if (!patientId || !coughFilePath || !sputumStatus) {
-        req.flash('error', 'Harap lengkapi semua kolom yang diperlukan.');
-        return res.redirect('/tbcare/predict');
-    }
-    const fileSystemPath = path.join(__dirname, '..', 'public', coughFilePath);
-    if (!fs.existsSync(fileSystemPath)) {
-        req.flash('error', `File audio tidak ditemukan di server: ${coughFilePath}`);
-        return res.redirect('/tbcare/predict');
-    }
-
-    // replace the Python run + parse block with this safer helper + usage
-    async function runPythonScript(pythonPath, args = []) {
-        return new Promise((resolve, reject) => {
-            const py = spawn('python3', [pythonPath, ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
-            let out = '';
-            let err = '';
-
-            py.stdout.on('data', (d) => { out += d.toString(); });
-            py.stderr.on('data', (d) => { err += d.toString(); });
-
-            py.on('close', (code) => {
-                if (err && !out) {
-                    // prefer predict output but surface stderr for debugging
-                    return reject(new Error(`Python stderr: ${err}`));
-                }
-
-                // try parse JSON first, otherwise try CSV/line format
-                let parsed;
-                try {
-                    parsed = out && out.trim() ? JSON.parse(out) : null;
-                } catch (e) {
-                    // fallback: try to parse simple comma separated values or key=value pairs
-                    try {
-                        const txt = (out || '').trim();
-                        if (!txt) throw e;
-                        // attempt CSV -> array
-                        if (txt.indexOf(',') !== -1) {
-                            parsed = txt.split(',').map(s => s.trim());
-                        } else {
-                            // key:value lines
-                            parsed = {};
-                            txt.split(/\r?\n/).forEach(line => {
-                                const m = line.match(/^\s*([^:=]+)\s*[:=]\s*(.+)$/);
-                                if (m) parsed[m[1].trim()] = m[2].trim();
-                            });
-                        }
-                    } catch (e2) {
-                        // keep original parse error but return full output for debugging
-                        return reject(new Error(`Failed to parse python output. stdout:${out}\nstderr:${err}\nparseError:${e.message}`));
-                    }
-                }
-
-                resolve({ parsed, stdout: out, stderr: err, code });
-            });
-
-            py.on('error', (e) => {
-                reject(e);
-            });
-        });
-    }
-
     try {
-        const pythonScriptPath = path.join(__dirname, '..', 'python-script', 'tbcareScript.py');
-        const result = await runPythonScript(pythonScriptPath, [fileSystemPath]);
+        const { patientId, coughFilePath, sputumStatus } = req.body;
 
-        // result.parsed may be object, array or null
-        const parsed = result.parsed;
-
-        if (!parsed) {
-            console.error('Python returned empty output', result);
-            req.flash('error', 'Terjadi kesalahan sistem saat menjalankan skrip analisis (empty output).');
-            return res.redirect('/tbcare/predict'); // or respond with 500 JSON for API
-        }
-
-        // defensive extraction of fields
-        const totalSegments = (parsed.total_segments ?? parsed.totalSegments ?? parsed.total ?? null);
-        if (totalSegments === null) {
-            console.error('Missing total segments in python output', result);
-            req.flash('error', `Analisis gagal — output skrip tidak berisi informasi segmen. raw:${result.stdout}`);
+        if (!patientId || !coughFilePath || !sputumStatus) {
+            req.flash('error', 'Harap lengkapi semua kolom.');
             return res.redirect('/tbcare/predict');
         }
 
-        // get other fields defensively (example)
-        const finalDecision = parsed.final_decision ?? parsed.result ?? (Array.isArray(parsed) ? parsed[0] : null);
-        const tbSegments = parsed.tb_segments ?? parsed.tbSegmentCount ?? parsed.tbSegment ?? 0;
-        const nonTbSegments = parsed.non_tb_segments ?? parsed.nonTbSegmentCount ?? parsed.nonTbSegment ?? 0;
+        const fileSystemPath = path.join(__dirname, '..', 'public', coughFilePath);
+        if (!fs.existsSync(fileSystemPath)) {
+            req.flash('error', 'File audio tidak ditemukan.');
+            return res.redirect('/tbcare/predict');
+        }
 
-        const details = parsed.detail;
-        const confidenceScore = totalSegments > 0 
-            ? (tbSegments / totalSegments) 
-            : 0;
+        const pythonScriptPath = path.join(__dirname, '..', 'python-script', 'tbcareScript.py');
+        const result = await runPythonScript(pythonScriptPath, [fileSystemPath]);
+        const parsed = result.parsed;
 
-        const newPrediction = new TbcarePrediction({
+        if (!parsed || parsed.status === 'error') {
+            req.flash('error', parsed?.message || 'Skrip Python gagal.');
+            return res.redirect('/tbcare/predict');
+        }
+
+        const patient = await User.findById(patientId).populate('tbcareProfile');
+        if (!patient) {
+            req.flash('error', 'Pasien tidak ditemukan.');
+            return res.redirect('/tbcare/predict');
+        }
+
+        const tbSegments = parsed.tb_segments ?? 0;
+        const nonTbSegments = parsed.non_tb_segments ?? 0;
+        const totalSegments = parsed.total_segments ?? 0;
+
+        await TbcarePrediction.create({
             patient: patientId,
             predictedBy: req.session.user._id,
             audioFile: coughFilePath,
             sputumCondition: sputumStatus,
-            result: finalDecision,
-            confidence: confidenceScore,
+            result: parsed.final_decision,
             tbSegmentCount: tbSegments,
             nonTbSegmentCount: nonTbSegments,
             totalCoughSegments: totalSegments,
-            detail: { ...details, waveform: parsed.waveform, mfcc: parsed.mfcc }
         });
-        await newPrediction.save();
 
-        res.render('doctor/tbcare/predict-result', {
+        return res.render('doctor/tbcare/predict-result', {
             pageTitle: 'Hasil Prediksi',
             pageHeader: 'Hasil Prediksi',
             userdata: req.session.user,
-            csrfToken: req.csrfToken(),
-            patient: patient,
-            prediction: finalDecision,
-            detail: details,
+            patient,
+            prediction: parsed.final_decision,
+            detail: {
+                tb_segments: tbSegments,
+                non_tb_segments: nonTbSegments,
+                total_segments: totalSegments,
+            },
             sputumCondition: sputumStatus,
             audioFile: coughFilePath,
-            waveform: JSON.stringify(parsed.waveform),
-            mfcc: JSON.stringify(parsed.mfcc)
+            waveform: JSON.stringify(parsed.waveform || []),
+            mfcc: JSON.stringify(parsed.mfcc || []),
+            csrfToken: req.csrfToken(),
         });
 
     } catch (err) {
-        console.error('Failed to parse JSON from Python script:', err.message || err);
-        console.error('Full error:', err);
-        // show helpful message to user and preserve stderr/stdout where available
-        req.flash('error', 'Terjadi kesalahan sistem saat menjalankan skrip analisis.');
-        return res.redirect('/tbcare/predict');
+        console.error("=== ERROR DETAIL postPredict ===");
+        console.error("Message:", err.message);
+        console.error("Stack:", err.stack);
+
+        if (!res.headersSent) {
+            req.flash('error', `Terjadi kesalahan sistem: ${err.message}`);
+            return res.redirect('/tbcare/predict');
+        }
     }
 };
 
@@ -205,7 +188,7 @@ exports.getPatientHistoryList = async (req, res, next) => {
             pageHeader: 'Patient Prediction History',
             userdata: req.session.user,
             patients: patients,
-            csrfToken: req.csrfToken() // <-- TAMBAHKAN BARIS INI
+            csrfToken: req.csrfToken()
         });
     } catch (error) {
         next(error);
