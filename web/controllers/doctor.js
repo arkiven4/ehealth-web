@@ -61,6 +61,7 @@ exports.create_patient = async (req, res, next) => {
         if (req.body.age || req.body.sex) {
           const newProfile = new TbcareProfile({
             user: newUserId,
+            nik: req.body.nik || '',
             province: req.body.province || '',
             city: req.body.city || '',
             district: req.body.district || '',
@@ -203,7 +204,8 @@ exports.tbcare_create_patient = async (req, res, next) => {
     try {
       const profileData = {
         user: savedUser._id,
-        participantId: req.body.participantId || '',
+        // participantId: req.body.participantId || '',
+        nik: req.body.nik || '',
         province: req.body.province || '',
         city: req.body.city || '',
         district: req.body.district || '',
@@ -277,6 +279,7 @@ exports.tbcare_get_edit_patient = async (req, res, next) => {
 exports.tbcare_post_edit_patient = async (req, res, next) => {
   const {
     patientId,
+    nik,
     fname,
     lname,
     email,
@@ -351,6 +354,7 @@ exports.tbcare_post_edit_patient = async (req, res, next) => {
       {
         $set: {
           province: req.body.province || null,
+          nik: req.body.nik || null,
           city: req.body.city || null,
           district: req.body.district || null,
           dateOfBirth: req.body.dateOfBirth || null,

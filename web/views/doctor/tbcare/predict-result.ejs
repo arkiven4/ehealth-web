@@ -50,12 +50,35 @@
                                 <h1 class="font-weight-bold <%= prediction === 'TB' ? 'text-danger' : 'text-success' %>">
                                     <%= prediction %>
                                 </h1>
+                                <% if (detail.overall_confidence) { %>
+                                    <h4 class="mt-2">
+                                        <span class="badge badge-primary" style="font-size: 1.2rem;">
+                                            Overall Confidence: <%= detail.overall_confidence %>%
+                                        </span>
+                                    </h4>
+                                <% } %>
                             </div>
 
-                            <!-- Segment Details -->
-                            <h5>Detail Segmen Batuk</h5>
+                            <!-- Segment Summary -->
+                            <h5>Ringkasan Segmen Batuk</h5>
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <div class="card bg-primary-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Total Segmen</h6>
+                                            <h3 class="mb-0"><%= detail.total_segments %></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-info-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Segmen Batuk Valid</h6>
+                                            <h3 class="mb-0"><%= detail.valid_cough_segments || 0 %></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
                                     <div class="card bg-danger-light">
                                         <div class="card-body text-center">
                                             <h6 class="card-title">Segmen TB</h6>
@@ -63,7 +86,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="card bg-success-light">
                                         <div class="card-body text-center">
                                             <h6 class="card-title">Segmen Non-TB</h6>
@@ -71,15 +94,89 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="card bg-info-light">
-                                        <div class="card-body text-center">
-                                            <h6 class="card-title">Total Segmen Valid</h6>
-                                            <h3 class="mb-0"><%= detail.total_segments %></h3>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
+
+                            <% if (detail.average_tb_probability) { %>
+                                <div class="alert alert-info mt-3">
+                                    <strong>ℹ️ Info:</strong> Average TB Probability = <%= (detail.average_tb_probability * 100).toFixed(2) %>%
+                                    (Soft Voting Threshold: 0.5)
+                                </div>
+                            <% } %>
+
+                            <hr>
+
+                            <!-- Per-Segment Details Table -->
+                            <% if (segmentDetails && segmentDetails.length > 0) { %>
+                                <h5 class="mt-4">Detail Per Segmen</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped">
+                                        <thead class="thead-dark">
+                                            <tr>
+                                                <th width="10%">Segmen #</th>
+                                                <th width="15%">Status Batuk</th>
+                                                <th width="20%">Cough Confidence</th>
+                                                <th width="20%">TB Probability</th>
+                                                <th width="15%">TB Confidence</th>
+                                                <th width="20%">Prediksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% segmentDetails.forEach(function(seg) { %>
+                                                <tr>
+                                                    <td class="text-center"><%= seg.segment_id %></td>
+                                                    <td class="text-center">
+                                                        <% if (seg.is_cough) { %>
+                                                            <span class="badge badge-success">✓ Cough</span>
+                                                        <% } else { %>
+                                                            <span class="badge badge-secondary">✗ Non-Cough</span>
+                                                        <% } %>
+                                                    </td>
+                                                    <td>
+                                                        <div class="progress" style="height: 25px;">
+                                                            <div class="progress-bar <%= seg.cough_score >= 0.5 ? 'bg-success' : 'bg-warning' %>" 
+                                                                 role="progressbar" 
+                                                                 style="width: <%= (seg.cough_score * 100).toFixed(1) %>%">
+                                                                <%= (seg.cough_score * 100).toFixed(1) %>%
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <% if (seg.is_cough) { %>
+                                                            <div class="progress" style="height: 25px;">
+                                                                <div class="progress-bar <%= seg.tb_probability >= 0.5 ? 'bg-danger' : 'bg-info' %>" 
+                                                                     role="progressbar" 
+                                                                     style="width: <%= (seg.tb_probability * 100).toFixed(1) %>%">
+                                                                    <%= (seg.tb_probability * 100).toFixed(1) %>%
+                                                                </div>
+                                                            </div>
+                                                        <% } else { %>
+                                                            <span class="text-muted">N/A</span>
+                                                        <% } %>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <% if (seg.is_cough) { %>
+                                                            <strong><%= (seg.tb_probability * 100).toFixed(2) %>%</strong>
+                                                        <% } else { %>
+                                                            <span class="text-muted">-</span>
+                                                        <% } %>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <% if (seg.prediction === 'TB') { %>
+                                                            <span class="badge badge-danger badge-lg">TB</span>
+                                                        <% } else if (seg.prediction === 'NON-TB') { %>
+                                                            <span class="badge badge-success badge-lg">NON-TB</span>
+                                                        <% } else if (seg.prediction === 'NON-COUGH') { %>
+                                                            <span class="badge badge-secondary badge-lg">NON-COUGH</span>
+                                                        <% } else { %>
+                                                            <span class="badge badge-warning badge-lg"><%= seg.prediction %></span>
+                                                        <% } %>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <% } %>
 
                             <hr>
 

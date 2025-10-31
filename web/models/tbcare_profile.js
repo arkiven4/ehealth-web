@@ -7,6 +7,7 @@ const tbcareProfileSchema = new Schema({
         ref: 'User',
         required: true
     },
+    nik: { type: Number },
     province: { type: String },
     city: { type: String },
     district: { type: String },
