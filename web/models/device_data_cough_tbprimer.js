@@ -14,7 +14,7 @@ const device_data_coughTBPrimerSchema = new Schema(
       trim: true,
     },
     json_data: {
-      type: String,
+      type: Object,
       required: true,
     },
     cough_type: {

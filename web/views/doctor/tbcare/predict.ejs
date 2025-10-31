@@ -29,11 +29,11 @@
                                 <div class="row">
                                     <div class="form-group col-md-12">
                                         <label>1. Select Patient:</label>
-                                        <select class="form-control" name="patientId" required>
+                                        <select class="form-control" name="patientId" id="patientSelect" required>
                                             <option value="">-- Choose a patient --</option>
                                             <% if(patients.length > 0) { %>
                                                 <% patients.forEach(p => { %>
-                                                    <option value="<%= p._id %>"><%= p.fullName.first %> <%= p.fullName.last %> (ID: <%= p.tbcareProfile ? p.tbcareProfile.participantId : 'N/A' %>)</option>
+                                                    <option value="<%= p.tbcareProfile.nik %>" data-nik="<%= p.tbcareProfile.nik %>"><%= p.fullName.first %> <%= p.fullName.last %> (NIK: <%= p.tbcareProfile ? p.tbcareProfile.nik : 'N/A' %>)</option>
                                                 <% }) %>
                                             <% } %>
                                         </select>
@@ -58,29 +58,15 @@
 
                                     <div class="form-group col-md-12">
                                         <label>3. Select Unprocessed Cough Recording:</label>
-                                        <div class="row mb-3">
+                                        <div id="loadingMessage" class="text-center text-muted mt-3" style="display: none;">
+                                            <i class="fa fa-spinner fa-spin"></i> Loading cough recordings...
+                                        </div>
+                                        <div class="row mb-3" id="filterControls" style="display: none;">
                                             <div class="col-md-6"><input type="text" id="searchInput" class="form-control" placeholder="Search by filename..."></div>
                                             <div class="col-md-6"><input type="date" id="dateFilter" class="form-control"></div>
                                         </div>
                                         <div class="file-selection-box" id="fileList">
-                                            <% if(coughFiles.length > 0) { %>
-                                                <% coughFiles.forEach((file, index) => { %>
-                                                    <div class="custom-control custom-radio file-option" data-filename="<%= file.name.toLowerCase() %>" data-date="<%= file.displayDate %>">
-                                                        <input type="radio" id="file_<%= index %>" name="coughFilePath" value="<%= file.path %>" class="custom-control-input" required>
-                                                        <label class="custom-control-label" for="file_<%= index %>">
-                                                            <%= file.name %> <small class="text-muted">(<%= file.displayDate %>)</small>
-                                                            <div class="mt-2">
-                                                                <audio controls controlsList="nodownload" style="width: 100%;">
-                                                                    <source src="<%= file.path %>" type="audio/wav">
-                                                                    Your browser does not support the audio element.
-                                                                </audio>
-                                                            </div>
-                                                        </label>
-                                                    </div>
-                                                <% }) %>
-                                            <% } else { %>
-                                                <p class="text-center text-muted mt-3">All audio recordings have been processed. ✔️</p>
-                                            <% } %>
+                                            <p class="text-center text-muted mt-3">Please select a patient first to view cough recordings.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -129,6 +115,113 @@
         }
         searchInput.addEventListener('input', filterFiles);
         dateFilter.addEventListener('change', filterFiles);
+
+        const patientSelect = document.getElementById('patientSelect');
+        patientSelect.addEventListener('change', async function() {
+            const selectedOption = this.options[this.selectedIndex];
+            //const nik = selectedOption.getAttribute('data-nik');
+            // DEBUG
+            const nik = '5171045111030002'
+            
+            if (!nik) {
+                fileList.innerHTML = '<p class="text-center text-muted mt-3">Please select a patient first to view cough recordings.</p>';
+                filterControls.style.display = 'none';
+                return;
+            }
+
+            loadingMessage.style.display = 'block';
+            fileList.innerHTML = '';
+            filterControls.style.display = 'none';
+
+            try {
+                const response = await fetch(`/tbcare/getPredict_filteredWav?nik=${nik}`);
+                const data = await response.json();
+                console.log(data)
+                
+                loadingMessage.style.display = 'none';
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    displayCoughRecordings(data.data);
+                    filterControls.style.display = 'flex';
+                } else {
+                    fileList.innerHTML = '<p class="text-center text-muted mt-3">No cough recordings found for this patient.</p>';
+                }
+            } catch (error) {
+                console.error('Error fetching cough recordings:', error);
+                loadingMessage.style.display = 'none';
+                fileList.innerHTML = '<p class="text-center text-danger mt-3">Error loading cough recordings. Please try again.</p>';
+            }
+        });
+
+        function displayCoughRecordings(recordings) {
+            let html = '';
+            recordings.forEach((record, index) => {
+                const jsonData = record.json_data || {};
+                const fileName = jsonData.file_audio || 'unknown.wav';
+                const patientName = jsonData.nama || 'Unknown';
+                const coughType = record.cough_type || 'Unknown';
+                const recordTime = new Date(record.time);
+                const displayDate = recordTime.toLocaleDateString('en-GB', { 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                });
+                
+                const displayTime = recordTime.toLocaleTimeString('en-GB', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false
+                }) + ' WIB';
+                
+                const audioPath = `/uploads/batuk_tbprimer/${fileName}`;
+                
+                html += `
+                    <div class="custom-control custom-radio file-option" data-filename="${fileName.toLowerCase()}" data-date="${displayDate}">
+                        <input type="radio" id="file_${index}" name="coughFilePath" value="${audioPath}" class="custom-control-input" required>
+                        <label class="custom-control-label" for="file_${index}">
+                            📅 ${displayDate} ⏰ ${displayTime}
+                            <br>
+                            <div class="mt-2">
+                                <audio controls controlsList="nodownload" style="width: 100%;">
+                                    <source src="${audioPath}" type="audio/wav">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </div>
+                        </label>
+                    </div>
+                `;
+            });
+            fileList.innerHTML = html;
+            attachFilterListeners();
+        }
+
+        function attachFilterListeners() {
+            const allFiles = document.querySelectorAll('.file-option');
+
+            function filterFiles() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const selectedDate = dateFilter.value;
+
+                allFiles.forEach(fileEl => {
+                    const fileName = fileEl.dataset.filename;
+                    const fileDate = fileEl.dataset.date;
+
+                    const matchesSearch = fileName.includes(searchTerm);
+                    const matchesDate = !selectedDate || fileDate === selectedDate;
+
+                    if (matchesSearch && matchesDate) {
+                        fileEl.style.display = 'block';
+                    } else {
+                        fileEl.style.display = 'none';
+                    }
+                });
+            }
+
+            searchInput.removeEventListener('input', filterFiles);
+            dateFilter.removeEventListener('change', filterFiles);
+            searchInput.addEventListener('input', filterFiles);
+            dateFilter.addEventListener('change', filterFiles);
+        }
     });
 </script>
 </body>

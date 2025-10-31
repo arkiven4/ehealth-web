@@ -6,6 +6,7 @@ const { spawn } = require("child_process");
 const User = require("../models/user");
 const TbcarePrediction = require("../models/tbcare_prediction");
 const TbcareProfile = require("../models/tbcare_profile");
+const Device_Data_TBPrimer = require("../models/device_data_cough_tbprimer");
 
 exports.getLandingPage = (req, res, next) => {
   res.render("tbcare/landing", { pageTitle: "Welcome to TBCare", isAuthenticated: req.session.isLoggedIn });
@@ -25,34 +26,22 @@ exports.getTbcareLoginPage = (req, res, next) => {
  */
 exports.getPredict = async (req, res, next) => {
   try {
-    const patients = await User.find({ role: "patient", doctor: req.session.user._id }).populate("tbcareProfile");
-    const uploadsPath = path.join(__dirname, "..", "public", "uploads", "batuk_tbprimer");
-    let allFiles = [];
+    const allPatients = await User.find({ 
+      role: "patient", 
+      doctor: req.session.user._id,
+      tbcareProfile: { $exists: true, $ne: null}
+    }).populate("tbcareProfile");
 
-    if (fs.existsSync(uploadsPath)) {
-      allFiles = fs
-        .readdirSync(uploadsPath)
-        .filter((file) => file.endsWith(".wav"))
-        .map((file) => {
-          const stats = fs.statSync(path.join(uploadsPath, file));
-          return {
-            name: file,
-            path: `/uploads/batuk_tbprimer/${file}`,
-            modifiedTime: stats.mtime.getTime(),
-            displayDate: stats.mtime.toISOString().split("T")[0],
-            folder: "",
-          };
-        });
-    }
-
-    allFiles.sort((a, b) => b.modifiedTime - a.modifiedTime);
+    const patients = allPatients.filter(patient => 
+      patient.tbcareProfile && patient.tbcareProfile !== null
+    );
 
     res.render("doctor/tbcare/predict", {
       pageTitle: "TBCare - Cough Prediction",
       pageHeader: "Cough Recording Prediction",
       userdata: req.session.user,
       patients: patients,
-      coughFiles: allFiles, // <-- Diubah di sini: Langsung gunakan 'allFiles' tanpa difilter
+      coughFiles: [], // <-- Diubah di sini: Langsung gunakan 'allFiles' tanpa difilter
       audioFolders: [],
       csrfToken: req.csrfToken(),
       errorMessage: req.flash("error")[0],
@@ -60,6 +49,36 @@ exports.getPredict = async (req, res, next) => {
   } catch (error) {
     console.log("Error in getPredict:", error);
     next(error);
+  }
+};
+
+exports.getPredict_filteredWav = async (req, res, next) => {
+  try {
+    const nik = req.params.nik || req.query.nik;
+    if (!nik) {
+      return res.status(400).json({
+        error: 'NIK parameter is required',
+        message: 'Please provide a NIK parameter in the URL or query string'
+      });
+    }
+
+    const batukData = await Device_Data_TBPrimer.find(
+      { 'json_data.nik': nik },
+      ['device_id', 'cough_type', 'time', 'json_data']
+    );
+
+    return res.json({
+      success: true,
+      nik: nik,
+      count: batukData.length,
+      data: batukData
+    });
+  } catch (error) {
+    console.log("Error in getPredict_filteredWav:", error);
+    return res.status(500).json({
+      error: 'Internal server error',
+      message: error.message
+    });
   }
 };
 

@@ -16,4 +16,6 @@ router.get('/edit-patient/:patientId', isAuth, doctorController.tbcare_get_edit_
 router.post('/edit-patient', isAuth, doctorController.tbcare_post_edit_patient);
 router.post('/delete-patient', isAuth, doctorController.tbcare_delete_patient);
 
+router.get('/getPredict_filteredWav', isAuth, tbcareController.getPredict_filteredWav);
+
 module.exports = router;

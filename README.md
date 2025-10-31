@@ -110,4 +110,7 @@ sudo docker-compose logs -f
 ls -l public/uploads/batuk_naracoba/*.wav
 
 firefox http://localhost/admin/data-batuk-naracoba
+
+docker ps
+docker exec -it 4867514e0a97 /bin/bash
 ```
