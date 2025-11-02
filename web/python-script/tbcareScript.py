@@ -9,12 +9,12 @@ Pipeline:
    - Prediksi apakah segmen adalah batuk (pos=1, neg=0)
 3. Ekstraksi fitur MFCC (1 detik, 40 coefficients)
    - SR: 22050 Hz
-   - N_FFT: 100 ms window
-   - HOP_LENGTH: 5 ms
+   - N_FFT: 100 ms window (2205 samples)
+   - HOP_LENGTH: 5 ms (110 samples)
    - Duration: 1 second (~199 frames)
 4. Prediksi TB dengan LSTM MFCC model (model1_mfcc.keras)
-5. Soft Voting: mean probability threshold (default 0.5)
-   - Threshold 0.5: lebih sensitif untuk deteksi TB
+5. Soft Voting: mean probability threshold
+   - Threshold 0.5: lebih sensitif untuk deteksi TB (recommended)
    - Threshold 0.7: lebih spesifik untuk non-TB testing
 
 Models:
@@ -25,41 +25,73 @@ Models:
 
 import os
 import sys
+
+# Set environment variables BEFORE importing any libraries
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow warnings
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Force CPU (avoid CUDA errors if GPU not available)
+
+# CRITICAL: Disable numba caching completely to avoid Docker read-only filesystem issues
+# This is necessary because numba tries to cache compiled functions in site-packages
+# which is read-only in Docker containers
+os.environ['NUMBA_CACHE_DIR'] = '/tmp'
+os.environ['NUMBA_DISABLE_INTEL_SVML'] = '1'
+# Set to 1 to disable caching, but keep JIT compilation
+os.environ['NUMBA_DISABLE_JIT'] = '1'  # DISABLE JIT completely as last resort
+
+import warnings
+warnings.filterwarnings('ignore')
+
 import json
 import numpy as np
 import tensorflow as tf
+import tensorflow_hub as hub
 import librosa
 from scipy.signal import lfilter
 from copy import deepcopy
 import speechproc
 
-# Suppress warnings and errors
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow warnings
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Force CPU (avoid CUDA errors if GPU not available)
-
-import warnings
-warnings.filterwarnings('ignore')
+# ===========================================================================
+# PERUBAHAN UTAMA (Updated):
+# ===========================================================================
+# 1. Validasi Batuk YAMNet: 
+#    - Ekstraksi YAMNet embedding (1024 features)
+#    - Klasifikasi dengan model-1s.keras (pos=1, neg=0)
+#
+# 2. Ekstraksi Fitur MFCC (1 detik):
+#    - SR: 22050 Hz
+#    - N_FFT: 2205 samples (100 ms window)
+#    - HOP_LENGTH: 110 samples (5 ms hop)
+#    - N_MFCC: 40 coefficients
+#    - Duration: 1 second (~200 frames)
+#    - TIDAK pakai normalisasi mean (untuk konsistensi dengan training)
+#
+# 3. Prediksi TB:
+#    - Model LSTM: model1_mfcc_.keras
+#    - Input shape: (samples, timesteps, features) = (1, 200, 40)
+#
+# 4. Soft Voting (Evaluasi Per Audio):
+#    - Mean probability dari semua segmen batuk yang valid
+#    - Threshold 0.5: Lebih sensitif untuk deteksi TB (recommended)
+#    - Threshold 0.7: Lebih spesifik untuk testing non-TB
+# ===========================================================================
 
 BASE_PATH = os.path.join('python-script', 'models_tbcare')
 MODEL_YAMNET_EMBEDDING = os.path.join(BASE_PATH, 'yamnet_saved_model')
 
-# YAMNet classifier - try multiple possible locations
-YAMNET_CLASSIFIER_PATHS = [
-    os.path.join(BASE_PATH, 'model-1s.keras'),
-    os.path.join(BASE_PATH, 'yamnet_classifier', 'model-1s.keras'),
-    os.path.join(BASE_PATH, 'yamnet_classifier', 'model.keras'),
-]
+# YAMNet classifier (model-1s.keras adalah folder, bukan file)
+YAMNET_CLASSIFIER_PATH = os.path.join(BASE_PATH, 'model-1s.keras')
 
-MODEL_MFCC_LSTM = os.path.join(BASE_PATH, 'model1_mfcc.keras')  # LSTM MFCC model (1 second window)
+# LSTM MFCC model untuk prediksi TB (juga folder)
+MODEL_MFCC_LSTM = os.path.join(BASE_PATH, 'model1_mfcc_.keras')
 
 # === MFCC Parameters (1 second window) ===
 SR = 22050
-N_FFT = int(0.1 * SR)  # 100 ms window
-HOP_LENGTH = int(0.005 * SR)  # 5 ms hop
+N_FFT = int(0.1 * SR)  # 100 ms window = 2205 samples
+HOP_LENGTH = int(0.005 * SR)  # 5 ms hop = 110 samples
 N_MFCC = 40
 SEQ_DURATION = 1.0  # 1 second
-TARGET_FRAMES = int((SR * SEQ_DURATION) / HOP_LENGTH)  # ~199 frames
+TARGET_FRAMES = int((SR * SEQ_DURATION) / HOP_LENGTH)  # ~200 frames
 
 
 # === LOAD MODEL UTILITY ===
@@ -67,24 +99,24 @@ def load_keras_model(model_path):
     """
     Load Keras model with multiple fallback methods:
     1. Try direct load (for .keras files or SavedModel format)
-    2. Try loading from folder structure (config.json + model.weights.h5)
-    3. Try with compile=False for compatibility issues
+    2. Try with compile=False for compatibility issues
+    3. Try loading from folder structure (config.json + model.weights.h5) with KerasLayer support
     """
     # Method 1: Direct load
     try:
         model = tf.keras.models.load_model(model_path)
         return model
     except Exception as e1:
-        print(json.dumps({"status": "debug", "message": f"Direct load failed: {str(e1)[:100]}"}))
+        pass
     
     # Method 2: Try with compile=False
     try:
         model = tf.keras.models.load_model(model_path, compile=False)
         return model
     except Exception as e2:
-        print(json.dumps({"status": "debug", "message": f"Load with compile=False failed: {str(e2)[:100]}"}))
+        pass
     
-    # Method 3: Load from folder structure
+    # Method 3: Load from folder structure with custom objects (KerasLayer)
     if os.path.isdir(model_path):
         config_path = os.path.join(model_path, 'config.json')
         weights_path = os.path.join(model_path, 'model.weights.h5')
@@ -94,7 +126,11 @@ def load_keras_model(model_path):
                 with open(config_path) as f:
                     config = json.load(f)
                 
-                model = tf.keras.models.model_from_json(json.dumps(config))
+                # Load model dengan custom objects untuk KerasLayer
+                model = tf.keras.models.model_from_json(
+                    json.dumps(config), 
+                    custom_objects={'KerasLayer': hub.KerasLayer}
+                )
                 model.load_weights(weights_path)
                 return model
             except Exception as e3:
@@ -111,24 +147,19 @@ try:
     yamnet_model = tf.saved_model.load(MODEL_YAMNET_EMBEDDING)
     print(json.dumps({"status": "info", "message": "Loaded YAMNet embedding model"}))
 
-    # Load YAMNet classifier (try multiple possible locations)
-    yamnet_classifier = None
-    for path in YAMNET_CLASSIFIER_PATHS:
-        if os.path.exists(path):
-            try:
-                yamnet_classifier = load_keras_model(path)
-                print(json.dumps({"status": "info", "message": f"Loaded YAMNet classifier from: {path}"}))
-                break
-            except Exception as e:
-                print(json.dumps({"status": "debug", "message": f"Failed to load from {path}: {str(e)[:100]}"}))
-                continue
+    # Load YAMNet classifier (model-1s.keras)
+    if not os.path.exists(YAMNET_CLASSIFIER_PATH):
+        raise FileNotFoundError(f"YAMNet classifier not found at: {YAMNET_CLASSIFIER_PATH}")
     
-    if yamnet_classifier is None:
-        raise FileNotFoundError("YAMNet classifier not found. Tried: " + ", ".join(YAMNET_CLASSIFIER_PATHS))
+    yamnet_classifier = load_keras_model(YAMNET_CLASSIFIER_PATH)
+    print(json.dumps({"status": "info", "message": f"Loaded YAMNet classifier (model-1s.keras)"}))
 
-    # Load LSTM MFCC model (model1_mfcc.keras)
+    # Load LSTM MFCC model (model1_mfcc_.keras)
+    if not os.path.exists(MODEL_MFCC_LSTM):
+        raise FileNotFoundError(f"LSTM MFCC model not found at: {MODEL_MFCC_LSTM}")
+    
     model_lstm = load_keras_model(MODEL_MFCC_LSTM)
-    print(json.dumps({"status": "info", "message": "Loaded LSTM MFCC model (model1_mfcc.keras)"}))
+    print(json.dumps({"status": "info", "message": "Loaded LSTM MFCC model (model1_mfcc_.keras)"}))
 
 except Exception as e:
     print(json.dumps({"status": "error", "message": f"Error loading models: {str(e)}"}))
@@ -185,7 +216,15 @@ def segment_audio(file_path):
 
 # === YAMNET VALIDATION (Step 1: Validate Cough) ===
 def extract_yamnet_embedding(audio_segment, target_sr=16000, max_len=1.0):
-    """Extract YAMNet embedding from audio segment"""
+    """
+    Extract YAMNet embedding from audio segment
+    Args:
+        audio_segment: numpy array of audio data
+        target_sr: target sample rate for YAMNet (16000 Hz)
+        max_len: maximum length in seconds (1.0)
+    Returns:
+        YAMNet embedding (1024 features) or None if error
+    """
     try:
         # Resample to 16kHz for YAMNet
         if len(audio_segment) == 0:
@@ -200,6 +239,7 @@ def extract_yamnet_embedding(audio_segment, target_sr=16000, max_len=1.0):
         else:
             y_resampled = np.pad(y_resampled, (0, target_len - len(y_resampled)))
         
+        # Extract YAMNet embedding
         waveform = tf.convert_to_tensor(y_resampled, dtype=tf.float32)
         scores, embeddings, spectrogram = yamnet_model(waveform)
         emb_mean = tf.reduce_mean(embeddings, axis=0)  # shape (1024,)
@@ -210,20 +250,38 @@ def extract_yamnet_embedding(audio_segment, target_sr=16000, max_len=1.0):
 
 
 def validate_cough_with_yamnet(audio_segment, threshold=0.5):
-    """Validate if segment is a cough using YAMNet classifier"""
+    """
+    Validate if segment is a cough using YAMNet classifier (model-1s.keras)
+    Args:
+        audio_segment: numpy array of audio data
+        threshold: classification threshold (default 0.5)
+    Returns:
+        is_cough (bool): True if cough detected
+        cough_score (float): probability of being a cough
+    """
     emb = extract_yamnet_embedding(audio_segment)
     if emb is None:
         return False, 0.0
     
-    emb = emb.reshape(1, -1)
+    # Predict with YAMNet classifier
+    emb = emb.reshape(1, -1)  # (1, 1024)
     pred = yamnet_classifier.predict(emb, verbose=0)[0][0]
-    is_cough = float(pred) > threshold
-    return is_cough, float(pred)
+    cough_score = float(pred)
+    is_cough = cough_score > threshold
+    
+    return is_cough, cough_score
 
 
 # === FEATURE EXTRACTION (Step 2: Extract MFCC 1s) ===
 def extract_mfcc_1s(audio_segment, sr=SR):
-    """Extract MFCC features from 1 second audio segment"""
+    """
+    Extract MFCC features from 1 second audio segment
+    Args:
+        audio_segment: numpy array of audio data
+        sr: sample rate (22050 Hz)
+    Returns:
+        MFCC features (40, ~200 frames) or None if error
+    """
     try:
         y = np.array(audio_segment, dtype=np.float32)
         
@@ -234,7 +292,11 @@ def extract_mfcc_1s(audio_segment, sr=SR):
         else:
             y = np.pad(y, (0, target_len - len(y)))
         
-        # Extract MFCC with new parameters
+        # Extract MFCC with parameters matching training
+        # SR: 22050 Hz
+        # N_FFT: 2205 (100 ms window)
+        # HOP_LENGTH: 110 (5 ms hop)
+        # N_MFCC: 40
         mfcc = librosa.feature.mfcc(
             y=y,
             sr=sr,
@@ -243,7 +305,7 @@ def extract_mfcc_1s(audio_segment, sr=SR):
             hop_length=HOP_LENGTH
         )
         
-        # Pad or truncate to target frames
+        # Pad or truncate to target frames (~200)
         cur_len = mfcc.shape[1]
         if cur_len < TARGET_FRAMES:
             mfcc = np.pad(mfcc, ((0, 0), (0, TARGET_FRAMES - cur_len)), mode='constant')
@@ -329,19 +391,28 @@ def process_and_predict(file_path):
             "prediction": prediction_label
         })
 
-    # Step 4: Calculate overall statistics
+    # Step 4: Calculate overall statistics with Soft Voting
     if len(tb_probs_all) == 0:
         return {
             "status": "error", 
             "message": "Tidak ada segmen batuk yang valid ditemukan setelah validasi YAMNet."
         }
     
-    # Soft voting: average probability across all valid cough segments
-    # Threshold 0.5 lebih baik untuk mendeteksi TB (sensitif terhadap positif)
-    # Threshold 0.7 lebih baik untuk testing pada orang non-TB (lebih spesifik)
-    avg_tb_prob = np.mean(tb_probs_all)
-    SOFT_VOTING_THRESHOLD = 0.5
+    # === SOFT VOTING: mean probability ===
+    # Menggunakan rata-rata probabilitas dari semua segmen batuk yang valid
+    # 
+    # Threshold 0.5: lebih sensitif untuk deteksi TB
+    #   - Lebih baik untuk skrining TB (mendeteksi lebih banyak kasus positif)
+    #   - Sensitivity tinggi, Specificity lebih rendah
+    #
+    # Threshold 0.7: lebih spesifik untuk non-TB
+    #   - Lebih baik untuk testing pada orang sehat/non-TB
+    #   - Specificity tinggi, Sensitivity lebih rendah
     
+    avg_tb_prob = np.mean(tb_probs_all)
+    SOFT_VOTING_THRESHOLD = 0.5  # Default: lebih sensitif untuk deteksi TB
+    
+    # Count segments based on threshold
     tb_count = sum(1 for p in tb_probs_all if p > SOFT_VOTING_THRESHOLD)
     non_tb_count = len(tb_probs_all) - tb_count
     
@@ -349,17 +420,23 @@ def process_and_predict(file_path):
     final_decision = "TB" if avg_tb_prob >= SOFT_VOTING_THRESHOLD else "NON-TB"
 
     # === OUTPUT ===
+    # Structure disesuaikan dengan format yang diharapkan oleh controller
     output.update({
         "status": "success",
-        "prediction": final_decision,
+        "prediction": final_decision,  # "TB" or "NON-TB"
         "final_decision": final_decision,
-        "total_segments": len(segments),
-        "valid_cough_segments": valid_segments,
-        "tb_segments": tb_count,
-        "non_tb_segments": non_tb_count,
-        "average_tb_probability": round(float(avg_tb_prob), 4),
-        "overall_confidence": round(float(avg_tb_prob * 100), 2),  # as percentage
-        "segment_details": segment_details
+        "detail": {
+            "total_segments": len(segments),  # Total segmen dari VAD
+            "valid_cough_segments": valid_segments,  # Segmen yang tervalidasi sebagai batuk
+            "tb_segments": tb_count,  # Jumlah segmen dengan prob > threshold
+            "non_tb_segments": non_tb_count,  # Jumlah segmen dengan prob <= threshold
+            "average_tb_probability": round(float(avg_tb_prob), 4),  # Soft voting score
+            "soft_voting_threshold": SOFT_VOTING_THRESHOLD,
+            "confidence_percentage": round(float(avg_tb_prob * 100), 2)
+        },
+        "segment_details": segment_details,  # Detail per segmen (untuk debugging)
+        "waveform": output.get("waveform", []),  # Untuk visualisasi
+        "mfcc": output.get("mfcc", [])  # Untuk visualisasi
     })
 
     return output
@@ -369,8 +446,18 @@ def process_and_predict(file_path):
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         audio_path = sys.argv[1]
+        
+        # Path resolution: handle both absolute and relative paths
         if not os.path.isabs(audio_path):
+            # Resolve from current working directory (where the command is run)
+            # Script dijalankan dari web/, jadi public/ harus diresolve sebagai ../public/
             audio_path = os.path.abspath(audio_path)
+        
+        # Validasi file exists
+        if not os.path.exists(audio_path):
+            print(json.dumps({"status": "error", "message": f"File tidak ditemukan: {audio_path}"}))
+            sys.exit(1)
+        
         try:
             result = process_and_predict(audio_path)
             print(json.dumps(result))
