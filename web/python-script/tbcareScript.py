@@ -1,47 +1,17 @@
-"""
-TB Care Prediction Script - Enhanced Pipeline
-==============================================
-
-Pipeline:
-1. Segmentasi audio menggunakan VAD (Voice Activity Detection)
-2. Validasi batuk dengan YAMNet fine-tuned classifier (model-1s.keras)
-   - Ekstraksi YAMNet embedding (1024 features)
-   - Prediksi apakah segmen adalah batuk (pos=1, neg=0)
-3. Ekstraksi fitur MFCC (1 detik, 40 coefficients)
-   - SR: 22050 Hz
-   - N_FFT: 100 ms window (2205 samples)
-   - HOP_LENGTH: 5 ms (110 samples)
-   - Duration: 1 second (~199 frames)
-4. Prediksi TB dengan LSTM MFCC model (model1_mfcc.keras)
-5. Soft Voting: mean probability threshold
-   - Threshold 0.5: lebih sensitif untuk deteksi TB (recommended)
-   - Threshold 0.7: lebih spesifik untuk non-TB testing
-
-Models:
-- YAMNet base: yamnet_saved_model (embedding extraction)
-- YAMNet classifier: model-1s.keras (cough validation)
-- LSTM classifier: model1_mfcc.keras (TB classification)
-"""
-
 import os
 import sys
 
-# Set environment variables BEFORE importing any libraries
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow warnings
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Force CPU (avoid CUDA errors if GPU not available)
-
-# CRITICAL: Disable numba caching completely to avoid Docker read-only filesystem issues
-# This is necessary because numba tries to cache compiled functions in site-packages
-# which is read-only in Docker containers
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  
 os.environ['NUMBA_CACHE_DIR'] = '/tmp'
 os.environ['NUMBA_DISABLE_INTEL_SVML'] = '1'
-# Set to 1 to disable caching, but keep JIT compilation
-os.environ['NUMBA_DISABLE_JIT'] = '1'  # DISABLE JIT completely as last resort
-
+os.environ['NUMBA_DISABLE_JIT'] = '1'
+os.environ['NUMBA_DISABLE_PERFORMANCE_WARNINGS'] = '1'
+# Force librosa to use scipy/kaiser_fast instead of resampy
+os.environ['LIBROSA_PREFERRED_RESAMPLER'] = 'kaiser_fast'
 import warnings
 warnings.filterwarnings('ignore')
-
 import json
 import numpy as np
 import tensorflow as tf
@@ -51,38 +21,9 @@ from scipy.signal import lfilter
 from copy import deepcopy
 import speechproc
 
-# ===========================================================================
-# PERUBAHAN UTAMA (Updated):
-# ===========================================================================
-# 1. Validasi Batuk YAMNet: 
-#    - Ekstraksi YAMNet embedding (1024 features)
-#    - Klasifikasi dengan model-1s.keras (pos=1, neg=0)
-#
-# 2. Ekstraksi Fitur MFCC (1 detik):
-#    - SR: 22050 Hz
-#    - N_FFT: 2205 samples (100 ms window)
-#    - HOP_LENGTH: 110 samples (5 ms hop)
-#    - N_MFCC: 40 coefficients
-#    - Duration: 1 second (~200 frames)
-#    - TIDAK pakai normalisasi mean (untuk konsistensi dengan training)
-#
-# 3. Prediksi TB:
-#    - Model LSTM: model1_mfcc_.keras
-#    - Input shape: (samples, timesteps, features) = (1, 200, 40)
-#
-# 4. Soft Voting (Evaluasi Per Audio):
-#    - Mean probability dari semua segmen batuk yang valid
-#    - Threshold 0.5: Lebih sensitif untuk deteksi TB (recommended)
-#    - Threshold 0.7: Lebih spesifik untuk testing non-TB
-# ===========================================================================
-
 BASE_PATH = os.path.join('python-script', 'models_tbcare')
 MODEL_YAMNET_EMBEDDING = os.path.join(BASE_PATH, 'yamnet_saved_model')
-
-# YAMNet classifier (model-1s.keras adalah folder, bukan file)
 YAMNET_CLASSIFIER_PATH = os.path.join(BASE_PATH, 'model-1s.keras')
-
-# LSTM MFCC model untuk prediksi TB (juga folder)
 MODEL_MFCC_LSTM = os.path.join(BASE_PATH, 'model1_mfcc_.keras')
 
 # === MFCC Parameters (1 second window) ===
@@ -96,12 +37,6 @@ TARGET_FRAMES = int((SR * SEQ_DURATION) / HOP_LENGTH)  # ~200 frames
 
 # === LOAD MODEL UTILITY ===
 def load_keras_model(model_path):
-    """
-    Load Keras model with multiple fallback methods:
-    1. Try direct load (for .keras files or SavedModel format)
-    2. Try with compile=False for compatibility issues
-    3. Try loading from folder structure (config.json + model.weights.h5) with KerasLayer support
-    """
     # Method 1: Direct load
     try:
         model = tf.keras.models.load_model(model_path)
@@ -193,13 +128,43 @@ def getVad(data, fs):
 
 def segment_audio(file_path):
     try:
-        X, sample_rate = librosa.load(file_path, sr=22050, mono=True)
+        # Load audio dengan res_type='kaiser_fast' untuk menghindari error Numba
+        X, sample_rate = librosa.load(file_path, sr=22050, mono=True, res_type='kaiser_fast')
         if len(X) == 0:
+            print(json.dumps({"status": "debug", "message": "Audio file is empty"}))
             return np.array([], dtype=object), 0
-    except Exception:
-        return np.array([], dtype=object), 0
+        
+        print(json.dumps({"status": "debug", "message": f"Audio loaded: {len(X)} samples, {len(X)/sample_rate:.2f}s duration"}))
+    except Exception as e:
+        print(json.dumps({"status": "debug", "message": f"Error loading audio: {str(e)}"}))
+        # Try scipy resampler as fallback
+        try:
+            import soundfile as sf
+            X, sample_rate_orig = sf.read(file_path)
+            
+            # Convert stereo to mono if needed
+            if len(X.shape) > 1 and X.shape[1] > 1:
+                X = np.mean(X, axis=1)
+                print(json.dumps({"status": "debug", "message": "Converted stereo to mono"}))
+            
+            if sample_rate_orig != 22050:
+                from scipy import signal
+                num_samples = int(len(X) * 22050 / sample_rate_orig)
+                X = signal.resample(X, num_samples)
+            sample_rate = 22050
+            print(json.dumps({"status": "debug", "message": f"Audio loaded with scipy: {len(X)} samples"}))
+        except Exception as e2:
+            print(json.dumps({"status": "debug", "message": f"All audio loading methods failed: {str(e2)}"}))
+            return np.array([], dtype=object), 0
 
-    fvad = getVad(X, sample_rate)
+    try:
+        fvad = getVad(X, sample_rate)
+        print(json.dumps({"status": "debug", "message": f"VAD result: {len(fvad)} frames, sum={sum(fvad)}"}))
+    except Exception as e:
+        print(json.dumps({"status": "debug", "message": f"VAD failed: {str(e)}, using full audio"}))
+        # Fallback: jika VAD gagal, gunakan seluruh audio
+        return np.array([X], dtype=object), sample_rate
+    
     list_X, temp = [], []
     for i in range(1, len(fvad)):
         if fvad[i - 1] == 1:
@@ -211,26 +176,41 @@ def segment_audio(file_path):
         if fvad[i - 1] == 1 and fvad[i] == 0:
             list_X.append(temp)
             temp = []
+    
+    # Jika VAD tidak menemukan segmen, gunakan seluruh audio
+    if len(list_X) == 0:
+        print(json.dumps({"status": "debug", "message": "No VAD segments found, using full audio as single segment"}))
+        return np.array([X], dtype=object), sample_rate
+    
+    print(json.dumps({"status": "debug", "message": f"Segmentation result: {len(list_X)} segments"}))
     return np.array(list_X, dtype=object), sample_rate
 
 
 # === YAMNET VALIDATION (Step 1: Validate Cough) ===
 def extract_yamnet_embedding(audio_segment, target_sr=16000, max_len=1.0):
-    """
-    Extract YAMNet embedding from audio segment
-    Args:
-        audio_segment: numpy array of audio data
-        target_sr: target sample rate for YAMNet (16000 Hz)
-        max_len: maximum length in seconds (1.0)
-    Returns:
-        YAMNet embedding (1024 features) or None if error
-    """
     try:
         # Resample to 16kHz for YAMNet
         if len(audio_segment) == 0:
             return None
         
-        y_resampled = librosa.resample(audio_segment, orig_sr=SR, target_sr=target_sr)
+        # Ensure audio is 1D (mono)
+        audio_segment = np.array(audio_segment, dtype=np.float32)
+        if len(audio_segment.shape) > 1:
+            audio_segment = np.mean(audio_segment, axis=1)
+        
+        # Use kaiser_fast to avoid Numba error, atau gunakan scipy
+        try:
+            y_resampled = librosa.resample(audio_segment, orig_sr=SR, target_sr=target_sr, res_type='kaiser_fast')
+        except:
+            # Fallback to scipy resampling
+            from scipy import signal
+            num_samples = int(len(audio_segment) * target_sr / SR)
+            y_resampled = signal.resample(audio_segment, num_samples)
+        
+        # Ensure still 1D after resampling
+        if len(y_resampled.shape) > 1:
+            y_resampled = y_resampled.flatten()
+        
         target_len = int(target_sr * max_len)
         
         # Pad or truncate to 1 second
@@ -250,17 +230,9 @@ def extract_yamnet_embedding(audio_segment, target_sr=16000, max_len=1.0):
 
 
 def validate_cough_with_yamnet(audio_segment, threshold=0.5):
-    """
-    Validate if segment is a cough using YAMNet classifier (model-1s.keras)
-    Args:
-        audio_segment: numpy array of audio data
-        threshold: classification threshold (default 0.5)
-    Returns:
-        is_cough (bool): True if cough detected
-        cough_score (float): probability of being a cough
-    """
     emb = extract_yamnet_embedding(audio_segment)
     if emb is None:
+        print(json.dumps({"status": "debug", "message": "YAMNet embedding extraction failed"}))
         return False, 0.0
     
     # Predict with YAMNet classifier
@@ -269,19 +241,13 @@ def validate_cough_with_yamnet(audio_segment, threshold=0.5):
     cough_score = float(pred)
     is_cough = cough_score > threshold
     
+    print(json.dumps({"status": "debug", "message": f"YAMNet cough score: {cough_score:.4f}, is_cough: {is_cough}"}))
+    
     return is_cough, cough_score
 
 
 # === FEATURE EXTRACTION (Step 2: Extract MFCC 1s) ===
 def extract_mfcc_1s(audio_segment, sr=SR):
-    """
-    Extract MFCC features from 1 second audio segment
-    Args:
-        audio_segment: numpy array of audio data
-        sr: sample rate (22050 Hz)
-    Returns:
-        MFCC features (40, ~200 frames) or None if error
-    """
     try:
         y = np.array(audio_segment, dtype=np.float32)
         
@@ -292,11 +258,6 @@ def extract_mfcc_1s(audio_segment, sr=SR):
         else:
             y = np.pad(y, (0, target_len - len(y)))
         
-        # Extract MFCC with parameters matching training
-        # SR: 22050 Hz
-        # N_FFT: 2205 (100 ms window)
-        # HOP_LENGTH: 110 (5 ms hop)
-        # N_MFCC: 40
         mfcc = librosa.feature.mfcc(
             y=y,
             sr=sr,
@@ -324,12 +285,25 @@ def process_and_predict(file_path):
 
     # Step 1: Load audio for visualization
     try:
-        y, sr_orig = librosa.load(file_path, sr=None)
+        y, sr_orig = librosa.load(file_path, sr=None, mono=True, res_type='kaiser_fast')
         output["waveform"] = y[::10].tolist()  # downsample untuk efisiensi
         mfccs_visual = librosa.feature.mfcc(y=y, sr=sr_orig, n_mfcc=13)
         output["mfcc"] = mfccs_visual.tolist()
     except Exception as e:
-        return {"status": "error", "message": f"Gagal memuat file audio: {str(e)}"}
+        # Try alternative loading method
+        try:
+            import soundfile as sf
+            y, sr_orig = sf.read(file_path)
+            
+            # Convert stereo to mono if needed
+            if len(y.shape) > 1 and y.shape[1] > 1:
+                y = np.mean(y, axis=1)
+            
+            output["waveform"] = y[::10].tolist()
+            mfccs_visual = librosa.feature.mfcc(y=y, sr=sr_orig, n_mfcc=13)
+            output["mfcc"] = mfccs_visual.tolist()
+        except Exception as e2:
+            return {"status": "error", "message": f"Gagal memuat file audio: {str(e2)}"}
 
     # Step 2: Segmentasi
     segments, sr = segment_audio(file_path)
@@ -343,20 +317,32 @@ def process_and_predict(file_path):
     valid_segments = 0
     tb_probs_all = []
     
+    # OPSI: Set ke False untuk skip validasi YAMNet (untuk debugging)
+    USE_YAMNET_VALIDATION = True
+    YAMNET_THRESHOLD = 0.3  # Turunkan threshold dari 0.5 ke 0.3 agar lebih permisif
+    
     for idx, seg in enumerate(segments):
-        # 3.1: Validate cough with YAMNet
-        is_cough, cough_score = validate_cough_with_yamnet(seg, threshold=0.5)
+        print(json.dumps({"status": "debug", "message": f"Processing segment {idx+1}/{len(segments)}, length: {len(seg)} samples"}))
         
-        if not is_cough:
-            # Skip non-cough segments
-            segment_details.append({
-                "segment_id": idx + 1,
-                "is_cough": False,
-                "cough_score": round(float(cough_score), 4),
-                "tb_probability": 0.0,
-                "prediction": "NON-COUGH"
-            })
-            continue
+        # 3.1: Validate cough with YAMNet
+        if USE_YAMNET_VALIDATION:
+            is_cough, cough_score = validate_cough_with_yamnet(seg, threshold=YAMNET_THRESHOLD)
+            
+            if not is_cough:
+                # Skip non-cough segments
+                segment_details.append({
+                    "segment_id": idx + 1,
+                    "is_cough": False,
+                    "cough_score": round(float(cough_score), 4),
+                    "tb_probability": 0.0,
+                    "prediction": "NON-COUGH"
+                })
+                continue
+        else:
+            # Skip YAMNet validation (assume all segments are cough)
+            is_cough = True
+            cough_score = 1.0
+            print(json.dumps({"status": "debug", "message": f"YAMNet validation skipped, assuming cough"}))
         
         # 3.2: Extract MFCC features (1 second)
         mfcc_feat = extract_mfcc_1s(seg, sr=SR)
@@ -390,37 +376,33 @@ def process_and_predict(file_path):
             "tb_probability": round(tb_prob, 4),
             "prediction": prediction_label
         })
+        
+        print(json.dumps({"status": "debug", "message": f"Segment {idx+1}: TB prob={tb_prob:.4f}, prediction={prediction_label}"}))
 
     # Step 4: Calculate overall statistics with Soft Voting
+    print(json.dumps({"status": "info", "message": f"Valid cough segments: {valid_segments}/{len(segments)}"}))
+    
     if len(tb_probs_all) == 0:
+        # Hitung berapa segmen yang di-reject oleh YAMNet
+        rejected_by_yamnet = sum(1 for s in segment_details if not s.get("is_cough", False))
         return {
             "status": "error", 
-            "message": "Tidak ada segmen batuk yang valid ditemukan setelah validasi YAMNet."
+            "message": f"Tidak ada segmen batuk yang valid ditemukan setelah validasi YAMNet. Total segmen: {len(segments)}, Rejected: {rejected_by_yamnet}. Coba turunkan threshold YAMNet atau check kualitas audio.",
+            "debug_info": {
+                "total_segments": len(segments),
+                "rejected_by_yamnet": rejected_by_yamnet,
+                "segment_details": segment_details
+            }
         }
     
-    # === SOFT VOTING: mean probability ===
-    # Menggunakan rata-rata probabilitas dari semua segmen batuk yang valid
-    # 
-    # Threshold 0.5: lebih sensitif untuk deteksi TB
-    #   - Lebih baik untuk skrining TB (mendeteksi lebih banyak kasus positif)
-    #   - Sensitivity tinggi, Specificity lebih rendah
-    #
-    # Threshold 0.7: lebih spesifik untuk non-TB
-    #   - Lebih baik untuk testing pada orang sehat/non-TB
-    #   - Specificity tinggi, Sensitivity lebih rendah
-    
     avg_tb_prob = np.mean(tb_probs_all)
-    SOFT_VOTING_THRESHOLD = 0.5  # Default: lebih sensitif untuk deteksi TB
-    
-    # Count segments based on threshold
+    SOFT_VOTING_THRESHOLD = 0.5  
+
     tb_count = sum(1 for p in tb_probs_all if p > SOFT_VOTING_THRESHOLD)
     non_tb_count = len(tb_probs_all) - tb_count
-    
-    # Final decision based on soft voting (mean probability)
     final_decision = "TB" if avg_tb_prob >= SOFT_VOTING_THRESHOLD else "NON-TB"
 
     # === OUTPUT ===
-    # Structure disesuaikan dengan format yang diharapkan oleh controller
     output.update({
         "status": "success",
         "prediction": final_decision,  # "TB" or "NON-TB"
@@ -434,9 +416,9 @@ def process_and_predict(file_path):
             "soft_voting_threshold": SOFT_VOTING_THRESHOLD,
             "confidence_percentage": round(float(avg_tb_prob * 100), 2)
         },
-        "segment_details": segment_details,  # Detail per segmen (untuk debugging)
-        "waveform": output.get("waveform", []),  # Untuk visualisasi
-        "mfcc": output.get("mfcc", [])  # Untuk visualisasi
+        "segment_details": segment_details,
+        "waveform": output.get("waveform", []),
+        "mfcc": output.get("mfcc", [])
     })
 
     return output
@@ -447,15 +429,40 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         audio_path = sys.argv[1]
         
-        # Path resolution: handle both absolute and relative paths
+        print(json.dumps({"status": "debug", "message": f"Input path: {audio_path}"}))
+        print(json.dumps({"status": "debug", "message": f"Current working directory: {os.getcwd()}"}))
+
+        # Handle relative path
         if not os.path.isabs(audio_path):
-            # Resolve from current working directory (where the command is run)
-            # Script dijalankan dari web/, jadi public/ harus diresolve sebagai ../public/
-            audio_path = os.path.abspath(audio_path)
+            # Coba beberapa kemungkinan base path
+            possible_paths = [
+                os.path.abspath(audio_path),  # Relatif terhadap current dir
+                os.path.join(os.getcwd(), audio_path),  # Eksplisit dari current dir
+                os.path.join(os.path.dirname(os.getcwd()), audio_path.lstrip('../')),  # Parent dir
+            ]
+            
+            # Cari path yang valid
+            for path in possible_paths:
+                if os.path.exists(path):
+                    audio_path = path
+                    break
+            else:
+                # Jika tidak ada yang valid, gunakan yang pertama
+                audio_path = possible_paths[0]
         
-        # Validasi file exists
+        print(json.dumps({"status": "debug", "message": f"Resolved path: {audio_path}"}))
+        
         if not os.path.exists(audio_path):
-            print(json.dumps({"status": "error", "message": f"File tidak ditemukan: {audio_path}"}))
+            print(json.dumps({
+                "status": "error", 
+                "message": f"File tidak ditemukan: {audio_path}",
+                "debug_info": {
+                    "input_path": sys.argv[1],
+                    "resolved_path": audio_path,
+                    "cwd": os.getcwd(),
+                    "parent_dir": os.path.dirname(os.getcwd())
+                }
+            }))
             sys.exit(1)
         
         try:

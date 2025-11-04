@@ -7,7 +7,7 @@
         margin-bottom: 30px;
     }
     .result-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #667eea 0%, #24be90 100%);
         color: white;
         border-radius: 15px 15px 0 0;
         padding: 25px;
@@ -84,6 +84,22 @@
         box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         margin-top: 20px;
     }
+    .viz-card .iq-card-header {
+        border-bottom: 2px solid #f0f0f0;
+        padding: 20px 25px;
+        background: linear-gradient(135deg, #667eea08 0%, #764ba208 100%);
+    }
+    .viz-card .iq-card-header h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+    }
+    .viz-card .iq-card-body {
+        padding: 25px;
+    }
+    .font-weight-500 {
+        font-weight: 500;
+    }
 </style>
 </head>
 <body>
@@ -97,10 +113,21 @@
                 <div class="col-lg-12">
                     <div class="result-card">
                         <div class="result-header">
-                            <h2 class="mb-0">
+                            <h2 class="mb-0 text-white font-weight-bold">
                                 <i class="ri-file-chart-line"></i> Hasil Analisis Prediksi Tuberkulosis
+                                <% if (typeof isHistoryView !== 'undefined' && isHistoryView) { %>
+                                    <span class="badge badge-light ml-2" style="font-size: 0.5em; vertical-align: middle;">
+                                        <i class="ri-history-line"></i> History
+                                    </span>
+                                <% } %>
                             </h2>
-                            <p class="mb-0 mt-2">Analisis audio batuk menggunakan Machine Learning dengan YAMNet + LSTM</p>
+                            <p class="mb-0 mt-2 text-white">
+                                Analisis audio batuk menggunakan Machine Learning dengan YAMNet + LSTM
+                                <% if (typeof predictionDate !== 'undefined' && predictionDate) { %>
+                                    <br>
+                                    <small><i class="ri-calendar-line"></i> Tanggal Prediksi: <%= new Date(predictionDate).toLocaleString('id-ID') %></small>
+                                <% } %>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -122,10 +149,6 @@
                                             <%= patient.userName || 'Nama tidak tersedia' %>
                                         <% } %>
                                     </td>
-                                </tr>
-                                <tr>
-                                    <td class="font-weight-bold">ID Partisipan:</td>
-                                    <td><%= patient.tbcareProfile ? patient.tbcareProfile.participantId : 'N/A' %></td>
                                 </tr>
                                 <tr>
                                     <td class="font-weight-bold">Kondisi Sputum:</td>
@@ -222,24 +245,54 @@
             <div class="row">
                 <div class="col-lg-6">
                     <div class="iq-card viz-card">
-                        <div class="iq-card-header">
-                            <h5 class="card-title"><i class="ri-pie-chart-line"></i> Distribusi Segmen</h5>
+                        <div class="iq-card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0"><i class="ri-pie-chart-line"></i> Distribusi Segmen</h5>
                         </div>
                         <div class="iq-card-body">
-                            <div class="chart-container">
+                            <div class="chart-container" style="height: 350px; position: relative;">
                                 <canvas id="segmentDistributionChart"></canvas>
+                            </div>
+                            <div class="text-center mt-3">
+                                <div class="d-inline-flex align-items-center mx-3">
+                                    <span style="display:inline-block;width:15px;height:15px;background:#f5576c;border-radius:3px;margin-right:8px;"></span>
+                                    <span class="font-weight-500">TB: <%= tbSegments %></span>
+                                </div>
+                                <div class="d-inline-flex align-items-center mx-3">
+                                    <span style="display:inline-block;width:15px;height:15px;background:#00f2fe;border-radius:3px;margin-right:8px;"></span>
+                                    <span class="font-weight-500">Non-TB: <%= nonTbSegments %></span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="iq-card viz-card">
-                        <div class="iq-card-header">
-                            <h5 class="card-title"><i class="ri-donut-chart-line"></i> Confidence Level</h5>
+                        <div class="iq-card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0"><i class="ri-donut-chart-line"></i> Confidence Level</h5>
                         </div>
                         <div class="iq-card-body">
-                            <div class="chart-container">
-                                <canvas id="confidenceChart"></canvas>
+                            <div class="text-center mb-4">
+                                <h2 class="display-4 font-weight-bold text-primary"><%= confidencePercentage %>%</h2>
+                                <p class="text-muted mb-0">Rata-rata Probabilitas TB</p>
+                            </div>
+                            <div class="confidence-bar mb-3" style="height: 40px;">
+                                <div style="width: <%= confidencePercentage %>%; height: 100%; background: linear-gradient(90deg, #667eea 0%, <%= prediction === 'TB' ? '#f5576c' : '#00f2fe' %> 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; transition: width 1s ease;">
+                                    <%= confidencePercentage %>%
+                                </div>
+                            </div>
+                            <div class="row text-center mt-4">
+                                <div class="col-6">
+                                    <div class="p-3" style="background: #667eea15; border-radius: 10px;">
+                                        <h4 class="font-weight-bold text-primary"><%= (avgTbProbability * 100).toFixed(2) %>%</h4>
+                                        <small class="text-muted">Avg TB Probability</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3" style="background: <%= prediction === 'TB' ? '#f5576c15' : '#00f2fe15' %>; border-radius: 10px;">
+                                        <h4 class="font-weight-bold <%= prediction === 'TB' ? 'text-danger' : 'text-info' %>"><%= prediction %></h4>
+                                        <small class="text-muted">Final Decision</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -374,12 +427,23 @@
                         <div class="iq-card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <a href="/tbcare/predict" class="btn btn-outline-primary btn-lg">
-                                        <i class="ri-arrow-left-line"></i> Analisis Audio Lain
-                                    </a>
-                                    <a href="/tbcare/patient-history" class="btn btn-outline-secondary btn-lg ml-2">
-                                        <i class="ri-history-line"></i> Lihat Riwayat
-                                    </a>
+                                    <% if (typeof isHistoryView !== 'undefined' && isHistoryView) { %>
+                                        <!-- Buttons for History View -->
+                                        <a href="/tbcare/patient-history/<%= patient._id %>" class="btn btn-outline-secondary btn-lg">
+                                            <i class="ri-arrow-left-line"></i> Back to Patient History
+                                        </a>
+                                        <a href="/tbcare/patient-history" class="btn btn-outline-primary btn-lg ml-2">
+                                            <i class="ri-team-line"></i> All Patients
+                                        </a>
+                                    <% } else { %>
+                                        <!-- Buttons for New Prediction -->
+                                        <a href="/tbcare/predict" class="btn btn-outline-primary btn-lg">
+                                            <i class="ri-arrow-left-line"></i> Analisis Audio Lain
+                                        </a>
+                                        <a href="/tbcare/patient-history" class="btn btn-outline-secondary btn-lg ml-2">
+                                            <i class="ri-history-line"></i> Lihat Riwayat
+                                        </a>
+                                    <% } %>
                                 </div>
                                 <div>
                                     <button onclick="window.print()" class="btn btn-info btn-lg mr-2">

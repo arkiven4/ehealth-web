@@ -1,51 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <%- include('../includes/head.ejs') %>
     <style>
-        .download-section { position: relative; min-height: 100vh; background-color: #f0fdfa; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 120px 0; }
-        .download-background { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 150%; height: 150px; border-top-left-radius: 50%; border-top-right-radius: 50%; background-image: linear-gradient(to right, #0d9488, #22d3ee); }
-        .download-content { position: relative; z-index: 10; }
-        .app-screenshot { max-width: 450px; border-radius: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 4px solid white; }
-        .text-teal { color: #0d9488; }
-        .btn-download { border-radius: 9999px; font-weight: 600; transition: all 0.2s; padding: 0.75rem 1.5rem; }
-        .btn-download:hover { transform: scale(1.05); }
-        .btn-play-store { background-color: #0d9488; color: white; }
-        .btn-app-store { background-color: white; color: #333; border: 1px solid #ddd; }
-        .btn-download img { height: 24px; width: 24px; margin-right: 0.5rem; }
+      .download-section {
+        position: relative;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f0fdfa 0%, #dbeafe 50%, #fef2f2 100%);
+        background-attachment: fixed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 140px 0;
+      }
+      .download-section::before {
+        content: "";
+        position: absolute;
+        top: 10%;
+        right: 10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: pulse 8s infinite ease-in-out;
+      }
+      .download-section::after {
+        content: "";
+        position: absolute;
+        bottom: 15%;
+        left: 5%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: pulse 10s infinite ease-in-out reverse;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.5;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 0.8;
+        }
+      }
+      .download-background {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 150%;
+        height: 200px;
+        border-top-left-radius: 50%;
+        border-top-right-radius: 50%;
+        background: linear-gradient(135deg, #0d9488, #0284c7, #f97316, #ef4444);
+        opacity: 0.9;
+      }
+      .download-content {
+        position: relative;
+        z-index: 10;
+      }
+      .app-screenshot {
+        max-width: 450px;
+        border-radius: 2rem;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+        border: 6px solid white;
+        transition: transform 0.4s ease;
+      }
+      .app-screenshot:hover {
+        transform: scale(1.05) rotate(-3deg);
+      }
+      .text-teal {
+        background: linear-gradient(135deg, #0d9488, #0284c7, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+      }
+      .display-4 {
+        font-size: 3.2rem;
+        font-weight: 800;
+        letter-spacing: -1px;
+      }
+      .lead {
+        font-size: 1.15rem;
+        line-height: 1.8;
+        color: #475569;
+      }
+      .btn-download {
+        border-radius: 9999px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        padding: 1rem 2rem;
+        font-size: 1.05rem;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      }
+      .btn-download:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+      }
+      .btn-play-store {
+        background: linear-gradient(135deg, #0d9488, #0ea5e9);
+        color: white;
+        border: none;
+      }
+      .btn-play-store:hover {
+        background: linear-gradient(135deg, #0ea5e9, #0d9488);
+      }
+      .btn-app-store {
+        background: linear-gradient(135deg, #ffffff, #f8fafc);
+        color: #1e293b;
+        border: 2px solid #cbd5e1;
+      }
+      .btn-app-store:hover {
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        border-color: #94a3b8;
+      }
+      .btn-download img {
+        height: 28px;
+        width: 28px;
+        margin-right: 0.75rem;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <%- include('../includes/tbcare/navbar-landing.ejs') %>
     <section class="download-section">
-        <div class="bubble-background">
-            <div class="bubble" style="width: 64px; height: 64px; background-color: #a7f3d0; top: 10%; left: 10%;"></div>
-            <div class="bubble" style="width: 96px; height: 96px; background-color: #67e8f9; top: 25%; right: 10%; animation-duration: 12s;"></div>
-        </div>
-        <div class="download-background"></div>
-        <div class="container download-content">
-            <div class="row align-items-center">
-                <div class="col-md-6 text-center text-md-left mb-5 mb-md-0 wow fadeInLeft">
-                    <img src="/images/tbcare_landing/device/mobile.png" alt="TBCare App Screenshot" class="img-fluid app-screenshot">
-                </div>
-                <div class="col-md-6 text-center text-md-left wow fadeInRight">
-                    <h1 class="display-4 font-weight-bold text-teal">Dapatkan Aplikasi Kami</h1>
-                    <p class="lead text-secondary my-4">Uji potensi TBC Anda dengan mudah di mana saja dan kapan saja. Aplikasi TBCare Mobile membantu Anda melakukan pra-skrining dengan teknologi suara batuk yang inovatif.</p>
-                    <div class="d-flex flex-column flex-md-row justify-content-center justify-content-md-start">
-                        <a href="#" target="_blank" class="btn btn-download btn-play-store d-inline-flex align-items-center mb-2 mb-md-0 mr-md-3">
-                            <img src="https://www.gstatic.com/images/branding/product/2x/play_store_48dp.png" alt="Google Play">
-                            <span>Download di Google Play</span>
-                        </a>
-                        <a href="#" target="_blank" class="btn btn-download btn-app-store d-inline-flex align-items-center">
-                            <img src="https://www.gstatic.com/images/branding/product/2x/app_store_48dp.png" alt="App Store">
-                            <span>Download di App Store</span>
-                        </a>
-                    </div>
-                </div>
+      <div class="bubble-background">
+        <div class="bubble" style="width: 64px; height: 64px; background-color: #a7f3d0; top: 10%; left: 10%"></div>
+        <div class="bubble" style="width: 96px; height: 96px; background-color: #67e8f9; top: 25%; right: 10%; animation-duration: 12s"></div>
+      </div>
+      <div class="download-background"></div>
+      <div class="container download-content">
+        <div class="row align-items-center">
+          <div class="col-md-6 text-center text-md-left mb-5 mb-md-0 wow fadeInLeft">
+            <img src="/images/tbcare_landing/device/mobile.png" alt="TBCare App Screenshot" class="img-fluid app-screenshot" />
+          </div>
+          <div class="col-md-6 text-center text-md-left wow fadeInRight">
+            <h1 class="display-4 font-weight-bold text-teal">Dapatkan Aplikasi Kami</h1>
+            <p class="lead text-secondary my-4">Uji potensi TBC Anda dengan mudah di mana saja dan kapan saja. Aplikasi TBCare Mobile membantu Anda melakukan pra-skrining dengan teknologi suara batuk yang inovatif.</p>
+            <div class="d-flex flex-column flex-md-row justify-content-center justify-content-md-start">
+              <a href="#" target="_blank" class="btn btn-download btn-play-store d-inline-flex align-items-center mb-2 mb-md-0 mr-md-3">
+                <img src="https://www.gstatic.com/images/branding/product/2x/play_store_48dp.png" alt="Google Play" />
+                <span>Download di Google Play</span>
+              </a>
+              <a href="#" target="_blank" class="btn btn-download btn-app-store d-inline-flex align-items-center">
+                <img src="https://www.gstatic.com/images/branding/product/2x/app_store_48dp.png" alt="App Store" />
+                <span>Download di App Store</span>
+              </a>
             </div>
+          </div>
         </div>
+      </div>
     </section>
-    <%- include('../includes/tbcare/footer-landing.ejs') %>
-    <%- include('../includes/end.ejs') %>
-</body>
+    <%- include('../includes/tbcare/footer-landing.ejs') %> <%- include('../includes/end.ejs') %>
+  </body>
 </html>

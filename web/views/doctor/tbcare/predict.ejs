@@ -119,9 +119,9 @@
         const patientSelect = document.getElementById('patientSelect');
         patientSelect.addEventListener('change', async function() {
             const selectedOption = this.options[this.selectedIndex];
-            //const nik = selectedOption.getAttribute('data-nik');
-            // DEBUG
-            const nik = '5171045111030002'
+            const nik = selectedOption.getAttribute('data-nik');
+            // // DEBUG
+            // const nik = '5171045111030002'
             
             if (!nik) {
                 fileList.innerHTML = '<p class="text-center text-muted mt-3">Please select a patient first to view cough recordings.</p>';
@@ -141,6 +141,8 @@
                 loadingMessage.style.display = 'none';
                 
                 if (data.success && data.data && data.data.length > 0) {
+                    // sort by most recent
+                    data.data.sort((a, b) => new Date(b.time) - new Date(a.time));
                     displayCoughRecordings(data.data);
                     filterControls.style.display = 'flex';
                 } else {

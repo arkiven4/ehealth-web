@@ -48,13 +48,24 @@
                                             <% predictions.forEach(pred => { %>
                                                 <tr id="pred-row-<%= pred._id %>">
                                                     <td data-label="date"><%= new Date(pred.createdAt).toLocaleString() %></td>
-                                                    <td data-label="result"><%= pred.result %></td>
+                                                    <td data-label="result">
+                                                        <span class="badge <%= pred.result === 'TB' ? 'badge-danger' : 'badge-success' %>">
+                                                            <%= pred.result %>
+                                                        </span>
+                                                    </td>
                                                     <td data-label="sputum"><%= pred.sputumCondition %></td>
                                                     <td data-label="segments"><%= pred.tbSegmentCount %> / <%= pred.totalCoughSegments %></td>
                                                     <td data-label="doctor">Dr. <%= pred.predictedBy ? pred.predictedBy.userName : 'N/A' %></td>
                                                     <td>
-                                                        <button class="btn btn-sm btn-info edit-btn" data-id="<%= pred._id %>" data-sputum="<%= pred.sputumCondition %>">Edit</button>
-                                                        <button class="btn btn-sm btn-danger delete-btn" data-id="<%= pred._id %>">Delete</button>
+                                                        <a href="/tbcare/history/<%= pred._id %>" class="btn btn-sm btn-primary" title="View Full Details">
+                                                            <i class="ri-eye-line"></i> View
+                                                        </a>
+                                                        <button class="btn btn-sm btn-info edit-btn" data-id="<%= pred._id %>" data-sputum="<%= pred.sputumCondition %>">
+                                                            <i class="ri-edit-line"></i> Edit
+                                                        </button>
+                                                        <button class="btn btn-sm btn-danger delete-btn" data-id="<%= pred._id %>">
+                                                            <i class="ri-delete-bin-line"></i> Delete
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             <% }) %>

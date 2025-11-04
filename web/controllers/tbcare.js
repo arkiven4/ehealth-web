@@ -93,12 +93,29 @@ exports.postPredict = async (req, res, next) => {
   try {
     // First find TbcareProfile by NIK (NIK is stored as Number)
     const nikNumber = parseInt(patientId, 10);
-    const tbcareProfile = await TbcareProfile.findOne({ nik: nikNumber });
+    console.log("Searching for NIK:", nikNumber, "Type:", typeof nikNumber);
+
+    // Try to find with Number first, then String if not found
+    let tbcareProfile = await TbcareProfile.findOne({ nik: nikNumber });
+
+    // If not found as Number, try as String
+    if (!tbcareProfile) {
+      console.log("Not found as Number, trying as String:", patientId);
+      tbcareProfile = await TbcareProfile.findOne({ nik: patientId });
+    }
 
     if (!tbcareProfile) {
+      console.log("TbcareProfile not found. Checking all profiles with NIK field...");
+      const allProfiles = await TbcareProfile.find({}, "nik").limit(5);
+      console.log(
+        "Sample NIKs in database:",
+        allProfiles.map((p) => ({ nik: p.nik, type: typeof p.nik }))
+      );
       req.flash("error", `Pasien dengan NIK ${patientId} tidak ditemukan.`);
       return res.redirect("/tbcare/predict");
     }
+
+    console.log("Found TbcareProfile:", tbcareProfile._id);
 
     // Then find User by tbcareProfile reference
     patient = await User.findOne({ tbcareProfile: tbcareProfile._id }).populate("tbcareProfile");
@@ -196,9 +213,6 @@ exports.postPredict = async (req, res, next) => {
 
   try {
     const pythonScriptPath = path.join(__dirname, "..", "python-script", "tbcareScript.py");
-
-    // IMPORTANT: Pass ABSOLUTE path to Python script!
-    // fileSystemPath is already absolute: /usr/src/app/public/uploads/...
     const audioPathForPython = fileSystemPath;
 
     console.log("=== TB Care Prediction Debug ===");
@@ -215,8 +229,6 @@ exports.postPredict = async (req, res, next) => {
     console.log("Python stdout length:", result.stdout?.length || 0);
     console.log("Python stderr length:", result.stderr?.length || 0);
     console.log("Python exit code:", result.code);
-
-    // result.parsed may be object, array or null
     const parsed = result.parsed;
 
     if (!parsed || parsed.status === "error") {
@@ -305,12 +317,29 @@ exports.postPredict = async (req, res, next) => {
 exports.getPatientHistoryList = async (req, res, next) => {
   try {
     const patients = await User.find({ role: "patient", doctor: req.session.user._id }).populate("tbcareProfile");
+
+    // Fetch last prediction for each patient
+    const patientsWithLastPrediction = await Promise.all(
+      patients.map(async (patient) => {
+        const lastPrediction = await TbcarePrediction.findOne({ patient: patient._id }).sort({ createdAt: -1 }).limit(1);
+        const patientObj = patient.toObject();
+
+        // Debug: Log patient data
+        console.log("Patient:", patientObj.userName, "Sex:", patientObj.tbcareProfile?.sex);
+
+        return {
+          ...patientObj,
+          lastPrediction: lastPrediction,
+        };
+      })
+    );
+
     res.render("doctor/tbcare/patient-history-list", {
       pageTitle: "Patient History",
       pageHeader: "Patient Prediction History",
       userdata: req.session.user,
-      patients: patients,
-      csrfToken: req.csrfToken(), // <-- TAMBAHKAN BARIS INI
+      patients: patientsWithLastPrediction,
+      csrfToken: req.csrfToken(),
     });
   } catch (error) {
     next(error);
@@ -340,6 +369,87 @@ exports.getPatientHistoryDetail = async (req, res, next) => {
       csrfToken: req.csrfToken(),
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @description Menampilkan detail lengkap hasil prediksi dari history (seperti predict-result)
+ */
+exports.getPredictionDetail = async (req, res, next) => {
+  try {
+    const predictionId = req.params.predictionId;
+    const prediction = await TbcarePrediction.findById(predictionId).populate("patient").populate("predictedBy", "userName");
+
+    if (!prediction) {
+      req.flash("error", "Prediction not found.");
+      return res.redirect("/tbcare/patient-history");
+    }
+
+    // Extract data from prediction.detail
+    const detail = prediction.detail || {};
+    const segmentDetails = detail.segment_details || [];
+    const waveform = detail.waveform || [];
+    const mfcc = detail.mfcc || [];
+
+    // Calculate confidence properly
+    let confidenceValue = prediction.confidence || 0;
+    let avgTbProb = prediction.confidence || 0;
+
+    // If confidence is not saved, calculate from detail
+    if (!confidenceValue && detail.average_tb_probability) {
+      avgTbProb = detail.average_tb_probability;
+      confidenceValue = avgTbProb;
+    }
+
+    // If still no confidence, estimate from TB segments ratio (fallback for old data)
+    if (!confidenceValue && prediction.totalCoughSegments > 0) {
+      const ratio = prediction.tbSegmentCount / prediction.totalCoughSegments;
+      confidenceValue = ratio;
+      avgTbProb = ratio;
+      console.log("Using fallback confidence calculation from segments ratio:", ratio);
+    }
+
+    // Ensure confidence is a valid number
+    if (isNaN(confidenceValue)) confidenceValue = 0;
+    if (isNaN(avgTbProb)) avgTbProb = 0;
+
+    const confidencePercentage = parseFloat((confidenceValue * 100).toFixed(2));
+
+    console.log("History View Debug:", {
+      predictionId: prediction._id,
+      confidence: prediction.confidence,
+      confidencePercentage: confidencePercentage,
+      hasDetail: !!detail,
+      hasWaveform: waveform.length > 0,
+      hasMfcc: mfcc.length > 0,
+      segmentCount: segmentDetails.length,
+    });
+
+    // Render using the same view as predict-result
+    res.render("doctor/tbcare/predict-result", {
+      pageTitle: "Prediction History Detail",
+      pageHeader: "Historical Prediction Result",
+      userdata: req.session.user,
+      patient: prediction.patient,
+      prediction: prediction.result,
+      audioFile: prediction.audioFile,
+      sputumCondition: prediction.sputumCondition,
+      confidencePercentage: confidencePercentage,
+      avgTbProbability: avgTbProb,
+      totalSegments: detail.total_segments || 0,
+      validCoughSegments: prediction.totalCoughSegments || detail.valid_cough_segments || 0,
+      tbSegments: prediction.tbSegmentCount || detail.tb_segments || 0,
+      nonTbSegments: prediction.nonTbSegmentCount || detail.non_tb_segments || 0,
+      segmentDetails: segmentDetails,
+      waveform: JSON.stringify(waveform),
+      mfcc: JSON.stringify(mfcc),
+      csrfToken: req.csrfToken(),
+      isHistoryView: true, // Flag to show "Back to History" button instead
+      predictionDate: prediction.createdAt,
+    });
+  } catch (error) {
+    console.error("Error fetching prediction detail:", error);
     next(error);
   }
 };

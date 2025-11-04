@@ -1,5 +1,350 @@
 <% var useTbcareTheme = true; %>
 <%- include('../../includes/head.ejs') %>
+<style>
+    .page-header-card {
+        background: linear-gradient(135deg, #667eea 0%, #24be90 100%);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    .page-header-card h2 {
+        color: white;
+        font-weight: bold;
+        margin: 0;
+    }
+    .page-header-card p {
+        color: rgba(255, 255, 255, 0.9);
+        margin: 5px 0 0 0;
+    }
+    .patient-card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        margin-bottom: 30px;
+        height: 100%;
+    }
+    .patient-card-wrapper {
+        margin-bottom: 15px;
+    }
+    .patient-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+    .patient-card-header {
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        padding: 20px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    .patient-card-body {
+        padding: 25px;
+    }
+    .patient-avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #24be90 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        margin-right: 20px;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    .patient-info h4 {
+        margin: 0 0 5px 0;
+        font-weight: 600;
+        color: #333;
+    }
+    .patient-info p {
+        margin: 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    .patient-stats {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    .stat-item {
+        flex: 1;
+        text-align: center;
+    }
+    .stat-item .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+    .stat-item .stat-label {
+        font-size: 0.75rem;
+        color: #666;
+        text-transform: uppercase;
+        margin-top: 5px;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .btn-modern {
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-weight: 500;
+        border: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-modern i {
+        font-size: 1.1rem;
+    }
+    .btn-view {
+        background: linear-gradient(135deg, #667eea 0%, #24be90 100%);
+        color: white;
+        flex: 1;
+    }
+    .btn-view:hover {
+        background: linear-gradient(135deg, #404f93 0%, #145e48 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    .btn-edit {
+        background: #4facfe;
+        color: white;
+    }
+    .btn-edit:hover {
+        background: #3d96e8;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        color: white;
+    }
+    .btn-delete {
+        background: #f5576c;
+        color: white;
+    }
+    .btn-delete:hover {
+        background: #e74757;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        color: white;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    }
+    .empty-state i {
+        font-size: 4rem;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+    .empty-state h4 {
+        color: #666;
+        margin-bottom: 10px;
+    }
+    .empty-state p {
+        color: #999;
+    }
+    .badge-nik {
+        display: inline-block;
+        padding: 5px 12px;
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #667eea;
+        border: 1px solid #667eea30;
+    }
+    .stat-item.clickable {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .stat-item.clickable:hover {
+        transform: scale(1.1);
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 10px;
+    }
+    .badge-tb {
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .badge-tb-positive {
+        background: linear-gradient(135deg, #f5576c15 0%, #f5576c25 100%);
+        color: #f5576c;
+        border: 1px solid #f5576c30;
+    }
+    .badge-tb-negative {
+        background: linear-gradient(135deg, #4ade8015 0%, #4ade8025 100%);
+        color: #22c55e;
+        border: 1px solid #4ade8030;
+    }
+    /* Modal Styles */
+    .modal-profile {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.6);
+        animation: fadeIn 0.3s;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .modal-profile-content {
+        background: white;
+        margin: 3% auto;
+        padding: 0;
+        border-radius: 15px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        animation: slideDown 0.3s;
+    }
+    @keyframes slideDown {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    .modal-profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #24be90 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 15px 15px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .modal-profile-header h3 {
+        margin: 0;
+        font-weight: 600;
+        color:white
+    }
+    .modal-close {
+        color: white;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+    .modal-close:hover {
+        background: rgba(255,255,255,0.2);
+        transform: rotate(90deg);
+    }
+    .modal-profile-body {
+        padding: 30px;
+    }
+    .profile-info-group {
+        margin-bottom: 20px;
+    }
+    .profile-info-group h5 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f0f0f0;
+        font-size: 1rem;
+    }
+    .profile-info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #f5f5f5;
+    }
+    .profile-info-item:last-child {
+        border-bottom: none;
+    }
+    .profile-info-label {
+        color: #666;
+        font-weight: 500;
+    }
+    .profile-info-value {
+        color: #333;
+        font-weight: 600;
+    }
+    /* Search Bar Styles */
+    .search-bar-container {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    }
+    .search-input-wrapper {
+        position: relative;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    .search-input-wrapper i {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        font-size: 1.2rem;
+    }
+    .search-input {
+        width: 100%;
+        padding: 15px 20px 15px 55px;
+        border: 2px solid #e0e0e0;
+        border-radius: 30px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    .search-input::placeholder {
+        color: #999;
+    }
+    .no-results {
+        text-align: center;
+        padding: 40px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    }
+    .no-results i {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 15px;
+    }
+    .no-results h4 {
+        color: #666;
+        margin: 0;
+    }
+</style>
 </head>
 <body>
 <div class="wrapper">
@@ -7,48 +352,337 @@
     <div id="content-page" class="content-page">
         <%- include('../../includes/top-navbar.ejs') %>
         <div class="container-fluid">
+            <!-- Page Header -->
             <div class="row">
-                <div class="col-sm-12">
-                    <div class="iq-card">
-                        <div class="iq-card-header d-flex justify-content-between">
-                            <div class="iq-header-title">
-                                <h4 class="card-title"><%= pageHeader %></h4>
+                <div class="col-12">
+                    <div class="page-header-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2><i class="ri-history-line"></i> <%= pageHeader %></h2>
+                                <p>Lihat riwayat prediksi TB untuk setiap pasien</p>
                             </div>
+                            <!-- <div class="text-white">
+                                <h3 class="mb-0" id="patientCount"><%= patients.length %></h3>
+                                <small>Total Pasien</small>
+                            </div> -->
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Search Bar -->
             <div class="row">
+                <div class="col-12">
+                    <div class="search-bar-container">
+                        <div class="search-input-wrapper">
+                            <i class="ri-search-line"></i>
+                            <input type="text" id="searchInput" class="search-input" placeholder="Cari berdasarkan nama atau NIK...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patient Cards -->
+            <div class="row" id="patientCardsContainer">
                 <% if (patients.length > 0) { %>
                     <% patients.forEach(patient => { %>
-                        <div class="col-lg-6">
-                            <div class="card card-block card-stretch card-height">
-                                <div class="card-body">
-                                    <h5 class="card-title"><%= patient.fullName.first %> <%= patient.fullName.last %></h5>
-                                    <p class="card-text">Username: <%= patient.userName %></p>
-                                    <a href="/tbcare/patient-history/<%= patient._id %>" class="btn btn-primary">View History</a>
-
-                                    <a href="/tbcare/edit-patient/<%= patient._id %>" class="btn btn-info">Edit Profile</a>
-
-                                    <form action="/tbcare/delete-patient" method="POST" style="display: inline;">
-                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                                        <input type="hidden" name="patientId" value="<%= patient._id %>">
-                                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this patient and all related data?');">Delete</button>
-                                    </form>
+                        <div class="col-lg-6 col-xl-4 patient-card-wrapper" 
+                             data-name="<%= (patient.fullName.first + ' ' + patient.fullName.last).toLowerCase() %>"
+                             data-nik="<%= patient.tbcareProfile && patient.tbcareProfile.nik ? patient.tbcareProfile.nik : '' %>">
+                            <div class="patient-card">
+                                <div class="patient-card-header">
+                                    <div class="d-flex align-items-center">
+                                        <div class="patient-avatar">
+                                            <%= patient.fullName.first.charAt(0).toUpperCase() %><%= patient.fullName.last.charAt(0).toUpperCase() %>
+                                        </div>
+                                        <div class="patient-info flex-grow-1">
+                                            <h4><%= patient.fullName.first %> <%= patient.fullName.last %></h4>
+                                            <p><i class="ri-user-line"></i> <%= patient.userName %></p>
+                                            <% if (patient.tbcareProfile && patient.tbcareProfile.nik) { %>
+                                                <span class="badge-nik">
+                                                    <i class="ri-shield-user-line"></i> NIK: <%= patient.tbcareProfile.nik %>
+                                                </span>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="patient-card-body">
+                                    <div class="patient-stats">
+                                        <div class="stat-item clickable" onclick="showProfile('<%= patient._id %>')">
+                                            <div class="stat-value">
+                                                <i class="ri-user-heart-line"></i>
+                                            </div>
+                                            <div class="stat-label">View Profile</div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="stat-value">
+                                                <% if (patient.tbcareProfile && patient.tbcareProfile.sex) { %>
+                                                    <i class="<%= patient.tbcareProfile.sex === 'Male' ? 'ri-men-line' : 'ri-women-line' %>"></i>
+                                                <% } else { %>
+                                                    <i class="ri-user-3-line"></i>
+                                                <% } %>
+                                            </div>
+                                            <div class="stat-label">
+                                                <%= patient.tbcareProfile && patient.tbcareProfile.sex ? patient.tbcareProfile.sex : 'Unknown' %>
+                                            </div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="stat-value">
+                                                <% if (patient.lastPrediction) { %>
+                                                    <% if (patient.lastPrediction.result === 'TB') { %>
+                                                        <span class="badge-tb badge-tb-positive">TB</span>
+                                                    <% } else { %>
+                                                        <span class="badge-tb badge-tb-negative">Non-TB</span>
+                                                    <% } %>
+                                                <% } else { %>
+                                                    <span style="color: #999; font-size: 0.9rem;">-</span>
+                                                <% } %>
+                                            </div>
+                                            <div class="stat-label">Last Result</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="action-buttons">
+                                        <a href="/tbcare/patient-history/<%= patient._id %>" class="btn btn-modern btn-view">
+                                            <i class="ri-history-line"></i> View History
+                                        </a>
+                                    </div>
+                                    <div class="action-buttons mt-2">
+                                        <a href="/tbcare/edit-patient/<%= patient._id %>" class="btn btn-modern btn-edit">
+                                            <i class="ri-edit-line"></i> Edit
+                                        </a>
+                                        <form action="/tbcare/delete-patient" method="POST" style="flex: 1; margin: 0;">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                            <input type="hidden" name="patientId" value="<%= patient._id %>">
+                                            <button type="submit" class="btn btn-modern btn-delete w-100" onclick="return confirm('Apakah Anda yakin ingin menghapus pasien ini dan semua data terkait?');">
+                                                <i class="ri-delete-bin-line"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     <% }); %>
                 <% } else { %>
-                    <div class="col-12">
-                        <p class="text-muted">No patients found assigned to you.</p>
+                    <div class="col-12" id="emptyState">
+                        <div class="empty-state">
+                            <i class="ri-user-search-line"></i>
+                            <h4>Tidak Ada Pasien</h4>
+                            <p>Belum ada pasien yang terdaftar untuk Anda.</p>
+                            <a href="/sub_1/add-patient" class="btn btn-modern btn-view mt-3">
+                                <i class="ri-user-add-line"></i> Tambah Pasien Baru
+                            </a>
+                        </div>
                     </div>
                 <% } %>
+                <!-- No Search Results -->
+                <div class="col-12" id="noResults" style="display: none;">
+                    <div class="no-results">
+                        <i class="ri-search-line"></i>
+                        <h4>Tidak ada pasien yang cocok dengan pencarian</h4>
+                    </div>
+                </div>
             </div>
         </div>
         <%- include('../../includes/footer.ejs') %>
     </div>
 </div>
+
+<!-- Profile Modal -->
+<% patients.forEach(patient => { %>
+    <div id="profileModal<%= patient._id %>" class="modal-profile">
+        <div class="modal-profile-content">
+            <div class="modal-profile-header">
+                <h3><i class="ri-user-heart-line"></i> TB Care Profile</h3>
+                <span class="modal-close" onclick="closeProfile('<%= patient._id %>')">&times;</span>
+            </div>
+            <div class="modal-profile-body">
+                <% if (patient.tbcareProfile) { %>
+                    <!-- Basic Information -->
+                    <div class="profile-info-group">
+                        <h5><i class="ri-user-3-line"></i> Basic Information</h5>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">NIK:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.nik || '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Sex:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.sex || '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Age:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.age ? patient.tbcareProfile.age + ' years' : '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Location:</span>
+                            <span class="profile-info-value">
+                                <%= [patient.tbcareProfile.district, patient.tbcareProfile.city, patient.tbcareProfile.province].filter(x => x).join(', ') || '-' %>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Physical Data -->
+                    <div class="profile-info-group">
+                        <h5><i class="ri-heart-pulse-line"></i> Physical Data</h5>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Height:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.height ? patient.tbcareProfile.height + ' cm' : '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Weight:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.weight ? patient.tbcareProfile.weight + ' kg' : '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">BMI:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.bmi ? patient.tbcareProfile.bmi.toFixed(1) : '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Weight Status:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.weightStatus || '-' %></span>
+                        </div>
+                    </div>
+
+                    <!-- TB Symptoms -->
+                    <div class="profile-info-group">
+                        <h5><i class="ri-lungs-line"></i> TB Symptoms</h5>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Productive Cough:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.isCoughProductive || '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Cough Duration:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.coughDurationDays ? patient.tbcareProfile.coughDurationDays + ' days' : '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Hemoptysis:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.hasHemoptysis || '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Chest Pain:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.hasChestPain || '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Shortness of Breath:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.hasShortBreath || '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Fever:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.hasFever || '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Night Sweats:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.hasNightSweats || '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Weight Loss:</span>
+                            <span class="profile-info-value">
+                                <%= patient.tbcareProfile.hasWeightLoss || '-' %>
+                                <% if (patient.tbcareProfile.weightLossAmountKg) { %>
+                                    (<%= patient.tbcareProfile.weightLossAmountKg %> kg)
+                                <% } %>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Medical History -->
+                    <div class="profile-info-group">
+                        <h5><i class="ri-medicine-bottle-line"></i> Medical History</h5>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Prior TB:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.hadPriorTB || '-' %></span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Tobacco Use:</span>
+                            <span class="profile-info-value"><%= patient.tbcareProfile.tobaccoUse || '-' %></span>
+                        </div>
+                        <% if (patient.tbcareProfile.tobaccoUse === 'current' || patient.tbcareProfile.tobaccoUse === 'stopped') { %>
+                            <div class="profile-info-item">
+                                <span class="profile-info-label">Cigarettes/Day:</span>
+                                <span class="profile-info-value"><%= patient.tbcareProfile.cigarettesPerDay || '-' %></span>
+                            </div>
+                        <% } %>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">Comorbidities:</span>
+                            <span class="profile-info-value">
+                                <% if (patient.tbcareProfile.comorbidities && patient.tbcareProfile.comorbidities.length > 0) { %>
+                                    <%= patient.tbcareProfile.comorbidities.join(', ') %>
+                                <% } else { %>
+                                    -
+                                <% } %>
+                            </span>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="text-center" style="padding: 40px;">
+                        <i class="ri-information-line" style="font-size: 3rem; color: #ddd;"></i>
+                        <p style="color: #999; margin-top: 15px;">No profile information available</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+<% }); %>
+
+<script>
+function showProfile(patientId) {
+    document.getElementById('profileModal' + patientId).style.display = 'block';
+}
+
+function closeProfile(patientId) {
+    document.getElementById('profileModal' + patientId).style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal-profile')) {
+        event.target.style.display = 'none';
+    }
+}
+
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const patientCards = document.querySelectorAll('.patient-card-wrapper');
+    const noResults = document.getElementById('noResults');
+    const emptyState = document.getElementById('emptyState');
+    const patientCount = document.getElementById('patientCount');
+    const totalPatients = patientCards.length;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            patientCards.forEach(function(card) {
+                const name = card.getAttribute('data-name');
+                const nik = card.getAttribute('data-nik');
+                
+                const matchesSearch = name.includes(searchTerm) || nik.includes(searchTerm);
+                
+                if (matchesSearch) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Update patient count
+            patientCount.textContent = visibleCount;
+
+            // Show/hide no results message
+            if (visibleCount === 0 && searchTerm !== '') {
+                noResults.style.display = '';
+                if (emptyState) emptyState.style.display = 'none';
+            } else {
+                noResults.style.display = 'none';
+                if (emptyState && totalPatients === 0) emptyState.style.display = '';
+            }
+        });
+    }
+});
+</script>
+
 <%- include('../../includes/end.ejs') %>
 </body>
 </html>
