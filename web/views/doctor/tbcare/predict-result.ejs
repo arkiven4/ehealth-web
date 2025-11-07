@@ -106,7 +106,7 @@
 <div class="wrapper">
     <%- include('../../includes/navigations-tbcare.ejs') %>
     <div id="content-page" class="content-page">
-        <%- include('../../includes/top-navbar.ejs') %>
+        <%- include('../../includes/tbcare/top-navbar.ejs') %>
         <div class="container-fluid">
             <!-- Header Card -->
             <div class="row">
@@ -114,7 +114,7 @@
                     <div class="result-card">
                         <div class="result-header">
                             <h2 class="mb-0 text-white font-weight-bold">
-                                <i class="ri-file-chart-line"></i> Hasil Analisis Prediksi Tuberkulosis
+                                <i class="ri-file-chart-line"></i> <span data-i18n="result.title">Hasil Analisis Prediksi Tuberkulosis</span>
                                 <% if (typeof isHistoryView !== 'undefined' && isHistoryView) { %>
                                     <span class="badge badge-light ml-2" style="font-size: 0.5em; vertical-align: middle;">
                                         <i class="ri-history-line"></i> History
@@ -122,7 +122,7 @@
                                 <% } %>
                             </h2>
                             <p class="mb-0 mt-2 text-white">
-                                Analisis audio batuk menggunakan Machine Learning dengan YAMNet + LSTM
+                                <span data-i18n="result.subtitle">Analisis audio batuk menggunakan Machine Learning dengan YAMNet + LSTM</span>
                                 <% if (typeof predictionDate !== 'undefined' && predictionDate) { %>
                                     <br>
                                     <small><i class="ri-calendar-line"></i> Tanggal Prediksi: <%= new Date(predictionDate).toLocaleString('id-ID') %></small>
@@ -177,7 +177,7 @@
                 <div class="col-lg-12">
                     <div class="iq-card result-card">
                         <div class="iq-card-body text-center py-5">
-                            <h3 class="mb-4">Hasil Akhir Prediksi</h3>
+                            <h3 class="mb-4" data-i18n="result.finalTitle">Hasil Akhir Prediksi</h3>
                             <div class="mb-4">
                                 <span class="prediction-badge <%= prediction === 'TB' ? 'prediction-tb' : 'prediction-nontb' %>">
                                     <% if (prediction === 'TB') { %>
@@ -676,6 +676,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
-<%- include('../../includes/end.ejs') %>
+<%- include('../../includes/tbcare/end.ejs') %>
 </body>
 </html>

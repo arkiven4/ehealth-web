@@ -1,0 +1,411 @@
+<!-- Optional JavaScript -->
+ <% if (typeof styleVersion === "undefined" || styleVersion === "default") { %>
+      <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+      <script src="/js/jquery.min.js"></script>
+      <script src="/js/popper.min.js"></script>
+      <script src="/js/bootstrap.min.js"></script>
+      <!-- Appear JavaScript -->
+      <script src="/js/jquery.appear.js"></script>
+      <!-- Countdown JavaScript -->
+      <script src="/js/countdown.min.js"></script>
+      <!-- Counterup JavaScript -->
+      <script src="/js/waypoints.min.js"></script>
+      <script src="/js/jquery.counterup.min.js"></script>
+      <!-- Wow JavaScript -->
+      <script src="/js/wow.min.js"></script>
+      <!-- Apexcharts JavaScript -->
+      <script src="/js/apexcharts.js"></script>
+      <!-- Slick JavaScript -->
+      <script src="/js/slick.min.js"></script>
+      <!-- Select2 JavaScript -->
+      <script src="/js/select2.min.js"></script>
+      <!-- Owl Carousel JavaScript -->
+      <script src="/js/owl.carousel.min.js"></script>
+      <!-- Magnific Popup JavaScript -->
+      <script src="/js/jquery.magnific-popup.min.js"></script>
+      <!-- Smooth Scrollbar JavaScript -->
+      <script src="/js/smooth-scrollbar.js"></script>
+      <!-- lottie JavaScript -->
+      <script src="/js/lottie.js"></script>
+      <!-- am core JavaScript -->
+      <script src="/js/core.js"></script>
+      <!-- am charts JavaScript -->
+      <script src="/js/charts.js"></script>
+      <!-- am animated JavaScript -->
+      <script src="/js/animated.js"></script>
+      <!-- am kelly JavaScript -->
+      <script src="/js/kelly.js"></script> 
+      <!-- Flatpicker Js -->
+      <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@3.6.2/dist/chart.min.js"></script>
+      <!-- Chart Custom JavaScript -->
+      <script src="/js/chart-custom.js"></script>
+      <!-- Custom JavaScript -->
+      <script src="/js/custom.js"></script>
+      <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+      <% } else if (styleVersion === "version2") { %>
+        <!-- Custom JS version2 -->
+      <script src="/js/jquery.min.js"></script>
+      <script src="/js/popper.min.js"></script>
+      <script src="/js/bootstrap.min.js"></script>
+      <!-- Appear JavaScript -->
+      <script src="/js/jquery.appear.js"></script>
+      <!-- Countdown JavaScript -->
+      <script src="/js/countdown.min.js"></script>
+      <!-- Counterup JavaScript -->
+      <script src="/js/waypoints.min.js"></script>
+      <script src="/js/jquery.counterup.min.js"></script>
+      <!-- Wow JavaScript -->
+      <script src="/js/wow.min.js"></script>
+      <!-- Apexcharts JavaScript -->
+      <script src="/js/apexcharts.js"></script>
+      <!-- Slick JavaScript -->
+      <script src="/js/slick.min.js"></script>
+      <!-- Select2 JavaScript -->
+      <script src="/js/select2.min.js"></script>
+      <!-- Owl Carousel JavaScript -->
+      <script src="/js/owl.carousel.min.js"></script>
+      <!-- Magnific Popup JavaScript -->
+      <script src="/js/jquery.magnific-popup.min.js"></script>
+      <!-- Smooth Scrollbar JavaScript -->
+      <script src="/js/smooth-scrollbar.js"></script>
+      <!-- lottie JavaScript -->
+      <script src="/js/lottie.js"></script>
+      <!-- am core JavaScript -->
+      <script src="/js/core.js"></script>
+      <!-- am charts JavaScript -->
+      <script src="/js/charts.js"></script>
+      <!-- am animated JavaScript -->
+      <script src="/js/animated.js"></script>
+      <!-- am kelly JavaScript -->
+      <script src="/js/kelly.js"></script> 
+      <!-- Flatpicker Js -->
+      <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@3.6.2/dist/chart.min.js"></script>
+      <!-- Chart Custom JavaScript -->
+      <script src="/js/chart-custom.js"></script>
+      <!-- Custom JavaScript -->
+      <script src="/js/custom.js"></script>
+      <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+      <!-- TBCare -->
+      <script src="/js/landingtbcare.js"></script> 
+      <% } %>
+      <!-- Server-side initial language hook: optional `tb_lang` or `userdata.language` rendered into the page -->
+      <script>
+        (function(){
+          try {
+            window.__tbcare_initial_lang = <%- JSON.stringify(typeof tb_lang !== 'undefined' ? tb_lang : (typeof userdata !== 'undefined' && userdata.language ? userdata.language : '')) %> || '';
+          } catch(e) { window.__tbcare_initial_lang = ''; }
+        })();
+      </script>
+
+      <!-- Lightweight client-side i18n: translate elements with data-i18n / data-i18n-placeholder -->
+      <script>
+        (function(){
+          const translations = {
+            en: {
+              'btn.addNewPatient': 'Add New Patient',
+              'btn.cancel': 'Cancel',
+              'btn.startPrediction': 'Start Prediction',
+              'btn.updatePatient': 'Update Patient',
+              'page.welcomeSubtitle': "Welcome back — here’s a quick overview of your TB Care dashboard.",
+              'empty.addPatient': 'Add New Patient',
+              'page.historySubtitle': 'View TB prediction history for each patient',
+              'btn.viewHistory': 'View History',
+              'predict.selectPatient': 'Please select a patient first to view cough recordings.',
+              'table.noPatients': 'No patients found.',
+              'greeting.hello': 'Hello',
+              'status.available': 'Available',
+              'menu.editProfile': 'Edit Profile',
+              'menu.editProfileDesc': 'Modify your personal details.',
+              'menu.accountSettings': 'Account settings',
+              'menu.accountSettingsDesc': 'Manage your account parameters.',
+              'btn.signOut': 'Sign out'
+            },
+            id: {
+              'btn.addNewPatient': 'Tambah Pasien Baru',
+              'btn.cancel': 'Batal',
+              'btn.startPrediction': 'Mulai Prediksi',
+              'btn.updatePatient': 'Perbarui Pasien',
+              'page.welcomeSubtitle': 'Selamat datang kembali — ini ringkasan cepat dashboard TB Care Anda.',
+              'empty.addPatient': 'Tambah Pasien Baru',
+              'page.historySubtitle': 'Lihat riwayat prediksi TB untuk setiap pasien',
+              'btn.viewHistory': 'Lihat Riwayat',
+              'predict.selectPatient': 'Pilih pasien terlebih dahulu untuk melihat rekaman batuk.',
+              'table.noPatients': 'Tidak ada pasien.',
+              'greeting.hello': 'Halo',
+              'status.available': 'Tersedia',
+              'menu.editProfile': 'Ubah Profil',
+              'menu.editProfileDesc': 'Ubah detail pribadi Anda.',
+              'menu.accountSettings': 'Pengaturan akun',
+              'menu.accountSettingsDesc': 'Kelola parameter akun Anda.',
+              'btn.signOut': 'Keluar'
+            }
+          };
+
+          // Additional keys added across TB Care pages
+          const extraKeysEn = {
+            'select.choosePatient': '-- Choose a patient --',
+            'label.selectPatient': 'Select Patient',
+            'label.sputumCondition': 'Sputum Condition',
+            'label.sputumLevel': 'Sputum+ Level',
+            'label.selectRecording': 'Select Unprocessed Cough Recording',
+            'loading.recordings': 'Loading cough recordings...',
+            'filter.searchPlaceholder': 'Search by filename...',
+            'filter.datePlaceholder': 'Filter by date',
+            'filter.searchPatientPlaceholder': 'Search by name or NIK...',
+            'section.identityAccount': 'Patient Identity & Account',
+            'section.patientLocation': 'Patient Location',
+            'section.clinicalData': 'Clinical Data',
+            'section.symptoms': 'Symptoms',
+            'section.history': 'History',
+            'section.comorbidityHistory': 'Comorbidity History',
+            'label.firstName': 'First Name',
+            'label.lastName': 'Last Name',
+            'label.nik': 'NIK',
+            'label.email': 'Email',
+            'label.username': 'Username',
+            'label.password': 'Password',
+            'label.repeatPassword': 'Repeat Password',
+            'label.province': 'Province',
+            'label.city': 'City / Regency',
+            'label.district': 'District',
+            'label.birthdate': 'Birthdate',
+            'label.dateOfBirth': 'Date of Birth',
+            'label.age': 'Age',
+            'label.sex': 'Sex',
+            'label.height': 'Height (cm)',
+            'label.weight': 'Weight (Kg)',
+            'label.bmi': 'BMI',
+            'label.weightStatus': 'Weight Status',
+            'label.productiveCough': 'Productive Cough',
+            'label.coughDuration': 'Cough Duration (days)',
+            'label.weightLoss': 'Weight Loss',
+            'label.weightLossAmount': 'Weight Loss Amount (Kg)',
+            'label.hemoptysis': 'Hemoptysis',
+            'label.chestPain': 'Chest Pain',
+            'label.shortBreath': 'Short Breath',
+            'label.fever': 'Fever',
+            'label.nightSweats': 'Night Sweats',
+            'label.priorTB': 'Prior TB',
+            'label.tobaccoUse': 'Tobacco Use',
+            'label.cigarettesPerDay': 'Cigarettes/Day',
+            'label.smokingSince': 'Smoking Since (months)',
+            'label.stoppedSmoking': 'Stopped Smoking Since (months)',
+            'label.other': 'Other',
+            'label.otherIllnessPlaceholder': 'Specify other illnesses...',
+            'label.auto': '(auto)',
+            'select.chooseProvince': '-- Choose Province --',
+            'select.chooseCity': '-- Choose City/Regency --',
+            'select.chooseDistrict': '-- Choose District --',
+            'option.male': 'Male',
+            'option.female': 'Female',
+            'option.no': 'No',
+            'option.yes': 'Yes',
+            'option.never': 'Never',
+            'option.current': 'Current',
+            'option.stopped': 'Stopped',
+            'option.notDisclosed': 'Not Disclosed',
+            'comorbidity.diabet': 'Diabetes',
+            'comorbidity.hypertension': 'Hypertension',
+            'comorbidity.diabetes': 'Diabetes Mellitus',
+            'comorbidity.kidneyFailure': 'Kidney Failure',
+            'comorbidity.rheumatism': 'Rheumatism',
+            'comorbidity.stroke': 'Stroke',
+            'comorbidity.gerd': 'GERD',
+            'page.historyFor': 'History for:',
+            'label.participantId': 'Participant ID:',
+            'btn.back': 'Back to Patient List',
+            'btn.edit': 'Edit',
+            'btn.delete': 'Delete',
+            'table.noPredictionHistory': 'No prediction history found.',
+            'result.title': 'Prediction Analysis Result',
+            'result.subtitle': 'Cough audio analysis using Machine Learning (YAMNet + LSTM)',
+            'result.finalTitle': 'Final Prediction Result',
+            'page.addPatientDesc': 'Form to add a new patient to the system',
+            'stat.viewProfile': 'View Profile',
+            'stat.lastResult': 'Last Result',
+            'empty.noPatients': 'No Patients',
+            'empty.noPatientsDesc': 'No patients registered for you yet.',
+            'empty.addPatient': 'Add New Patient',
+            'search.noMatch': 'No patients match your search',
+            'modal.tbcareProfile': 'TB Care Profile',
+            'modal.basicInfo': 'Basic Information',
+            'modal.physicalData': 'Physical Data',
+            'modal.tbSymptoms': 'TB Symptoms',
+            'modal.medicalHistory': 'Medical History',
+            'label.location': 'Location',
+            'label.shortnessBreath': 'Shortness of Breath',
+            'label.comorbidities': 'Comorbidities',
+            'btn.viewHistory': 'View History',
+            'btn.cancel': 'Cancel',
+            'btn.updatePatient': 'Update Patient',
+            'btn.startPrediction': 'Start Prediction'
+          };
+
+          const extraKeysId = {
+            'select.choosePatient': '-- Pilih Pasien --',
+            'label.selectPatient': 'Pilih Pasien',
+            'label.sputumCondition': 'Kondisi Sputum',
+            'label.sputumLevel': 'Level Sputum+',
+            'label.selectRecording': 'Pilih Rekaman Batuk Belum Diproses',
+            'loading.recordings': 'Memuat rekaman batuk...',
+            'filter.searchPlaceholder': 'Cari berdasarkan nama berkas...',
+            'filter.datePlaceholder': 'Filter berdasarkan tanggal',
+            'filter.searchPatientPlaceholder': 'Cari berdasarkan nama atau NIK...',
+            'section.identityAccount': 'Identitas & Akun Pasien',
+            'section.patientLocation': 'Lokasi Pasien',
+            'section.clinicalData': 'Data Klinis',
+            'section.symptoms': 'Gejala',
+            'section.history': 'Riwayat',
+            'section.comorbidityHistory': 'Riwayat Penyakit Penyerta',
+            'label.firstName': 'Nama Depan',
+            'label.lastName': 'Nama Belakang',
+            'label.nik': 'NIK',
+            'label.email': 'Email',
+            'label.username': 'Nama Pengguna',
+            'label.password': 'Kata Sandi',
+            'label.repeatPassword': 'Ulangi Kata Sandi',
+            'label.province': 'Provinsi',
+            'label.city': 'Kota / Kabupaten',
+            'label.district': 'Kecamatan',
+            'label.birthdate': 'Tanggal Lahir',
+            'label.dateOfBirth': 'Tanggal Lahir',
+            'label.age': 'Umur',
+            'label.sex': 'Jenis Kelamin',
+            'label.height': 'Tinggi (cm)',
+            'label.weight': 'Berat (Kg)',
+            'label.bmi': 'BMI',
+            'label.weightStatus': 'Status Berat',
+            'label.productiveCough': 'Batuk Produktif',
+            'label.coughDuration': 'Durasi Batuk (hari)',
+            'label.weightLoss': 'Penurunan Berat Badan',
+            'label.weightLossAmount': 'Jumlah Penurunan BB (Kg)',
+            'label.hemoptysis': 'Batuk Darah',
+            'label.chestPain': 'Nyeri Dada',
+            'label.shortBreath': 'Sesak Napas',
+            'label.fever': 'Demam',
+            'label.nightSweats': 'Keringat Malam',
+            'label.priorTB': 'Riwayat TB',
+            'label.tobaccoUse': 'Penggunaan Tembakau',
+            'label.cigarettesPerDay': 'Rokok/Hari',
+            'label.smokingSince': 'Merokok Sejak (bulan)',
+            'label.stoppedSmoking': 'Berhenti Merokok Sejak (bulan)',
+            'label.other': 'Lainnya',
+            'label.otherIllnessPlaceholder': 'Sebutkan penyakit lain...',
+            'label.auto': '(otomatis)',
+            'select.chooseProvince': '-- Pilih Provinsi --',
+            'select.chooseCity': '-- Pilih Kota/Kabupaten --',
+            'select.chooseDistrict': '-- Pilih Kecamatan --',
+            'option.male': 'Laki-laki',
+            'option.female': 'Perempuan',
+            'option.no': 'Tidak',
+            'option.yes': 'Ya',
+            'option.never': 'Tidak Pernah',
+            'option.current': 'Saat Ini',
+            'option.stopped': 'Sudah Berhenti',
+            'option.notDisclosed': 'Tidak Disebutkan',
+            'comorbidity.diabet': 'Diabetes',
+            'comorbidity.hypertension': 'Hipertensi',
+            'comorbidity.diabetes': 'Kencing Manis',
+            'comorbidity.kidneyFailure': 'Gagal Ginjal',
+            'comorbidity.rheumatism': 'Rematik',
+            'comorbidity.stroke': 'Stroke',
+            'comorbidity.gerd': 'GERD',
+            'page.historyFor': 'Riwayat untuk:',
+            'label.participantId': 'ID Peserta:',
+            'btn.back': 'Kembali ke Daftar Pasien',
+            'btn.edit': 'Ubah',
+            'btn.delete': 'Hapus',
+            'table.noPredictionHistory': 'Tidak ada riwayat prediksi.',
+            'result.title': 'Hasil Analisis Prediksi',
+            'result.subtitle': 'Analisis audio batuk menggunakan Machine Learning (YAMNet + LSTM)',
+            'result.finalTitle': 'Hasil Akhir Prediksi',
+            'page.addPatientDesc': 'Form untuk menambahkan pasien baru ke sistem',
+            'stat.viewProfile': 'Lihat Profil',
+            'stat.lastResult': 'Hasil Terakhir',
+            'empty.noPatients': 'Tidak Ada Pasien',
+            'empty.noPatientsDesc': 'Belum ada pasien yang terdaftar untuk Anda.',
+            'empty.addPatient': 'Tambah Pasien Baru',
+            'search.noMatch': 'Tidak ada pasien yang cocok dengan pencarian',
+            'modal.tbcareProfile': 'Profil TB Care',
+            'modal.basicInfo': 'Informasi Dasar',
+            'modal.physicalData': 'Data Fisik',
+            'modal.tbSymptoms': 'Gejala TB',
+            'modal.medicalHistory': 'Riwayat Medis',
+            'label.location': 'Lokasi',
+            'label.shortnessBreath': 'Sesak Napas',
+            'label.comorbidities': 'Penyakit Penyerta',
+            'btn.viewHistory': 'Lihat Riwayat',
+            'btn.cancel': 'Batal',
+            'btn.updatePatient': 'Perbarui Pasien',
+            'btn.startPrediction': 'Mulai Prediksi'
+          };
+
+          // Merge extra keys into translations
+          Object.keys(extraKeysEn).forEach(k => { translations.en[k] = extraKeysEn[k]; });
+          Object.keys(extraKeysId).forEach(k => { translations.id[k] = extraKeysId[k]; });
+
+          function getLang(){
+            return localStorage.getItem('tb_lang') || (window.__tbcare_initial_lang || '') || 'id';
+          }
+
+          function setLang(lang){
+            if(!lang) return;
+            console.debug('[tbcare-i18n] setLang ->', lang);
+            localStorage.setItem('tb_lang', lang);
+            applyTranslations(lang);
+            setActiveButtons(lang);
+          }
+
+          function applyTranslations(lang){
+            let applied = 0;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+              const key = el.getAttribute('data-i18n');
+              const txt = (translations[lang] && translations[lang][key]) ? translations[lang][key] : null;
+              if(txt !== null){ el.textContent = txt; applied++; }
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+              const key = el.getAttribute('data-i18n-placeholder');
+              const txt = (translations[lang] && translations[lang][key]) ? translations[lang][key] : null;
+              if(txt !== null){ el.setAttribute('placeholder', txt); applied++; }
+            });
+            console.debug('[tbcare-i18n] applyTranslations ->', lang, 'applied:', applied);
+          }
+
+          function setActiveButtons(lang){
+            const current = document.getElementById('tb-lang-current');
+            const options = Array.from(document.querySelectorAll('.lang-option'));
+            if(current){ current.textContent = (lang === 'en') ? 'EN' : 'ID'; }
+            options.forEach(opt => {
+              const optLang = opt.getAttribute('data-lang');
+              const checked = (optLang === lang);
+              opt.setAttribute('aria-checked', checked ? 'true' : 'false');
+            });
+          }
+
+          document.addEventListener('DOMContentLoaded', function(){
+            const lang = getLang();
+            setActiveButtons(lang);
+            applyTranslations(lang);
+
+            document.querySelectorAll('.lang-option').forEach(btn => {
+              btn.addEventListener('click', function(e){
+                const l = this.getAttribute('data-lang');
+                console.debug('[tbcare-i18n] clicked lang-option ->', l);
+                setLang(l);
+                try { $(this).closest('.dropdown').find('[data-toggle="dropdown"]').dropdown('hide'); } catch(ex){ console.debug('[tbcare-i18n] bootstrap hide failed', ex); }
+              });
+              btn.addEventListener('keydown', function(e){
+                if(e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar'){
+                  e.preventDefault(); this.click();
+                }
+              });
+            });
+
+            try { window.tbcareI18n = { setLang: setLang, applyTranslations: applyTranslations, getLang: getLang }; } catch(e){}
+          });
+        })();
+      </script>
+    </body>
+    </html>

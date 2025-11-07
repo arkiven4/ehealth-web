@@ -137,6 +137,26 @@
         box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
         color: white;
     }
+    .action-buttons > * {
+        /* gap is 10px, so subtract half the gap from each 50% width */
+        flex: 0 0 calc(50% - 5px);
+        min-width: 0;
+    }
+    .action-buttons .btn {
+        width: 100%;
+    }
+    .action-buttons.full-width > * {
+        flex: 0 0 100%;
+    }
+    @media (max-width: 576px) {
+        .action-buttons {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .action-buttons > * {
+            flex: 1 1 100%;
+        }
+    }
     .empty-state {
         text-align: center;
         padding: 60px 20px;
@@ -350,7 +370,7 @@
 <div class="wrapper">
     <%- include('../../includes/navigations-tbcare.ejs') %>
     <div id="content-page" class="content-page">
-        <%- include('../../includes/top-navbar.ejs') %>
+        <%- include('../../includes/tbcare/top-navbar.ejs') %>
         <div class="container-fluid">
             <!-- Page Header -->
             <div class="row">
@@ -359,7 +379,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h2><i class="ri-history-line"></i> <%= pageHeader %></h2>
-                                <p>Lihat riwayat prediksi TB untuk setiap pasien</p>
+                                <p data-i18n="page.historySubtitle">Lihat riwayat prediksi TB untuk setiap pasien</p>
                             </div>
                             <!-- <div class="text-white">
                                 <h3 class="mb-0" id="patientCount"><%= patients.length %></h3>
@@ -374,9 +394,9 @@
             <div class="row">
                 <div class="col-12">
                     <div class="search-bar-container">
-                        <div class="search-input-wrapper">
+                            <div class="search-input-wrapper">
                             <i class="ri-search-line"></i>
-                            <input type="text" id="searchInput" class="search-input" placeholder="Cari berdasarkan nama atau NIK...">
+                            <input type="text" id="searchInput" class="search-input" data-i18n-placeholder="filter.searchPatientPlaceholder" placeholder="Cari berdasarkan nama atau NIK...">
                         </div>
                     </div>
                 </div>
@@ -412,9 +432,9 @@
                                             <div class="stat-value">
                                                 <i class="ri-user-heart-line"></i>
                                             </div>
-                                            <div class="stat-label">View Profile</div>
+                                            <div class="stat-label" data-i18n="stat.viewProfile">View Profile</div>
                                         </div>
-                                        <div class="stat-item">
+                                        <!-- <div class="stat-item">
                                             <div class="stat-value">
                                                 <% if (patient.tbcareProfile && patient.tbcareProfile.sex) { %>
                                                     <i class="<%= patient.tbcareProfile.sex === 'Male' ? 'ri-men-line' : 'ri-women-line' %>"></i>
@@ -425,7 +445,7 @@
                                             <div class="stat-label">
                                                 <%= patient.tbcareProfile && patient.tbcareProfile.sex ? patient.tbcareProfile.sex : 'Unknown' %>
                                             </div>
-                                        </div>
+                                        </div> -->
                                         <div class="stat-item">
                                             <div class="stat-value">
                                                 <% if (patient.lastPrediction) { %>
@@ -438,24 +458,24 @@
                                                     <span style="color: #999; font-size: 0.9rem;">-</span>
                                                 <% } %>
                                             </div>
-                                            <div class="stat-label">Last Result</div>
+                                            <div class="stat-label" data-i18n="stat.lastResult">Last Result</div>
                                         </div>
                                     </div>
                                     
-                                    <div class="action-buttons">
-                                        <a href="/tbcare/patient-history/<%= patient._id %>" class="btn btn-modern btn-view">
-                                            <i class="ri-history-line"></i> View History
-                                        </a>
+                                    <div class="action-buttons full-width">
+                                        <a href="/tbcare/patient-history/<%= patient._id %>" class="btn btn-modern btn-view" data-i18n="btn.viewHistory">
+                                                        <i class="ri-history-line"></i> View History
+                                                    </a>
                                     </div>
                                     <div class="action-buttons mt-2">
                                         <a href="/tbcare/edit-patient/<%= patient._id %>" class="btn btn-modern btn-edit">
-                                            <i class="ri-edit-line"></i> Edit
+                                            <i class="ri-edit-line"></i> <span data-i18n="btn.edit">Edit</span>
                                         </a>
-                                        <form action="/tbcare/delete-patient" method="POST" style="flex: 1; margin: 0;">
+                                        <form action="/tbcare/delete-patient" method="POST">
                                             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                             <input type="hidden" name="patientId" value="<%= patient._id %>">
                                             <button type="submit" class="btn btn-modern btn-delete w-100" onclick="return confirm('Apakah Anda yakin ingin menghapus pasien ini dan semua data terkait?');">
-                                                <i class="ri-delete-bin-line"></i> Delete
+                                                <i class="ri-delete-bin-line"></i> <span data-i18n="btn.delete">Delete</span>
                                             </button>
                                         </form>
                                     </div>
@@ -467,9 +487,9 @@
                     <div class="col-12" id="emptyState">
                         <div class="empty-state">
                             <i class="ri-user-search-line"></i>
-                            <h4>Tidak Ada Pasien</h4>
-                            <p>Belum ada pasien yang terdaftar untuk Anda.</p>
-                            <a href="/sub_1/add-patient" class="btn btn-modern btn-view mt-3">
+                            <h4 data-i18n="empty.noPatients">Tidak Ada Pasien</h4>
+                            <p data-i18n="empty.noPatientsDesc">Belum ada pasien yang terdaftar untuk Anda.</p>
+                            <a href="/sub_1/add-patient" class="btn btn-modern btn-view mt-3" data-i18n="empty.addPatient">
                                 <i class="ri-user-add-line"></i> Tambah Pasien Baru
                             </a>
                         </div>
@@ -479,7 +499,7 @@
                 <div class="col-12" id="noResults" style="display: none;">
                     <div class="no-results">
                         <i class="ri-search-line"></i>
-                        <h4>Tidak ada pasien yang cocok dengan pencarian</h4>
+                        <h4 data-i18n="search.noMatch">Tidak ada pasien yang cocok dengan pencarian</h4>
                     </div>
                 </div>
             </div>
@@ -493,28 +513,28 @@
     <div id="profileModal<%= patient._id %>" class="modal-profile">
         <div class="modal-profile-content">
             <div class="modal-profile-header">
-                <h3><i class="ri-user-heart-line"></i> TB Care Profile</h3>
+                <h3><i class="ri-user-heart-line"></i> <span data-i18n="modal.tbcareProfile">TB Care Profile</span></h3>
                 <span class="modal-close" onclick="closeProfile('<%= patient._id %>')">&times;</span>
             </div>
             <div class="modal-profile-body">
                 <% if (patient.tbcareProfile) { %>
                     <!-- Basic Information -->
                     <div class="profile-info-group">
-                        <h5><i class="ri-user-3-line"></i> Basic Information</h5>
+                        <h5><i class="ri-user-3-line"></i> <span data-i18n="modal.basicInfo">Basic Information</span></h5>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">NIK:</span>
+                            <span class="profile-info-label" data-i18n="label.nik">NIK:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.nik || '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Sex:</span>
+                            <span class="profile-info-label" data-i18n="label.sex">Sex:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.sex || '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Age:</span>
+                            <span class="profile-info-label" data-i18n="label.age">Age:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.age ? patient.tbcareProfile.age + ' years' : '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Location:</span>
+                            <span class="profile-info-label" data-i18n="label.location">Location:</span>
                             <span class="profile-info-value">
                                 <%= [patient.tbcareProfile.district, patient.tbcareProfile.city, patient.tbcareProfile.province].filter(x => x).join(', ') || '-' %>
                             </span>
@@ -523,58 +543,58 @@
 
                     <!-- Physical Data -->
                     <div class="profile-info-group">
-                        <h5><i class="ri-heart-pulse-line"></i> Physical Data</h5>
+                        <h5><i class="ri-heart-pulse-line"></i> <span data-i18n="modal.physicalData">Physical Data</span></h5>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Height:</span>
+                            <span class="profile-info-label" data-i18n="label.height">Height:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.height ? patient.tbcareProfile.height + ' cm' : '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Weight:</span>
+                            <span class="profile-info-label" data-i18n="label.weight">Weight:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.weight ? patient.tbcareProfile.weight + ' kg' : '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">BMI:</span>
+                            <span class="profile-info-label" data-i18n="label.bmi">BMI:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.bmi ? patient.tbcareProfile.bmi.toFixed(1) : '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Weight Status:</span>
+                            <span class="profile-info-label" data-i18n="label.weightStatus">Weight Status:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.weightStatus || '-' %></span>
                         </div>
                     </div>
 
                     <!-- TB Symptoms -->
                     <div class="profile-info-group">
-                        <h5><i class="ri-lungs-line"></i> TB Symptoms</h5>
+                        <h5><i class="ri-lungs-line"></i> <span data-i18n="modal.tbSymptoms">TB Symptoms</span></h5>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Productive Cough:</span>
+                            <span class="profile-info-label" data-i18n="label.productiveCough">Productive Cough:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.isCoughProductive || '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Cough Duration:</span>
+                            <span class="profile-info-label" data-i18n="label.coughDuration">Cough Duration:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.coughDurationDays ? patient.tbcareProfile.coughDurationDays + ' days' : '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Hemoptysis:</span>
+                            <span class="profile-info-label" data-i18n="label.hemoptysis">Hemoptysis:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.hasHemoptysis || '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Chest Pain:</span>
+                            <span class="profile-info-label" data-i18n="label.chestPain">Chest Pain:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.hasChestPain || '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Shortness of Breath:</span>
+                            <span class="profile-info-label" data-i18n="label.shortnessBreath">Shortness of Breath:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.hasShortBreath || '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Fever:</span>
+                            <span class="profile-info-label" data-i18n="label.fever">Fever:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.hasFever || '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Night Sweats:</span>
+                            <span class="profile-info-label" data-i18n="label.nightSweats">Night Sweats:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.hasNightSweats || '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Weight Loss:</span>
+                            <span class="profile-info-label" data-i18n="label.weightLoss">Weight Loss:</span>
                             <span class="profile-info-value">
                                 <%= patient.tbcareProfile.hasWeightLoss || '-' %>
                                 <% if (patient.tbcareProfile.weightLossAmountKg) { %>
@@ -586,23 +606,23 @@
 
                     <!-- Medical History -->
                     <div class="profile-info-group">
-                        <h5><i class="ri-medicine-bottle-line"></i> Medical History</h5>
+                        <h5><i class="ri-medicine-bottle-line"></i> <span data-i18n="modal.medicalHistory">Medical History</span></h5>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Prior TB:</span>
+                            <span class="profile-info-label" data-i18n="label.priorTB">Prior TB:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.hadPriorTB || '-' %></span>
                         </div>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Tobacco Use:</span>
+                            <span class="profile-info-label" data-i18n="label.tobaccoUse">Tobacco Use:</span>
                             <span class="profile-info-value"><%= patient.tbcareProfile.tobaccoUse || '-' %></span>
                         </div>
                         <% if (patient.tbcareProfile.tobaccoUse === 'current' || patient.tbcareProfile.tobaccoUse === 'stopped') { %>
                             <div class="profile-info-item">
-                                <span class="profile-info-label">Cigarettes/Day:</span>
+                                <span class="profile-info-label" data-i18n="label.cigarettesPerDay">Cigarettes/Day:</span>
                                 <span class="profile-info-value"><%= patient.tbcareProfile.cigarettesPerDay || '-' %></span>
                             </div>
                         <% } %>
                         <div class="profile-info-item">
-                            <span class="profile-info-label">Comorbidities:</span>
+                            <span class="profile-info-label" data-i18n="label.comorbidities">Comorbidities:</span>
                             <span class="profile-info-value">
                                 <% if (patient.tbcareProfile.comorbidities && patient.tbcareProfile.comorbidities.length > 0) { %>
                                     <%= patient.tbcareProfile.comorbidities.join(', ') %>
@@ -683,6 +703,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<%- include('../../includes/end.ejs') %>
+<%- include('../../includes/tbcare/end.ejs') %>
 </body>
 </html>

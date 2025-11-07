@@ -18,17 +18,17 @@
 <div class="wrapper">
     <%- include('../../includes/navigations-tbcare.ejs') %>
     <div id="content-page" class="content-page">
-        <%- include('../../includes/top-navbar.ejs') %>
+        <%- include('../../includes/tbcare/top-navbar.ejs') %>
         <div class="container-fluid">
             <div class="row">
                 <div class="col-sm-12">
                     <div class="iq-card">
-                        <div class="iq-card-header d-flex justify-content-between">
+                            <div class="iq-card-header d-flex justify-content-between">
                             <div class="iq-header-title">
-                                <h4 class="card-title">History for: <%= patient.fullName.first %> <%= patient.fullName.last %></h4>
-                                <p>Participant ID: <%= patient.tbcareProfile ? patient.tbcareProfile.participantId : 'N/A' %></p>
+                                <h4 class="card-title" data-i18n="page.historyFor">History for: <%= patient.fullName.first %> <%= patient.fullName.last %></h4>
+                                <p data-i18n="label.participantId">Participant ID: <%= patient.tbcareProfile ? patient.tbcareProfile.participantId : 'N/A' %></p>
                             </div>
-                            <a href="/tbcare/patient-history" class="btn btn-secondary">Back to Patient List</a>
+                            <a href="/tbcare/patient-history" class="btn btn-secondary" data-i18n="btn.back">Back to Patient List</a>
                         </div>
                         <div class="iq-card-body">
                             <div class="table-responsive">
@@ -41,11 +41,11 @@
                                             <th>Segments (TB/Total)</th>
                                             <th>Predicted By</th>
                                             <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <% if (predictions.length > 0) { %>
-                                            <% predictions.forEach(pred => { %>
+                                        <tr>
+                                                <tr>
+                                                <td colspan="6" class="text-center text-muted" data-i18n="table.noPredictionHistory">No prediction history found.</td>
+                                            </tr>
+                                        <% } %>
                                                 <tr id="pred-row-<%= pred._id %>">
                                                     <td data-label="date"><%= new Date(pred.createdAt).toLocaleString() %></td>
                                                     <td data-label="result">
@@ -121,7 +121,7 @@
     </div>
 </div>
 
-<%- include('../../includes/end.ejs') %>
+<%- include('../../includes/tbcare/end.ejs') %>
     
 <script>
 document.addEventListener('DOMContentLoaded', function() {

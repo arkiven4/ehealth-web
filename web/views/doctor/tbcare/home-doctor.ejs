@@ -95,14 +95,61 @@
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
+    /* page header style to match TB Care pages */
+    .page-header-card {
+        background: linear-gradient(135deg, #667eea 0%, #24be90 100%);
+        border-radius: 15px;
+        padding: 24px 30px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.18);
+    }
+    .page-header-card h2 {
+        color: white;
+        font-weight: 700;
+        margin: 0;
+        font-size: 1.4rem;
+    }
+    .page-header-card p {
+        color: rgba(255,255,255,0.95);
+        margin: 6px 0 0 0;
+        font-size: 0.95rem;
+        opacity: 0.95;
+    }
+    .page-header-greeting { display:flex; gap:16px; align-items:center }
+    .page-header-greeting .avatar-badge {
+        width:56px; height:56px; border-radius:12px; display:flex;align-items:center;justify-content:center;
+        background: rgba(255,255,255,0.12); color: white; font-weight:700; font-size:1.1rem;
+        box-shadow: 0 6px 18px rgba(16,24,40,0.08);
+    }
 </style>
 </head>
 <body>
    <div class="wrapper">
       <%- include('../../includes/navigations-tbcare.ejs') %>
       <div id="content-page" class="content-page">
-         <%- include('../../includes/top-navbar.ejs') %>
+         <%- include('../../includes/tbcare/top-navbar.ejs') %>
          <div class="container-fluid">
+            <!-- Page Header (greeting for doctor) -->
+            <% /* defensive resolution for doctor name: prefer userdata.userName, then doctorName, then user.fullName, then user.name, else 'Dokter' */ %>
+            <% var __doctorDisplayName = (typeof userdata !== 'undefined' && userdata && userdata.userName) ? userdata.userName : ((typeof doctorName !== 'undefined') ? doctorName : (typeof user !== 'undefined' && user && user.fullName && user.fullName.first ? user.fullName.first + (user.fullName.last ? ' ' + user.fullName.last : '') : (typeof user !== 'undefined' && user && user.name ? user.name : 'Dokter'))); %>
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-header-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="page-header-greeting">
+                                <div class="avatar-badge"><%= (__doctorDisplayName.split(' ').map(n=>n[0]).slice(0,2).join('')).toUpperCase() %></div>
+                                <div>
+                                    <h2>Hi, <%= __doctorDisplayName %></h2>
+                                    <p data-i18n="page.welcomeSubtitle">Welcome back — here’s a quick overview of your TB Care dashboard.</p>
+                                </div>
+                            </div>
+                            <div class="text-white">
+                                <small style="opacity:0.95">Today: <%= (new Date()).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }) %></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="row">
                 <div class="col-md-6 col-lg-3">
@@ -211,7 +258,7 @@
          <%- include('../../includes/footer.ejs') %>
          </div>
    </div>
-   <%- include('../../includes/end.ejs') %>
+    <%- include('../../includes/tbcare/end.ejs') %>
 
    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
    <script>

@@ -1,59 +1,97 @@
 <% var useTbcareTheme = true; %>
 <%- include('../../includes/head.ejs') %>
+<style>
+    /* page header styles copied from patient-history-list.ejs to keep headers consistent */
+    .page-header-card {
+        background: linear-gradient(135deg, #667eea 0%, #24be90 100%);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    .page-header-card h2 {
+        color: white;
+        font-weight: bold;
+        margin: 0;
+    }
+    .page-header-card p {
+        color: rgba(255, 255, 255, 0.9);
+        margin: 5px 0 0 0;
+    }
+    .header-section{
+        font-weight: 600;
+        color: #24be90;
+        margin-bottom: 15px;
+        font-size: medium;
+    }
+</style>
 </head>
 <body>
    <div class="wrapper">
       <%- include('../../includes/navigations-tbcare.ejs') %>
       <div id="content-page" class="content-page">
-         <%- include('../../includes/top-navbar.ejs') %>
-         <div class="container-fluid">
-            <div class="row">
-               <div class="col-lg-12">
-                  <div class="iq-card">
-                     <div class="iq-card-header d-flex justify-content-between">
-                        <div class="iq-header-title">
-                           <h4 class="card-title"><%= pageHeader %></h4>
-                        </div>
+         <%- include('../../includes/tbcare/top-navbar.ejs') %>
+            <div class="container-fluid">
+                <!-- Page Header (match patient history list) -->
+                <div class="row">
+                     <div class="col-12">
+                          <div class="page-header-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                     <div>
+                                          <h2><i class="ri-user-add-line"></i> <%= pageHeader %></h2>
+                                          <p data-i18n="page.addPatientDesc">Form untuk menambahkan pasien baru ke sistem</p>
+                                     </div>
+                                </div>
+                          </div>
                      </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="iq-card">
+                            <!-- <div class="iq-card-header d-flex justify-content-between">
+                                <div class="iq-header-title">
+                                    <h4 class="card-title"><%= pageHeader %></h4>
+                                </div>
+                            </div> -->
                      <div class="iq-card-body">
                         <form action="/sub_1/create-patient" method="POST">
                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                           
-                           <h5 class="mb-3">Patient Identity & Account</h5>
+                           <h5 class="mb-3 header-section" data-i18n="section.identityAccount">Patient Identity & Account</h5>
                            <div class="row">
-                              <div class="form-group col-md-6"><label>First Name:</label><input type="text" class="form-control" name="fname" required></div>
-                              <div class="form-group col-md-6"><label>Last Name:</label><input type="text" class="form-control" name="lname"></div>
+                              <div class="form-group col-md-6"><label data-i18n="label.firstName">First Name:</label><input type="text" class="form-control" name="fname" required></div>
+                              <div class="form-group col-md-6"><label data-i18n="label.lastName">Last Name:</label><input type="text" class="form-control" name="lname"></div>
                               <!-- nik -->
-                               <div class="form-group col-md-6"><label>NIK:</label><input type="number" class="form-control" name="nik" required></div>
-                              <div class="form-group col-md-6"><label>Email:</label><input type="email" class="form-control" name="email" required></div>
-                              <div class="form-group col-md-6"><label>Username:</label><input type="text" class="form-control" name="uname" required></div>
-                              <div class="form-group col-md-6"><label>Password:</label><input type="password" class="form-control" name="pass" required></div>
-                              <div class="form-group col-md-6"><label>Repeat Password:</label><input type="password" class="form-control" name="rpass" required></div>
+                               <div class="form-group col-md-6"><label data-i18n="label.nik">NIK:</label><input type="number" class="form-control" name="nik" required></div>
+                              <div class="form-group col-md-6"><label data-i18n="label.email">Email:</label><input type="email" class="form-control" name="email" required></div>
+                              <div class="form-group col-md-6"><label data-i18n="label.username">Username:</label><input type="text" class="form-control" name="uname" required></div>
+                              <div class="form-group col-md-6"><label data-i18n="label.password">Password:</label><input type="password" class="form-control" name="pass" required></div>
+                              <div class="form-group col-md-6"><label data-i18n="label.repeatPassword">Repeat Password:</label><input type="password" class="form-control" name="rpass" required></div>
                            </div>
                            <hr>
-                           
-                           <h5 class="mb-3">Patient Location</h5>
+
+                           <h5 class="mb-3 header-section" data-i18n="section.patientLocation">Patient Location</h5>
                            <div class="row">
                                <div class="form-group col-md-4">
-                                   <label for="province-select">Provinsi:</label>
+                                   <label for="province-select" data-i18n="label.province">Provinsi:</label>
                                    <select class="form-control" id="province-select" name="province" required>
-                                       <option value="">-- Pilih Provinsi --</option>
+                                       <option value="" data-i18n="select.chooseProvince">-- Pilih Provinsi --</option>
                                        <% provinces.forEach(province => { %>
                                            <option value="<%= province %>"><%= province %></option>
                                        <% }); %>
                                    </select>
                                </div>
                                <div class="form-group col-md-4" id="city-container" style="display: none;">
-                                   <label for="city-select">Kota/Kabupaten:</label>
+                                   <label for="city-select" data-i18n="label.city">Kota/Kabupaten:</label>
                                    <select class="form-control" id="city-select" name="city">
-                                       <option value="">-- Pilih Kota/Kabupaten --</option>
+                                       <option value="" data-i18n="select.chooseCity">-- Pilih Kota/Kabupaten --</option>
                                        <option value="Surabaya">Surabaya</option>
                                    </select>
                                </div>
                                <div class="form-group col-md-4" id="district-container" style="display: none;">
-                                   <label for="district-select">Kecamatan:</label>
+                                   <label for="district-select" data-i18n="label.district">Kecamatan:</label>
                                    <select class="form-control" id="district-select" name="district">
-                                       <option value="">-- Pilih Kecamatan --</option>
+                                       <option value="" data-i18n="select.chooseDistrict">-- Pilih Kecamatan --</option>
                                         <% surabayaDistricts.forEach(district => { %>
                                            <option value="<%= district %>"><%= district %></option>
                                        <% }); %>
@@ -62,10 +100,10 @@
                            </div>
                            <hr>
 
-                           <h5 class="mb-3">Clinical Data</h5>
+                           <h5 class="mb-3 header-section" data-i18n="section.clinicalData">Clinical Data</h5>
                            <div class="row">
                               <div class="form-group col-md-4">
-                                 <label for="dateOfBirth">Birthdate</label>
+                                 <label for="dateOfBirth" data-i18n="label.birthdate">Birthdate</label>
                                  <input 
                                     type="date" 
                                     class="form-control" 
@@ -78,58 +116,58 @@
                                  >
                               </div>
                               <div class="form-group col-md-2">
-                                 <label>Age</label>
-                                 <input type="text" class="form-control" id="age-display" readonly placeholder="(auto)">
+                                 <label data-i18n="label.age">Age</label>
+                                 <input type="text" class="form-control" id="age-display" readonly data-i18n-placeholder="label.auto" placeholder="(auto)">
                               </div>
-                              <div class="form-group col-md-4"><label>Sex:</label><select class="form-control" name="sex" required><option value="Male">Male</option><option value="Female">Female</option></select></div>
-                              <div class="form-group col-md-4"><label>Height (cm):</label><input type="number" step="0.1" class="form-control" id="height" name="height"></div>
-                              <div class="form-group col-md-4"><label>Weight (Kg):</label><input type="number" step="0.1" class="form-control" id="weight" name="weight"></div>
-                              <div class="form-group col-md-4"><label>BMI:</label><input type="text" class="form-control" id="bmi" name="bmi" readonly></div>
-                              <div class="form-group col-md-4"><label>Weight Status:</label><input type="text" class="form-control" id="weightStatus" name="weightStatus" readonly></div>
+                              <div class="form-group col-md-4"><label data-i18n="label.sex">Sex:</label><select class="form-control" name="sex" required><option value="Male" data-i18n="option.male">Male</option><option value="Female" data-i18n="option.female">Female</option></select></div>
+                              <div class="form-group col-md-4"><label data-i18n="label.height">Height (cm):</label><input type="number" step="0.1" class="form-control" id="height" name="height"></div>
+                              <div class="form-group col-md-4"><label data-i18n="label.weight">Weight (Kg):</label><input type="number" step="0.1" class="form-control" id="weight" name="weight"></div>
+                              <div class="form-group col-md-4"><label data-i18n="label.bmi">BMI:</label><input type="text" class="form-control" id="bmi" name="bmi" readonly></div>
+                              <div class="form-group col-md-4"><label data-i18n="label.weightStatus">Weight Status:</label><input type="text" class="form-control" id="weightStatus" name="weightStatus" readonly></div>
                            </div>
                            <hr>
 
-                           <h5 class="mb-3">Symptoms</h5>
+                           <h5 class="mb-3 header-section" data-i18n="section.symptoms">Symptoms</h5>
                            <div class="row">
-                              <div class="form-group col-md-4"><label>Productive Cough:</label><select class="form-control" id="isCoughProductive" name="isCoughProductive"><option value="No">No</option><option value="Yes">Yes</option></select></div>
-                              <div class="form-group col-md-8" id="coughDurationContainer" style="display: none;"><label>Cough Duration (days):</label><input type="number" class="form-control" name="coughDurationDays"></div>
-                              <div class="form-group col-md-4"><label>Weight Loss:</label><select class="form-control" id="hasWeightLoss" name="hasWeightLoss"><option value="No">No</option><option value="Yes">Yes</option></select></div>
-                              <div class="form-group col-md-8" id="weightLossAmountContainer" style="display: none;"><label>Weight Loss Amount (Kg):</label><input type="number" step="0.1" class="form-control" name="weightLossAmountKg"></div>
-                              <div class="form-group col-md-3"><label>Hemoptysis:</label><select class="form-control" name="hasHemoptysis"><option value="No">No</option><option value="Yes">Yes</option></select></div>
-                              <div class="form-group col-md-3"><label>Chest Pain:</label><select class="form-control" name="hasChestPain"><option value="No">No</option><option value="Yes">Yes</option></select></div>
-                              <div class="form-group col-md-3"><label>Short Breath:</label><select class="form-control" name="hasShortBreath"><option value="No">No</option><option value="Yes">Yes</option></select></div>
-                              <div class="form-group col-md-3"><label>Fever:</label><select class="form-control" name="hasFever"><option value="No">No</option><option value="Yes">Yes</option></select></div>
-                              <div class="form-group col-md-3"><label>Night Sweats:</label><select class="form-control" name="hasNightSweats"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+                              <div class="form-group col-md-4"><label data-i18n="label.productiveCough">Productive Cough:</label><select class="form-control" id="isCoughProductive" name="isCoughProductive"><option value="No" data-i18n="option.no">No</option><option value="Yes" data-i18n="option.yes">Yes</option></select></div>
+                              <div class="form-group col-md-8" id="coughDurationContainer" style="display: none;"><label data-i18n="label.coughDuration">Cough Duration (days):</label><input type="number" class="form-control" name="coughDurationDays"></div>
+                              <div class="form-group col-md-4"><label data-i18n="label.weightLoss">Weight Loss:</label><select class="form-control" id="hasWeightLoss" name="hasWeightLoss"><option value="No" data-i18n="option.no">No</option><option value="Yes" data-i18n="option.yes">Yes</option></select></div>
+                              <div class="form-group col-md-8" id="weightLossAmountContainer" style="display: none;"><label data-i18n="label.weightLossAmount">Weight Loss Amount (Kg):</label><input type="number" step="0.1" class="form-control" name="weightLossAmountKg"></div>
+                              <div class="form-group col-md-3"><label data-i18n="label.hemoptysis">Hemoptysis:</label><select class="form-control" name="hasHemoptysis"><option value="No" data-i18n="option.no">No</option><option value="Yes" data-i18n="option.yes">Yes</option></select></div>
+                              <div class="form-group col-md-3"><label data-i18n="label.chestPain">Chest Pain:</label><select class="form-control" name="hasChestPain"><option value="No" data-i18n="option.no">No</option><option value="Yes" data-i18n="option.yes">Yes</option></select></div>
+                              <div class="form-group col-md-3"><label data-i18n="label.shortBreath">Short Breath:</label><select class="form-control" name="hasShortBreath"><option value="No" data-i18n="option.no">No</option><option value="Yes" data-i18n="option.yes">Yes</option></select></div>
+                              <div class="form-group col-md-3"><label data-i18n="label.fever">Fever:</label><select class="form-control" name="hasFever"><option value="No" data-i18n="option.no">No</option><option value="Yes" data-i18n="option.yes">Yes</option></select></div>
+                              <div class="form-group col-md-3"><label data-i18n="label.nightSweats">Night Sweats:</label><select class="form-control" name="hasNightSweats"><option value="No" data-i18n="option.no">No</option><option value="Yes" data-i18n="option.yes">Yes</option></select></div>
                            </div>
                            <hr>
-                           
-                           <h5 class="mb-3">History</h5>
+
+                           <h5 class="mb-3 header-section" data-i18n="section.history">History</h5>
                            <div class="row">
-                              <div class="form-group col-md-4"><label>Prior TB:</label><select class="form-control" name="hadPriorTB"><option value="No">No</option><option value="Yes">Yes</option></select></div>
-                              <div class="form-group col-md-8"><label>Tobacco Use:</label><select class="form-control" id="tobaccoUse" name="tobaccoUse"><option value="never">Never</option><option value="current">Current</option><option value="stopped">Stopped</option><option value="not disclosed">Not Disclosed</option></select></div>
+                              <div class="form-group col-md-4"><label data-i18n="label.priorTB">Prior TB:</label><select class="form-control" name="hadPriorTB"><option value="No" data-i18n="option.no">No</option><option value="Yes" data-i18n="option.yes">Yes</option></select></div>
+                              <div class="form-group col-md-8"><label data-i18n="label.tobaccoUse">Tobacco Use:</label><select class="form-control" id="tobaccoUse" name="tobaccoUse"><option value="never" data-i18n="option.never">Never</option><option value="current" data-i18n="option.current">Current</option><option value="stopped" data-i18n="option.stopped">Stopped</option><option value="not disclosed" data-i18n="option.notDisclosed">Not Disclosed</option></select></div>
                            </div>
                            <div class="row" id="tobaccoDetailsContainer" style="display: none;">
-                                <div class="form-group col-md-4" id="cigarettesPerDayContainer"><label>Cigarettes/Day:</label><input type="number" name="cigarettesPerDay" class="form-control"></div>
-                                <div class="form-group col-md-4" id="smokingSinceContainer"><label>Smoking Since (months):</label><input type="number" name="smokingSinceMonths" class="form-control"></div>
-                                <div class="form-group col-md-4" id="stoppedSmokingContainer"><label>Stopped Smoking Since (months):</label><input type="number" name="stoppedSmokingMonths" class="form-control"></div>
+                                <div class="form-group col-md-4" id="cigarettesPerDayContainer"><label data-i18n="label.cigarettesPerDay">Cigarettes/Day:</label><input type="number" name="cigarettesPerDay" class="form-control"></div>
+                                <div class="form-group col-md-4" id="smokingSinceContainer"><label data-i18n="label.smokingSince">Smoking Since (months):</label><input type="number" name="smokingSinceMonths" class="form-control"></div>
+                                <div class="form-group col-md-4" id="stoppedSmokingContainer"><label data-i18n="label.stoppedSmoking">Stopped Smoking Since (months):</label><input type="number" name="stoppedSmokingMonths" class="form-control"></div>
                            </div>
                            <hr>
 
-                           <h5 class="mb-3">Comorbidity History</h5>
+                           <h5 class="mb-3 header-section" data-i18n="section.comorbidityHistory">Comorbidity History</h5>
                            <div class="form-group">
-                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-diabet" name="comorbidities" value="Diabet"><label class="custom-control-label" for="cb-diabet">Diabet</label></div>
-                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-hipertensi" name="comorbidities" value="Hipertensi"><label class="custom-control-label" for="cb-hipertensi">Hipertensi</label></div>
-                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-kencingmanis" name="comorbidities" value="Kencing Manis"><label class="custom-control-label" for="cb-kencingmanis">Kencing Manis</label></div>
-                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-gagalginjal" name="comorbidities" value="Gagal Ginjal"><label class="custom-control-label" for="cb-gagalginjal">Gagal Ginjal</label></div>
-                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-rematik" name="comorbidities" value="Rematik"><label class="custom-control-label" for="cb-rematik">Rematik</label></div>
-                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-stroke" name="comorbidities" value="Stroke"><label class="custom-control-label" for="cb-stroke">Stroke</label></div>
-                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-gerd" name="comorbidities" value="GERD"><label class="custom-control-label" for="cb-gerd">GERD</label></div>
-                                <div class="form-group mt-2"><label>Other:</label><input type="text" class="form-control" name="comorbiditiesOther" placeholder="Sebutkan penyakit lain..."></div>
+                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-diabet" name="comorbidities" value="Diabet"><label class="custom-control-label" for="cb-diabet" data-i18n="comorbidity.diabet">Diabet</label></div>
+                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-hipertensi" name="comorbidities" value="Hipertensi"><label class="custom-control-label" for="cb-hipertensi" data-i18n="comorbidity.hypertension">Hipertensi</label></div>
+                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-kencingmanis" name="comorbidities" value="Kencing Manis"><label class="custom-control-label" for="cb-kencingmanis" data-i18n="comorbidity.diabetes">Kencing Manis</label></div>
+                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-gagalginjal" name="comorbidities" value="Gagal Ginjal"><label class="custom-control-label" for="cb-gagalginjal" data-i18n="comorbidity.kidneyFailure">Gagal Ginjal</label></div>
+                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-rematik" name="comorbidities" value="Rematik"><label class="custom-control-label" for="cb-rematik" data-i18n="comorbidity.rheumatism">Rematik</label></div>
+                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-stroke" name="comorbidities" value="Stroke"><label class="custom-control-label" for="cb-stroke" data-i18n="comorbidity.stroke">Stroke</label></div>
+                                <div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="cb-gerd" name="comorbidities" value="GERD"><label class="custom-control-label" for="cb-gerd" data-i18n="comorbidity.gerd">GERD</label></div>
+                                <div class="form-group mt-2"><label data-i18n="label.other">Other:</label><input type="text" class="form-control" name="comorbiditiesOther" data-i18n-placeholder="label.otherIllnessPlaceholder" placeholder="Sebutkan penyakit lain..."></div>
                            </div>
                            <hr>
 
-                           <a href="/tbcare/patient-history" class="btn iq-bg-danger">Cancel</a>
-                           <button type="submit" class="btn btn-primary">Add New Patient</button>
+                           <a href="/tbcare/patient-history" class="btn iq-bg-danger" data-i18n="btn.cancel">Batal</a>
+                           <button type="submit" class="btn btn-primary" data-i18n="btn.addNewPatient">Tambah Pasien Baru</button>
                         </form>
                      </div>
                   </div>
@@ -139,7 +177,7 @@
          <%- include('../../includes/footer.ejs') %>
       </div>
    </div>
-   <%- include('../../includes/end.ejs') %>
+    <%- include('../../includes/tbcare/end.ejs') %>
 
    <script>
       document.addEventListener('DOMContentLoaded', function() {

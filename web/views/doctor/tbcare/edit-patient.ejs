@@ -1,20 +1,54 @@
 <% var useTbcareTheme = true; %>
 <%- include('../../includes/head.ejs') %>
+<style>
+  /* page header styles copied from patient-history-list.ejs for consistency */
+  .page-header-card {
+    background: linear-gradient(135deg, #667eea 0%, #24be90 100%);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  }
+  .page-header-card h2 {
+    color: white;
+    font-weight: bold;
+    margin: 0;
+  }
+  .page-header-card p {
+    color: rgba(255, 255, 255, 0.9);
+    margin: 5px 0 0 0;
+  }
+</style>
 </head>
 <body>
    <div class="wrapper">
       <%- include('../../includes/navigations-tbcare.ejs') %>
       <div id="content-page" class="content-page">
-         <%- include('../../includes/top-navbar.ejs') %>
-         <div class="container-fluid">
-            <div class="row">
-               <div class="col-lg-12">
-                  <div class="iq-card">
-                     <div class="iq-card-header d-flex justify-content-between">
-                        <div class="iq-header-title">
-                           <h4 class="card-title">Edit Patient: <%= patient.fullName.first %> <%= patient.fullName.last %></h4>
-                        </div>
-                     </div>
+         <%- include('../../includes/tbcare/top-navbar.ejs') %>
+      <div class="container-fluid">
+        <!-- Page Header (match patient history list) -->
+        <div class="row">
+           <div class="col-12">
+              <div class="page-header-card">
+                <div class="d-flex justify-content-between align-items-center">
+                   <div>
+                      <h2><i class="ri-edit-box-line"></i> Edit Patient: <%= patient.fullName.first %> <%= patient.fullName.last %></h2>
+                      <p>Perbarui informasi pasien sesuai data terbaru</p>
+                   </div>
+                </div>
+              </div>
+           </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="iq-card">
+              <!-- small card title commented out to avoid duplication with the big page header -->
+              <!-- <div class="iq-card-header d-flex justify-content-between">
+                <div class="iq-header-title">
+                  <h4 class="card-title">Edit Patient: <%= patient.fullName.first %> <%= patient.fullName.last %></h4>
+                </div>
+              </div> -->
                      <div class="iq-card-body">
                         <%# Definisikan variabel tbProfile untuk kemudahan dan keamanan %>
                         <% const tbProfile = patient.tbcareProfile || {}; %>
@@ -23,14 +57,14 @@
                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                            <input type="hidden" name="patientId" value="<%= patient._id %>">
                            
-                           <h5 class="mb-3">Patient Identity & Account</h5>
+                           <h5 class="mb-3" data-i18n="section.identityAccount">Patient Identity & Account</h5>
                            <div class="row">
-                              <div class="form-group col-md-6"><label>First Name:</label><input type="text" class="form-control" name="fname" required value="<%= patient.fullName.first %>"></div>
-                              <div class="form-group col-md-6"><label>Last Name:</label><input type="text" class="form-control" name="lname" value="<%= patient.fullName.last || '' %>"></div>
-                              <div class="form-group col-md-6"><label>Email:</label><input type="email" class="form-control" name="email" required value="<%= patient.email %>"></div>
+                              <div class="form-group col-md-6"><label data-i18n="label.firstName">First Name:</label><input type="text" class="form-control" name="fname" required value="<%= patient.fullName.first %>"></div>
+                              <div class="form-group col-md-6"><label data-i18n="label.lastName">Last Name:</label><input type="text" class="form-control" name="lname" value="<%= patient.fullName.last || '' %>"></div>
+                              <div class="form-group col-md-6"><label data-i18n="label.email">Email:</label><input type="email" class="form-control" name="email" required value="<%= patient.email %>"></div>
                               <!-- nik -->
-                              <div class="form-group col-md-6"><label>NIK:</label><input type="number" class="form-control" name="nik" required value="<%= tbProfile.nik %>"></div>
-                              <div class="form-group col-md-6"><label>Username:</label><input type="text" class="form-control" name="uname" required value="<%= patient.userName %>"></div>
+                              <div class="form-group col-md-6"><label data-i18n="label.nik">NIK:</label><input type="number" class="form-control" name="nik" required value="<%= tbProfile.nik %>"></div>
+                              <div class="form-group col-md-6"><label data-i18n="label.username">Username:</label><input type="text" class="form-control" name="uname" required value="<%= patient.userName %>"></div>
                               <div class="form-group col-md-6"><label>New Password (optional):</label><input type="password" class="form-control" name="pass" placeholder="Leave blank to keep current password"></div>
                               <div class="form-group col-md-6"><label>Repeat New Password:</label><input type="password" class="form-control" name="rpass"></div>
                            </div>
@@ -69,11 +103,11 @@
                            <h5 class="mb-3">Clinical Data</h5>
                            <div class="row align-items-end">
                               <div class="form-group col-md-4">
-                                  <label for="dateOfBirth">Tanggal Lahir:</label>
+                                  <label for="dateOfBirth" data-i18n="label.dateOfBirth">Tanggal Lahir:</label>
                                   <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" required value="<%= tbProfile.dateOfBirth ? tbProfile.dateOfBirth.toISOString().split('T')[0] : '' %>">
                               </div>
                               <div class="form-group col-md-2">
-                                  <label>Umur:</label>
+                                  <label data-i18n="label.age">Umur:</label>
                                   <input type="text" class="form-control" id="age-display" readonly placeholder="(auto)">
                               </div>
                               <div class="form-group col-md-2"><label>Sex:</label>
@@ -176,8 +210,8 @@
                            </div>
                            <hr>
 
-                           <a href="/tbcare/patient-history" class="btn iq-bg-danger">Cancel</a>
-                           <button type="submit" class="btn btn-primary">Update Patient</button>
+                           <a href="/tbcare/patient-history" class="btn iq-bg-danger" data-i18n="btn.cancel">Batal</a>
+                           <button type="submit" class="btn btn-primary" data-i18n="btn.updatePatient">Perbarui Pasien</button>
                         </form>
                      </div>
                   </div>
@@ -187,7 +221,7 @@
          <%- include('../../includes/footer.ejs') %>
       </div>
    </div>
-   <%- include('../../includes/end.ejs') %>
+  <%- include('../../includes/tbcare/end.ejs') %>
 
    <script>
       document.addEventListener('DOMContentLoaded', function() {

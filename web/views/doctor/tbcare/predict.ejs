@@ -4,20 +4,51 @@
     .file-selection-box { max-height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; padding: 10px; border-radius: 5px; background-color: #f9f9f9; }
     .file-option { display: block; margin-bottom: 15px; }
     .file-option label { width: 100%; }
+    /* page header styles copied from patient-history-list.ejs for consistency */
+    .page-header-card {
+        background: linear-gradient(135deg, #667eea 0%, #24be90 100%);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    .page-header-card h2 {
+        color: white;
+        font-weight: bold;
+        margin: 0;
+    }
+    .page-header-card p {
+        color: rgba(255, 255, 255, 0.9);
+        margin: 5px 0 0 0;
+    }
 </style>
 </head>
 <body>
 <div class="wrapper">
     <%- include('../../includes/navigations-tbcare.ejs') %>
     <div id="content-page" class="content-page">
-        <%- include('../../includes/top-navbar.ejs') %>
+        <%- include('../../includes/tbcare/top-navbar.ejs') %>
         <div class="container-fluid">
+            <!-- Page Header (match patient history list) -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="page-header-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2><i class="ri-sound-module-line"></i> <%= pageHeader %></h2>
+                                <p>Pilih rekaman batuk untuk prediksi TB</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-lg-12">
                     <div class="iq-card">
-                        <div class="iq-card-header d-flex justify-content-between">
+                        <!-- small card title commented out to avoid duplication with the big page header -->
+                        <!-- <div class="iq-card-header d-flex justify-content-between">
                             <div class="iq-header-title"><h4 class="card-title"><%= pageHeader %></h4></div>
-                        </div>
+                        </div> -->
                         <div class="iq-card-body">
                             <% if (errorMessage && errorMessage.length > 0) { %>
                                 <div class="alert alert-danger" role="alert">
@@ -28,9 +59,9 @@
                                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                 <div class="row">
                                     <div class="form-group col-md-12">
-                                        <label>1. Select Patient:</label>
+                                        <label data-i18n="label.selectPatient">1. Select Patient:</label>
                                         <select class="form-control" name="patientId" id="patientSelect" required>
-                                            <option value="">-- Choose a patient --</option>
+                                            <option value="" data-i18n="select.choosePatient">-- Choose a patient --</option>
                                             <% if(patients.length > 0) { %>
                                                 <% patients.forEach(p => { %>
                                                     <option value="<%= p.tbcareProfile.nik %>" data-nik="<%= p.tbcareProfile.nik %>"><%= p.fullName.first %> <%= p.fullName.last %> (NIK: <%= p.tbcareProfile ? p.tbcareProfile.nik : 'N/A' %>)</option>
@@ -40,7 +71,7 @@
                                     </div>
                                     
                                     <div class="form-group col-md-6">
-                                        <label>2. Sputum Condition:</label>
+                                        <label data-i18n="label.sputumCondition">2. Sputum Condition:</label>
                                         <select class="form-control" name="sputumStatus" id="sputumStatus" required>
                                             <option value="">-- Select Status --</option>
                                             <option value="Sputum +">Sputum +</option>
@@ -48,7 +79,7 @@
                                         </select>
                                     </div>
                                     <div class="form-group col-md-6" id="sputumLevelContainer" style="display: none;">
-                                        <label>Sputum+ Level:</label>
+                                        <label data-i18n="label.sputumLevel">Sputum+ Level:</label>
                                         <select class="form-control" name="sputumLevel">
                                             <option value="Low">Low</option>
                                             <option value="Moderate">Moderate</option>
@@ -57,22 +88,22 @@
                                     </div>
 
                                     <div class="form-group col-md-12">
-                                        <label>3. Select Unprocessed Cough Recording:</label>
+                                        <label data-i18n="label.selectRecording">3. Select Unprocessed Cough Recording:</label>
                                         <div id="loadingMessage" class="text-center text-muted mt-3" style="display: none;">
-                                            <i class="fa fa-spinner fa-spin"></i> Loading cough recordings...
+                                            <i class="fa fa-spinner fa-spin"></i> <span data-i18n="loading.recordings">Loading cough recordings...</span>
                                         </div>
                                         <div class="row mb-3" id="filterControls" style="display: none;">
-                                            <div class="col-md-6"><input type="text" id="searchInput" class="form-control" placeholder="Search by filename..."></div>
-                                            <div class="col-md-6"><input type="date" id="dateFilter" class="form-control"></div>
+                                            <div class="col-md-6"><input type="text" id="searchInput" class="form-control" data-i18n-placeholder="filter.searchPlaceholder" placeholder="Search by filename..."></div>
+                                            <div class="col-md-6"><input type="date" id="dateFilter" class="form-control" data-i18n-placeholder="filter.datePlaceholder"></div>
                                         </div>
-                                        <div class="file-selection-box" id="fileList">
-                                            <p class="text-center text-muted mt-3">Please select a patient first to view cough recordings.</p>
-                                        </div>
+                                                <div class="file-selection-box" id="fileList">
+                                                    <p class="text-center text-muted mt-3" data-i18n="predict.selectPatient">Please select a patient first to view cough recordings.</p>
+                                                </div>
                                     </div>
                                 </div>
                                 <hr>
-                                <a href="/sub_1/doctor" class="btn iq-bg-danger">Cancel</a>
-                                <button type="submit" class="btn btn-primary">Start Prediction</button>
+                                <a href="/sub_1/doctor" class="btn iq-bg-danger" data-i18n="btn.cancel">Batal</a>
+                                <button type="submit" class="btn btn-primary" data-i18n="btn.startPrediction">Mulai Prediksi</button>
                             </form>
                         </div>
                     </div>
@@ -82,7 +113,7 @@
         <%- include('../../includes/footer.ejs') %>
     </div>
 </div>
-<%- include('../../includes/end.ejs') %>
+<%- include('../../includes/tbcare/end.ejs') %>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const sputumStatusSelect = document.getElementById('sputumStatus');
@@ -120,8 +151,6 @@
         patientSelect.addEventListener('change', async function() {
             const selectedOption = this.options[this.selectedIndex];
             const nik = selectedOption.getAttribute('data-nik');
-            // // DEBUG
-            // const nik = '5171045111030002'
             
             if (!nik) {
                 fileList.innerHTML = '<p class="text-center text-muted mt-3">Please select a patient first to view cough recordings.</p>';
@@ -141,8 +170,6 @@
                 loadingMessage.style.display = 'none';
                 
                 if (data.success && data.data && data.data.length > 0) {
-                    // sort by most recent
-                    data.data.sort((a, b) => new Date(b.time) - new Date(a.time));
                     displayCoughRecordings(data.data);
                     filterControls.style.display = 'flex';
                 } else {
