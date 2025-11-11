@@ -1,6 +1,5 @@
-<% const isActive = (path) => { // This logic helps determine the active page. Adjust the paths if needed. if (path === 'dashboard' && pageTitle.includes('Dashboard')) return 'active'; if (path === 'add' && pageTitle.includes('Add
-Patient')) return 'active'; if (path === 'history' && pageTitle.includes('History')) return 'active'; if (path === 'predict' && pageTitle.includes('Prediction')) return 'active'; return ''; }; const isPatientSectionActive = isActive('add')
-|| isActive('history'); %>
+<% const isActive = (path) => { if (path === 'dashboard' && pageTitle.includes('Dashboard')) return 'active'; if (path === 'add' && pageTitle.includes('Add Patient')) return 'active'; if (path === 'history' && pageTitle.includes('History'))
+return 'active'; if (path === 'predict' && pageTitle.includes('Prediction')) return 'active'; return ''; }; const isPatientSectionActive = isActive('add') || isActive('history'); %>
 
 <style>
   :root {
@@ -171,30 +170,30 @@ Patient')) return 'active'; if (path === 'history' && pageTitle.includes('Histor
     <nav class="iq-sidebar-menu">
       <ul id="iq-sidebar-toggle" class="iq-menu">
         <!-- UPDATED: Removed text-black class, CSS will handle it -->
-        <li class="iq-menu-title"><i class="ri-separator"></i><span data-i18n="menu.mainMenu">Main Menu</span></li>
+        <li class="iq-menu-title"><i class="ri-separator"></i><span>Menu Utama</span></li>
 
         <li class="<%= isActive('dashboard') %>">
-          <a href="/sub_1/doctor" class="iq-waves-effect"> <i class="ri-home-4-line"></i><span data-i18n="menu.dashboard">Dashboard</span> </a>
+          <a href="/sub_1/doctor" class="iq-waves-effect"> <i class="ri-home-4-line"></i><span>Dashboard</span> </a>
         </li>
 
         <li class="<%= isPatientSectionActive ? 'active' : '' %>">
           <a href="#patient-submenu" class="iq-waves-effect" data-toggle="collapse" aria-expanded="<%= isPatientSectionActive ? 'true' : 'false' %>">
             <i class="ri-group-line"></i>
-            <span data-i18n="menu.patient">Patient</span>
+            <span>Pasien</span>
             <i class="ri-arrow-right-s-line right-icon"></i>
           </a>
           <ul id="patient-submenu" class="collapse <%= isPatientSectionActive ? 'show' : '' %> iq-submenu" data-parent="#iq-sidebar-toggle">
             <li class="<%= isActive('add') %>">
-              <a href="/sub_1/add-patient"><i class="ri-user-add-line"></i><span data-i18n="menu.addPatient">Add Patient</span></a>
+              <a href="/sub_1/add-patient"><i class="ri-user-add-line"></i><span>Tambah Pasien</span></a>
             </li>
             <li class="<%= isActive('history') %>">
-              <a href="/tbcare/patient-history"><i class="ri-file-text-line"></i><span data-i18n="menu.patientHistory">Patient History</span></a>
+              <a href="/tbcare/patient-history"><i class="ri-file-text-line"></i><span>Riwayat Pasien</span></a>
             </li>
           </ul>
         </li>
 
         <li class="<%= isActive('predict') %>">
-          <a href="/tbcare/predict" class="iq-waves-effect"> <i class="ri-heart-pulse-line"></i><span data-i18n="menu.startPrediction">Start Prediction</span> </a>
+          <a href="/tbcare/predict" class="iq-waves-effect"> <i class="ri-heart-pulse-line"></i><span>Mulai Prediksi</span> </a>
         </li>
       </ul>
     </nav>

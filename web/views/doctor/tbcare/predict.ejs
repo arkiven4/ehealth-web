@@ -70,25 +70,27 @@
                                         </select>
                                     </div>
                                     
+                                    <% if (enableSputumFields) { %>
                                     <div class="form-group col-md-6">
-                                        <label data-i18n="label.sputumCondition">2. Sputum Condition:</label>
+                                        <label data-i18n="label.sputumCondition">2. Kondisi Dahak:</label>
                                         <select class="form-control" name="sputumStatus" id="sputumStatus" required>
-                                            <option value="">-- Select Status --</option>
-                                            <option value="Sputum +">Sputum +</option>
-                                            <option value="Sputum -">Sputum -</option>
+                                            <option value="">-- Pilih Status --</option>
+                                            <option value="Sputum +">Dahak +</option>
+                                            <option value="Sputum -">Dahak -</option>
                                         </select>
                                     </div>
                                     <div class="form-group col-md-6" id="sputumLevelContainer" style="display: none;">
-                                        <label data-i18n="label.sputumLevel">Sputum+ Level:</label>
+                                        <label data-i18n="label.sputumLevel">Level Dahak+:</label>
                                         <select class="form-control" name="sputumLevel">
-                                            <option value="Low">Low</option>
-                                            <option value="Moderate">Moderate</option>
-                                            <option value="High">High</option>
+                                            <option value="Low">Rendah</option>
+                                            <option value="Moderate">Sedang</option>
+                                            <option value="High">Tinggi</option>
                                         </select>
                                     </div>
+                                    <% } %>
 
                                     <div class="form-group col-md-12">
-                                        <label data-i18n="label.selectRecording">3. Select Unprocessed Cough Recording:</label>
+                                        <label data-i18n="label.selectRecording">3. Pilih Rekaman Batuk:</label>
                                         <div id="loadingMessage" class="text-center text-muted mt-3" style="display: none;">
                                             <i class="fa fa-spinner fa-spin"></i> <span data-i18n="loading.recordings">Loading cough recordings...</span>
                                         </div>
@@ -113,14 +115,17 @@
         <%- include('../../includes/footer.ejs') %>
     </div>
 </div>
-<%- include('../../includes/tbcare/end.ejs') %>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const sputumStatusSelect = document.getElementById('sputumStatus');
         const sputumLevelContainer = document.getElementById('sputumLevelContainer');
-        sputumStatusSelect.addEventListener('change', function() {
-            sputumLevelContainer.style.display = this.value === 'Sputum +' ? 'block' : 'none';
-        });
+        
+        // Only add event listener if sputum fields are enabled
+        if (sputumStatusSelect && sputumLevelContainer) {
+            sputumStatusSelect.addEventListener('change', function() {
+                sputumLevelContainer.style.display = this.value === 'Sputum +' ? 'block' : 'none';
+            });
+        }
 
         const searchInput = document.getElementById('searchInput');
         const dateFilter = document.getElementById('dateFilter');
@@ -253,5 +258,5 @@
         }
     });
 </script>
-</body>
-</html>
+
+<%- include('../../includes/tbcare/end.ejs') %>

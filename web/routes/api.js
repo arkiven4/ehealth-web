@@ -1,42 +1,49 @@
 const express = require("express");
-const multer  = require('multer')
-const upload = multer({ dest: './temp/' })
+const multer = require("multer");
+const upload = multer({ dest: "./temp/" });
 
 const apiController = require("../controllers/api");
 const apiControllerDevice = require("../controllers/api/device/device");
 const apiTerapiController = require("../controllers/api/vibio/terapi");
 const apiVibioRecognitionController = require("../controllers/api/vibio/recognition");
-const isAuthApi = require('../middlewares/is-aut-user-api');
+const isAuthApi = require("../middlewares/is-aut-user-api");
+const db = require("../middlewares/database");
 const router = express.Router();
 
 //Auth API
-router.post('/api/admin/login', apiController.login);
+router.post("/api/admin/login", apiController.login);
 
 //Admin Api
-router.post('/api/admin/home', isAuthApi ,apiController.home);
-router.post('/api/admin/data-batuk', isAuthApi ,apiController.data_batuk);
-router.post('/api/admin/device-list', isAuthApi ,apiController.device_list);
-router.post('/api/admin/device-detail', isAuthApi ,apiController.device_detail);
+router.post("/api/admin/home", isAuthApi, apiController.home);
+router.post("/api/admin/data-batuk", isAuthApi, apiController.data_batuk);
+router.post("/api/admin/device-list", isAuthApi, apiController.device_list);
+router.post("/api/admin/device-detail", isAuthApi, apiController.device_detail);
 
 //Device API
-router.post('/api/device/sendData/:device_id', upload.any() , apiControllerDevice.sendData);
-router.post('/api/device/sendData_sub2/:device_id', upload.any() , apiControllerDevice.sendData_sub2);
+router.post("/api/device/sendData/:device_id", upload.any(), apiControllerDevice.sendData);
+router.post("/api/device/sendData_sub2/:device_id", upload.any(), apiControllerDevice.sendData_sub2);
 // router.post('/api/device/sendData_Naracoba/:device_id', upload.any() , apiControllerDevice.sendData_Naracoba);
 //router.get('/api/device/testAPI', apiControllerDevice.testAPI);
 
-router.post('/api/device/sendData_TBPrimer/:device_id', upload.any() , apiControllerDevice.sendData_TBPrimer);
+router.post("/api/device/sendData_TBPrimer/:device_id", upload.any(), apiControllerDevice.sendData_TBPrimer);
 
 // Vibio
-router.post('/api/vibio/insert_terapi/:uuid_user', upload.any() , apiTerapiController.terapiData);
-router.post('/api/vibio/recognition', upload.any() , apiVibioRecognitionController.recognitionSoundData);
+router.post("/api/vibio/insert_terapi/:uuid_user", upload.any(), apiTerapiController.terapiData);
+router.post("/api/vibio/recognition", upload.any(), apiVibioRecognitionController.recognitionSoundData);
 
-router.post('/api/vibio/set_recognitionServer', apiVibioRecognitionController.setRecognitionServer);
-router.post('/api/vibio/check_recognitionServer', apiVibioRecognitionController.checkRecognitionServer);
+router.post("/api/vibio/set_recognitionServer", apiVibioRecognitionController.setRecognitionServer);
+router.post("/api/vibio/check_recognitionServer", apiVibioRecognitionController.checkRecognitionServer);
 
 //General Api
-router.post('/api/submit-data-batuk', isAuthApi ,  upload.any() , apiController.submit_data_batuk);
+router.post("/api/submit-data-batuk", isAuthApi, upload.any(), apiController.submit_data_batuk);
 
-// TBcare API mobile
-router.get('/api/tbcare/patient_history', isAuthApi, apiController.patient_history);
+// TBcare API - Prediction Management (session-based auth for web dashboard)
+// IMPORTANT: These routes use session middleware for web dashboard authentication
+router.patch("/api/prediction/:predictionId/validate", db.sessionMiddleware, apiController.togglePredictionValidation);
+router.put("/api/prediction/:predictionId", db.sessionMiddleware, apiController.updatePrediction);
+router.delete("/api/prediction/:predictionId", db.sessionMiddleware, apiController.deletePrediction);
+
+// TBcare API mobile (JWT-based auth)
+router.get("/api/tbcare/patient_history", isAuthApi, apiController.patient_history);
 
 module.exports = router;

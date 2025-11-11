@@ -25,27 +25,30 @@
                     <div class="iq-card">
                             <div class="iq-card-header d-flex justify-content-between">
                             <div class="iq-header-title">
-                                <h4 class="card-title" data-i18n="page.historyFor">History for: <%= patient.fullName.first %> <%= patient.fullName.last %></h4>
-                                <p data-i18n="label.participantId">Participant ID: <%= patient.tbcareProfile ? patient.tbcareProfile.participantId : 'N/A' %></p>
+                                <h4 class="card-title">Riwayat: <%= patient.fullName.first %> <%= patient.fullName.last %></h4>
+                                <p>ID Partisipan: <%= patient.tbcareProfile ? patient.tbcareProfile.participantId : 'N/A' %></p>
                             </div>
-                            <a href="/tbcare/patient-history" class="btn btn-secondary" data-i18n="btn.back">Back to Patient List</a>
+                            <a href="/tbcare/patient-history" class="btn btn-secondary">Kembali ke Daftar Pasien</a>
                         </div>
                         <div class="iq-card-body">
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered">
                                     <thead>
                                         <tr>
-                                            <th>Date</th>
-                                            <th>Result</th>
-                                            <th>Sputum</th>
-                                            <th>Segments (TB/Total)</th>
-                                            <th>Predicted By</th>
-                                            <th>Actions</th>
-                                        <tr>
-                                                <tr>
-                                                <td colspan="6" class="text-center text-muted" data-i18n="table.noPredictionHistory">No prediction history found.</td>
-                                            </tr>
-                                        <% } %>
+                                            <th>Tanggal</th>
+                                            <th>Hasil</th>
+                                            <% if (enableSputumFields) { %>
+                                            <th>Dahak</th>
+                                            <% } %>
+                                            <th>Status Validasi</th>
+                                            <th>Segmen (TB/Total)</th>
+                                            <th>Diprediksi Oleh</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% if (predictions && predictions.length > 0) { %>
+                                            <% predictions.forEach(pred => { %>
                                                 <tr id="pred-row-<%= pred._id %>">
                                                     <td data-label="date"><%= new Date(pred.createdAt).toLocaleString() %></td>
                                                     <td data-label="result">
@@ -53,25 +56,73 @@
                                                             <%= pred.result %>
                                                         </span>
                                                     </td>
-                                                    <td data-label="sputum"><%= pred.sputumCondition %></td>
+                                                    <% if (enableSputumFields) { %>
+                                                    <td data-label="sputum"><%= pred.sputumCondition || '-' %></td>
+                                                    <% } %>
+                                                    <td data-label="validation">
+                                                        <% 
+                                                        const vStatus = pred.validationStatus || 'pending';
+                                                        %>
+                                                        <% if (vStatus === 'accepted') { %>
+                                                            <span class="badge badge-success">
+                                                                <i class="ri-checkbox-circle-line"></i> DITERIMA
+                                                            </span>
+                                                            <br><small class="text-muted"><%= pred.validatedAt ? new Date(pred.validatedAt).toLocaleDateString('id-ID') : '' %></small>
+                                                        <% } else if (vStatus === 'rejected') { %>
+                                                            <span class="badge badge-danger">
+                                                                <i class="ri-close-circle-line"></i> DITOLAK
+                                                            </span>
+                                                            <br><small class="text-muted"><%= pred.validatedAt ? new Date(pred.validatedAt).toLocaleDateString('id-ID') : '' %></small>
+                                                        <% } else { %>
+                                                            <span class="badge badge-warning">
+                                                                <i class="ri-time-line"></i> Pending
+                                                            </span>
+                                                        <% } %>
+                                                    </td>
                                                     <td data-label="segments"><%= pred.tbSegmentCount %> / <%= pred.totalCoughSegments %></td>
                                                     <td data-label="doctor">Dr. <%= pred.predictedBy ? pred.predictedBy.userName : 'N/A' %></td>
                                                     <td>
-                                                        <a href="/tbcare/history/<%= pred._id %>" class="btn btn-sm btn-primary" title="View Full Details">
-                                                            <i class="ri-eye-line"></i> View
+                                                        <a href="/tbcare/history/<%= pred._id %>" class="btn btn-sm btn-primary" title="Lihat Detail Lengkap">
+                                                            <i class="ri-eye-line"></i> Lihat
                                                         </a>
+                                                        <% if (enableSputumFields) { %>
                                                         <button class="btn btn-sm btn-info edit-btn" data-id="<%= pred._id %>" data-sputum="<%= pred.sputumCondition %>">
                                                             <i class="ri-edit-line"></i> Edit
                                                         </button>
+                                                        <% } %>
+                                                        
+                                                        <!-- Validation Buttons with Accept/Reject/Reset -->
+                                                        <% if (vStatus === 'pending') { %>
+                                                            <button class="btn btn-sm btn-success validation-action-btn" 
+                                                                    data-id="<%= pred._id %>" 
+                                                                    data-action="accepted"
+                                                                    title="Terima Prediksi">
+                                                                <i class="ri-checkbox-circle-line"></i> Accept
+                                                            </button>
+                                                            <button class="btn btn-sm btn-danger validation-action-btn" 
+                                                                    data-id="<%= pred._id %>" 
+                                                                    data-action="rejected"
+                                                                    title="Tolak Prediksi">
+                                                                <i class="ri-close-circle-line"></i> Reject
+                                                            </button>
+                                                        <% } else { %>
+                                                            <button class="btn btn-sm btn-secondary validation-action-btn" 
+                                                                    data-id="<%= pred._id %>" 
+                                                                    data-action="pending"
+                                                                    title="Reset ke Pending">
+                                                                <i class="ri-refresh-line"></i> Reset
+                                                            </button>
+                                                        <% } %>
+                                                        
                                                         <button class="btn btn-sm btn-danger delete-btn" data-id="<%= pred._id %>">
-                                                            <i class="ri-delete-bin-line"></i> Delete
+                                                            <i class="ri-delete-bin-line"></i> Hapus
                                                         </button>
                                                     </td>
                                                 </tr>
                                             <% }) %>
                                         <% } else { %>
                                             <tr>
-                                                <td colspan="6" class="text-center text-muted">No prediction history found.</td>
+                                                <td colspan="<%= enableSputumFields ? 7 : 7 %>" class="text-center text-muted">Tidak ada riwayat prediksi ditemukan.</td>
                                             </tr>
                                         <% } %>
                                     </tbody>
@@ -86,42 +137,42 @@
     </div>
 </div>
 
-<div id="editModal" class="modal">
+<div id="editModal" class="modal" style="<%= enableSputumFields ? '' : 'display: none !important;' %>">
     <div class="modal-content">
         <span class="close-button">&times;</span>
-        <h3>Edit Prediction Record</h3>
+        <h3>Edit Catatan Prediksi</h3>
         <hr>
         <form id="editForm">
             <input type="hidden" id="editPredictionId" name="predictionId">
             <div class="form-group">
-                <label for="newParticipantId">Remap to another Patient (Optional):</label>
-                <input type="text" class="form-control" id="newParticipantId" placeholder="Enter new Participant ID">
+                <label for="newParticipantId">Pindah ke Pasien Lain (Opsional):</label>
+                <input type="text" class="form-control" id="newParticipantId" placeholder="Masukkan ID Partisipan baru">
             </div>
+            <% if (enableSputumFields) { %>
             <div class="row">
                 <div class="form-group col-md-6">
-                    <label for="editSputumStatus">Sputum Condition:</label>
+                    <label for="editSputumStatus">Kondisi Dahak:</label>
                     <select class="form-control" id="editSputumStatus" name="sputumStatus">
-                        <option value="Sputum +">Sputum +</option>
-                        <option value="Sputum -">Sputum -</option>
+                        <option value="Sputum +">Dahak +</option>
+                        <option value="Sputum -">Dahak -</option>
                     </select>
                 </div>
                 <div class="form-group col-md-6" id="editSputumLevelContainer">
-                    <label for="editSputumLevel">Sputum+ Level:</label>
+                    <label for="editSputumLevel">Level Dahak+:</label>
                     <select class="form-control" id="editSputumLevel" name="sputumLevel">
-                        <option value="Low">Low</option>
-                        <option value="Moderate">Moderate</option>
-                        <option value="High">High</option>
+                        <option value="Low">Rendah</option>
+                        <option value="Moderate">Sedang</option>
+                        <option value="High">Tinggi</option>
                     </select>
                 </div>
             </div>
+            <% } %>
             <hr>
-            <button type="button" class="btn iq-bg-danger" id="closeModalBtn">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="button" class="btn iq-bg-danger" id="closeModalBtn">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
         </form>
     </div>
 </div>
-
-<%- include('../../includes/tbcare/end.ejs') %>
     
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -130,34 +181,87 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeModalElements = document.querySelectorAll('.close-button, #closeModalBtn');
 
     // --- LOGIKA UNTUK EDIT ---
-    document.querySelectorAll('.edit-btn').forEach(btn => {
+    const enableSputumFields = <%= enableSputumFields ? 'true' : 'false' %>;
+    
+    if (enableSputumFields) {
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const predictionId = this.dataset.id;
+                const currentSputum = this.dataset.sputum;
+
+                // Isi form modal dengan data saat ini
+                document.getElementById('editPredictionId').value = predictionId;
+                
+                if (currentSputum.includes('Sputum +')) {
+                    document.getElementById('editSputumStatus').value = 'Sputum +';
+                    document.getElementById('editSputumLevelContainer').style.display = 'block';
+                    if (currentSputum.includes('Low')) document.getElementById('editSputumLevel').value = 'Low';
+                    else if (currentSputum.includes('Moderate')) document.getElementById('editSputumLevel').value = 'Moderate';
+                    else if (currentSputum.includes('High')) document.getElementById('editSputumLevel').value = 'High';
+                } else {
+                    document.getElementById('editSputumStatus').value = 'Sputum -';
+                    document.getElementById('editSputumLevelContainer').style.display = 'none';
+                }
+
+                modal.style.display = 'block';
+            });
+        });
+
+        document.getElementById('editSputumStatus').addEventListener('change', function() {
+            document.getElementById('editSputumLevelContainer').style.display = this.value === 'Sputum +' ? 'block' : 'none';
+        });
+    }
+
+    // --- LOGIKA UNTUK VALIDASI (Accept/Reject/Reset) ---
+    document.querySelectorAll('.validation-action-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const predictionId = this.dataset.id;
-            const currentSputum = this.dataset.sputum;
-
-            // Isi form modal dengan data saat ini
-            document.getElementById('editPredictionId').value = predictionId;
+            const action = this.dataset.action; // 'accepted', 'rejected', or 'pending'
             
-            if (currentSputum.includes('Sputum +')) {
-                document.getElementById('editSputumStatus').value = 'Sputum +';
-                document.getElementById('editSputumLevelContainer').style.display = 'block';
-                if (currentSputum.includes('Low')) document.getElementById('editSputumLevel').value = 'Low';
-                else if (currentSputum.includes('Moderate')) document.getElementById('editSputumLevel').value = 'Moderate';
-                else if (currentSputum.includes('High')) document.getElementById('editSputumLevel').value = 'High';
-            } else {
-                document.getElementById('editSputumStatus').value = 'Sputum -';
-                document.getElementById('editSputumLevelContainer').style.display = 'none';
+            const actionMessages = {
+                accepted: 'menerima (ACCEPT)',
+                rejected: 'menolak (REJECT)',
+                pending: 'mereset status validasi'
+            };
+            
+            const confirmMsg = `Apakah Anda yakin ingin ${actionMessages[action]} prediksi ini?`;
+            
+            if (confirm(confirmMsg)) {
+                // Optional: ask for note if rejecting
+                let note = null;
+                if (action === 'rejected') {
+                    note = prompt('Alasan penolakan (opsional):');
+                }
+                
+                fetch('/api/prediction/' + predictionId + '/validate', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'csrf-token': csrfToken
+                    },
+                    body: JSON.stringify({ 
+                        validationStatus: action,
+                        note: note 
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.message || 'Gagal mengupdate status validasi'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Terjadi kesalahan saat mengupdate status validasi.');
+                });
             }
-
-            modal.style.display = 'block';
         });
     });
-
-    document.getElementById('editSputumStatus').addEventListener('change', function() {
-        document.getElementById('editSputumLevelContainer').style.display = this.value === 'Sputum +' ? 'block' : 'none';
-    });
     
-    document.getElementById('editForm').addEventListener('submit', function(event) {
+    if (enableSputumFields) {
+        document.getElementById('editForm').addEventListener('submit', function(event) {
         event.preventDefault();
         const predictionId = document.getElementById('editPredictionId').value;
         
@@ -171,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function() {
             bodyData.newParticipantId = newParticipantId.trim();
         }
 
-        fetch('/api/v2/prediction/' + predictionId, {
+        fetch('/api/prediction/' + predictionId, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -187,26 +291,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (newParticipantId) {
                     // Jika pasien dipindah, hapus baris dari view ini
                     row.remove();
-                    alert('Update successful! Record has been moved to another patient.');
+                    alert('Berhasil diupdate! Catatan telah dipindah ke pasien lain.');
                 } else {
-                    // Jika hanya update sputum, perbarui teks di tabel
+                    // Jika hanya update dahak, perbarui teks di tabel
                     row.querySelector('[data-label="sputum"]').textContent = data.data.sputumCondition;
-                    alert('Update successful!');
+                    alert('Berhasil diupdate!');
                 }
                 modal.style.display = 'none';
             } else {
                 alert('Error: ' + data.message);
             }
         })
-        .catch(err => alert('An error occurred.'));
+        .catch(err => alert('Terjadi kesalahan.'));
     });
+    }
 
     // --- LOGIKA UNTUK DELETE ---
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const predictionId = this.dataset.id;
-            if (confirm('Are you sure you want to permanently delete this prediction record?')) {
-                fetch('/api/v2/prediction/' + predictionId, {
+            if (confirm('Apakah Anda yakin ingin menghapus catatan prediksi ini secara permanen?')) {
+                fetch('/api/prediction/' + predictionId, {
                     method: 'DELETE',
                     headers: { 'csrf-token': csrfToken }
                 })
@@ -214,12 +319,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     if (data.message.includes('dihapus')) {
                         document.getElementById('pred-row-' + predictionId).remove();
-                        alert('Prediction record deleted successfully!');
+                        alert('Catatan prediksi berhasil dihapus!');
                     } else {
                         alert('Error: ' + data.message);
                     }
                 })
-                .catch(err => alert('An error occurred.'));
+                .catch(err => alert('Terjadi kesalahan.'));
             }
         });
     });
@@ -233,5 +338,5 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 </script>
-</body>
-</html>
+
+<%- include('../../includes/tbcare/end.ejs') %>

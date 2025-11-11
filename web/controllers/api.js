@@ -3,6 +3,7 @@ const Device = require("../models/device");
 const Device_Data_Cough = require("../models/device_data_cough");
 const Batuk_Data = require("../models/batuk_data");
 const TbcareProfile = require("../models/tbcare_profile");
+const TbcarePrediction = require("../models/tbcare_prediction");
 const initParam = require("../helpers/init");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -331,37 +332,210 @@ exports.submit_data_batuk = async (req, res, next) => {
 //   }
 // };
 
-const TbcarePrediction = require('../models/tbcare_prediction');
+// const TbcarePrediction = require("../models/tbcare_prediction");
 
 exports.patient_history = async (req, res, next) => {
   try {
-    const patientId = req.userId; 
+    const patientId = req.userId;
     if (!patientId) {
       return res.status(401).json({ message: "Authentication failed: Missing patientId" });
     }
 
-    const patient = await User.findById(patientId)
-      .populate("tbcareProfile")
-      .select("-password")
-      .lean();
+    const patient = await User.findById(patientId).populate("tbcareProfile").select("-password").lean();
 
     if (!patient) {
       return res.status(404).json({ message: "Patient not found" });
     }
 
-    const history = await TbcarePrediction.find({ patient: patientId })
-      .populate("predictedBy", "userName role") 
-      .sort({ createdAt: -1 })
-      .lean();
+    const history = await TbcarePrediction.find({ patient: patientId }).populate("predictedBy", "userName role").sort({ createdAt: -1 }).lean();
 
     return res.status(200).json({
       patient: patient,
-      history: history
+      history: history,
     });
-
   } catch (err) {
     console.error("API Error in patient_history:", err);
     return res.status(500).json({ message: "Internal server error." });
   }
 };
 
+/**
+ * @description Toggle validation status untuk prediksi TB
+ */
+exports.togglePredictionValidation = async (req, res, next) => {
+  try {
+    const { predictionId } = req.params;
+    const { validationStatus, note } = req.body; // accept: 'accepted', reject: 'rejected', clear: 'pending'
+
+    // Check if user is logged in via session
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authenticated. Please login.",
+      });
+    }
+
+    // Validate status
+    if (!validationStatus || !['pending', 'accepted', 'rejected'].includes(validationStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Status validasi tidak valid. Harus: pending, accepted, atau rejected.",
+      });
+    }
+
+    const prediction = await TbcarePrediction.findById(predictionId);
+
+    if (!prediction) {
+      return res.status(404).json({
+        success: false,
+        message: "Data prediksi tidak ditemukan.",
+      });
+    }
+
+    // Update validation status
+    prediction.validationStatus = validationStatus;
+    prediction.validatedAt = validationStatus !== 'pending' ? new Date() : null;
+    prediction.validatedBy = validationStatus !== 'pending' ? req.session.user._id : null;
+    prediction.validationNote = note || null;
+
+    await prediction.save();
+
+    const statusMessages = {
+      accepted: "Prediksi berhasil diterima (Accepted).",
+      rejected: "Prediksi berhasil ditolak (Rejected).",
+      pending: "Status validasi dikembalikan ke pending."
+    };
+
+    res.status(200).json({
+      success: true,
+      message: statusMessages[validationStatus],
+      data: {
+        validationStatus: prediction.validationStatus,
+        validatedAt: prediction.validatedAt,
+        validatedBy: prediction.validatedBy,
+        validationNote: prediction.validationNote,
+      },
+    });
+  } catch (error) {
+    console.error("ERROR di /api/prediction/:predictionId/validate (PATCH):", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengupdate status validasi.",
+      details: error.message,
+    });
+  }
+};
+
+/**
+ * @description Update prediction data (sputum, etc)
+ */
+exports.updatePrediction = async (req, res, next) => {
+  try {
+    const { predictionId } = req.params;
+    const { sputumStatus, sputumLevel, newParticipantId } = req.body;
+
+    // Check if user is logged in via session
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authenticated. Please login.",
+      });
+    }
+
+    const prediction = await TbcarePrediction.findById(predictionId);
+
+    if (!prediction) {
+      return res.status(404).json({
+        success: false,
+        message: "Data prediksi tidak ditemukan.",
+      });
+    }
+
+    // Update sputum if provided
+    if (sputumStatus) {
+      let sputumCondition = sputumStatus;
+      if (sputumStatus === "Sputum +" && sputumLevel) {
+        sputumCondition = `${sputumStatus} (${sputumLevel})`;
+      }
+      prediction.sputumCondition = sputumCondition;
+    }
+
+    // Remap to another patient if newParticipantId provided
+    if (newParticipantId) {
+      const newProfile = await TbcareProfile.findOne({ participantId: newParticipantId });
+      if (!newProfile) {
+        return res.status(404).json({
+          success: false,
+          message: "Pasien dengan Participant ID tersebut tidak ditemukan.",
+        });
+      }
+
+      const newPatient = await User.findOne({ tbcareProfile: newProfile._id });
+      if (!newPatient) {
+        return res.status(404).json({
+          success: false,
+          message: "User untuk pasien tersebut tidak ditemukan.",
+        });
+      }
+
+      prediction.patient = newPatient._id;
+    }
+
+    await prediction.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Data prediksi berhasil diperbarui.",
+      data: {
+        sputumCondition: prediction.sputumCondition,
+        patient: prediction.patient,
+      },
+    });
+  } catch (error) {
+    console.error("ERROR di /api/prediction/:predictionId (PUT):", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengupdate data prediksi.",
+      details: error.message,
+    });
+  }
+};
+
+/**
+ * @description Delete prediction
+ */
+exports.deletePrediction = async (req, res, next) => {
+  try {
+    const { predictionId } = req.params;
+
+    // Check if user is logged in via session
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authenticated. Please login.",
+      });
+    }
+
+    const result = await TbcarePrediction.findByIdAndDelete(predictionId);
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "Gagal menghapus: Data prediksi tidak ditemukan.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Data prediksi berhasil dihapus.",
+      deletedData: result,
+    });
+  } catch (error) {
+    console.error("ERROR di /api/prediction/:predictionId (DELETE):", error);
+    res.status(500).json({
+      success: false,
+      message: "Gagal menghapus data prediksi.",
+      details: error.message,
+    });
+  }
+};

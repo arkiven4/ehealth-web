@@ -113,21 +113,70 @@
                 <div class="col-lg-12">
                     <div class="result-card">
                         <div class="result-header">
-                            <h2 class="mb-0 text-white font-weight-bold">
-                                <i class="ri-file-chart-line"></i> <span data-i18n="result.title">Hasil Analisis Prediksi Tuberkulosis</span>
-                                <% if (typeof isHistoryView !== 'undefined' && isHistoryView) { %>
-                                    <span class="badge badge-light ml-2" style="font-size: 0.5em; vertical-align: middle;">
-                                        <i class="ri-history-line"></i> History
-                                    </span>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h2 class="mb-0 text-white font-weight-bold">
+                                        <i class="ri-file-chart-line"></i> <span data-i18n="result.title">Hasil Analisis Prediksi Tuberkulosis</span>
+                                        <% if (typeof isHistoryView !== 'undefined' && isHistoryView) { %>
+                                            <span class="badge badge-light ml-2" style="font-size: 0.5em; vertical-align: middle;">
+                                                <i class="ri-history-line"></i> History
+                                            </span>
+                                        <% } %>
+                                    </h2>
+                                    <p class="mb-0 mt-2 text-white">
+                                        <span data-i18n="result.subtitle">Analisis audio batuk menggunakan Machine Learning dengan YAMNet + LSTM</span>
+                                        <% if (typeof predictionDate !== 'undefined' && predictionDate) { %>
+                                            <br>
+                                            <small><i class="ri-calendar-line"></i> Tanggal Prediksi: <%= new Date(predictionDate).toLocaleString('id-ID') %></small>
+                                        <% } %>
+                                    </p>
+                                </div>
+                                <% if (typeof predictionId !== 'undefined' && predictionId) { %>
+                                <div>
+                                    <% 
+                                    const vStatus = (typeof validationStatus !== 'undefined') ? validationStatus : 'pending';
+                                    const isPending = vStatus === 'pending';
+                                    const isAccepted = vStatus === 'accepted';
+                                    const isRejected = vStatus === 'rejected';
+                                    %>
+                                    
+                                    <% if (isPending) { %>
+                                        <button class="btn btn-success btn-lg mr-2 validation-action-btn" 
+                                                data-id="<%= predictionId %>" 
+                                                data-action="accepted"
+                                                title="Terima Hasil Prediksi">
+                                            <i class="ri-checkbox-circle-line"></i> Terima (Accept)
+                                        </button>
+                                        <button class="btn btn-danger btn-lg validation-action-btn" 
+                                                data-id="<%= predictionId %>" 
+                                                data-action="rejected"
+                                                title="Tolak Hasil Prediksi">
+                                            <i class="ri-close-circle-line"></i> Tolak (Reject)
+                                        </button>
+                                    <% } else if (isAccepted) { %>
+                                        <span class="badge badge-success btn-lg mr-2" style="font-size: 1em;">
+                                            <i class="ri-checkbox-circle-line"></i> DITERIMA
+                                        </span>
+                                        <button class="btn btn-warning btn-lg validation-action-btn" 
+                                                data-id="<%= predictionId %>" 
+                                                data-action="pending"
+                                                title="Reset Status Validasi">
+                                            <i class="ri-refresh-line"></i> Reset
+                                        </button>
+                                    <% } else if (isRejected) { %>
+                                        <span class="badge badge-danger btn-lg mr-2" style="font-size: 1em;">
+                                            <i class="ri-close-circle-line"></i> DITOLAK
+                                        </span>
+                                        <button class="btn btn-warning btn-lg validation-action-btn" 
+                                                data-id="<%= predictionId %>" 
+                                                data-action="pending"
+                                                title="Reset Status Validasi">
+                                            <i class="ri-refresh-line"></i> Reset
+                                        </button>
+                                    <% } %>
+                                </div>
                                 <% } %>
-                            </h2>
-                            <p class="mb-0 mt-2 text-white">
-                                <span data-i18n="result.subtitle">Analisis audio batuk menggunakan Machine Learning dengan YAMNet + LSTM</span>
-                                <% if (typeof predictionDate !== 'undefined' && predictionDate) { %>
-                                    <br>
-                                    <small><i class="ri-calendar-line"></i> Tanggal Prediksi: <%= new Date(predictionDate).toLocaleString('id-ID') %></small>
-                                <% } %>
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -674,8 +723,58 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('mfcc-visualization').innerHTML = 
             '<p class="text-center text-danger py-5">Failed to load MFCC visualization</p>';
     }
+
+    // ========== VALIDATION BUTTON HANDLER (Accept/Reject) ==========
+    const validationBtns = document.querySelectorAll('.validation-action-btn');
+    validationBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const predictionId = this.dataset.id;
+            const action = this.dataset.action; // 'accepted', 'rejected', or 'pending'
+            
+            const actionMessages = {
+                accepted: 'menerima (ACCEPT)',
+                rejected: 'menolak (REJECT)',
+                pending: 'mereset status validasi'
+            };
+            
+            const confirmMsg = `Apakah Anda yakin ingin ${actionMessages[action]} hasil prediksi ini?`;
+            
+            if (confirm(confirmMsg)) {
+                const csrfToken = "<%= csrfToken %>";
+                
+                // Optional: ask for note if rejecting
+                let note = null;
+                if (action === 'rejected') {
+                    note = prompt('Alasan penolakan (opsional):');
+                }
+                
+                fetch('/api/prediction/' + predictionId + '/validate', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'csrf-token': csrfToken
+                    },
+                    body: JSON.stringify({ 
+                        validationStatus: action,
+                        note: note 
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.message || 'Gagal mengupdate status validasi'));
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Terjadi kesalahan saat mengupdate status validasi.');
+                });
+            }
+        });
+    });
 });
 </script>
 <%- include('../../includes/tbcare/end.ejs') %>
-</body>
-</html>

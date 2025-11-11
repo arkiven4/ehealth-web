@@ -7,6 +7,7 @@ const User = require("../models/user");
 const TbcarePrediction = require("../models/tbcare_prediction");
 const TbcareProfile = require("../models/tbcare_profile");
 const Device_Data_TBPrimer = require("../models/device_data_cough_tbprimer");
+const tbcareFeatures = require("../config/tbcare-features");
 
 exports.getLandingPage = (req, res, next) => {
   res.render("tbcare/landing", { pageTitle: "Welcome to TBCare", isAuthenticated: req.session.isLoggedIn });
@@ -43,6 +44,7 @@ exports.getPredict = async (req, res, next) => {
       audioFolders: [],
       csrfToken: req.csrfToken(),
       errorMessage: req.flash("error")[0],
+      enableSputumFields: tbcareFeatures.ENABLE_SPUTUM_FIELDS,
     });
   } catch (error) {
     console.log("Error in getPredict:", error);
@@ -83,7 +85,8 @@ exports.getPredict_filteredWav = async (req, res, next) => {
 exports.postPredict = async (req, res, next) => {
   const { patientId, coughFilePath, sputumStatus, sputumLevel } = req.body;
 
-  if (!patientId || !coughFilePath || !sputumStatus) {
+  // Sputum is optional now (controlled by feature flag)
+  if (!patientId || !coughFilePath) {
     req.flash("error", "Harap lengkapi semua kolom yang diperlukan.");
     return res.redirect("/tbcare/predict");
   }
@@ -261,11 +264,10 @@ exports.postPredict = async (req, res, next) => {
     const confidencePercentage = detail.confidence_percentage || 0;
 
     // Save prediction to database (patient already fetched at the beginning)
-    const newPrediction = new TbcarePrediction({
+    const predictionData = {
       patient: patient._id,
       predictedBy: req.session.user._id,
       audioFile: coughFilePath,
-      sputumCondition: sputumStatus,
       result: finalDecision,
       confidence: avgTbProbability,
       tbSegmentCount: tbSegments,
@@ -280,7 +282,14 @@ exports.postPredict = async (req, res, next) => {
         waveform: parsed.waveform,
         mfcc: parsed.mfcc,
       },
-    });
+    };
+
+    // Add sputum if provided (feature flag controlled)
+    if (sputumStatus) {
+      predictionData.sputumCondition = sputumStatus;
+    }
+
+    const newPrediction = new TbcarePrediction(predictionData);
     await newPrediction.save();
 
     // Render result page with new data
@@ -303,6 +312,10 @@ exports.postPredict = async (req, res, next) => {
       nonTbSegments: nonTbSegments,
       avgTbProbability: avgTbProbability,
       confidencePercentage: confidencePercentage,
+      // Validation data (for new predictions, not yet validated)
+      predictionId: newPrediction._id,
+      validationStatus: "pending", // New predictions start as pending
+      predictionDate: newPrediction.createdAt,
     });
   } catch (err) {
     console.error("=== TB Care Prediction Error ===");
@@ -367,6 +380,7 @@ exports.getPatientHistoryDetail = async (req, res, next) => {
       patient: patient,
       predictions: predictions,
       csrfToken: req.csrfToken(),
+      enableSputumFields: tbcareFeatures.ENABLE_SPUTUM_FIELDS,
     });
   } catch (error) {
     next(error);
@@ -447,6 +461,12 @@ exports.getPredictionDetail = async (req, res, next) => {
       csrfToken: req.csrfToken(),
       isHistoryView: true, // Flag to show "Back to History" button instead
       predictionDate: prediction.createdAt,
+      // Validation data (for history view)
+      predictionId: prediction._id,
+      validationStatus: prediction.validationStatus || "pending",
+      validatedAt: prediction.validatedAt,
+      validatedBy: prediction.validatedBy,
+      validationNote: prediction.validationNote,
     });
   } catch (error) {
     console.error("Error fetching prediction detail:", error);

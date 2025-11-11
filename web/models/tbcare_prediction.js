@@ -19,7 +19,7 @@ const predictionSchema = new Schema(
     },
     sputumCondition: {
       type: String,
-      required: true,
+      required: false, // Changed to optional for feature flag
     },
     result: {
       type: String,
@@ -32,6 +32,25 @@ const predictionSchema = new Schema(
     tbSegmentCount: { type: Number, default: 0 },
     nonTbSegmentCount: { type: Number, default: 0 },
     totalCoughSegments: { type: Number, default: 0 },
+    // Validation status fields
+    validationStatus: {
+      type: String,
+      enum: ["pending", "accepted", "rejected"],
+      default: "pending",
+    },
+    validatedAt: {
+      type: Date,
+      default: null,
+    },
+    validatedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    validationNote: {
+      type: String,
+      default: null,
+    },
     detail: {
       type: Schema.Types.Mixed,
       default: {},

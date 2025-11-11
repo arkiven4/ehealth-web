@@ -139,8 +139,8 @@
                             <div class="page-header-greeting">
                                 <div class="avatar-badge"><%= (__doctorDisplayName.split(' ').map(n=>n[0]).slice(0,2).join('')).toUpperCase() %></div>
                                 <div>
-                                    <h2>Hi, <%= __doctorDisplayName %></h2>
-                                    <p data-i18n="page.welcomeSubtitle">Welcome back — here’s a quick overview of your TB Care dashboard.</p>
+                                    <h2>Halo, <%= __doctorDisplayName %></h2>
+                                    <p>Selamat datang kembali — berikut ringkasan dashboard TB Care Anda.</p>
                                 </div>
                             </div>
                             <div class="text-white">
@@ -197,10 +197,10 @@
                   <div class="iq-card">
                      <div class="iq-card-header d-flex justify-content-between">
                         <div class="iq-header-title">
-                           <h4 class="card-title">TBCare Patient List</h4>
+                           <h4 class="card-title">Daftar Pasien TB Care</h4>
                         </div>
                         <div class="iq-card-header-toolbar d-flex align-items-center">
-                           <a href="/tbcare/add-patient" class="btn btn-primary">Add New Patient</a>
+                           <a href="/tbcare/add-patient" class="btn btn-primary">Tambah Pasien Baru</a>
                         </div>
                      </div>
                      <div class="iq-card-body">
@@ -208,11 +208,11 @@
                            <table class="table table-striped table-bordered">
                               <thead>
                                  <tr>
-                                    <th>Name</th>
-                                    <th>Contact</th>
+                                    <th>Nama</th>
+                                    <th>Kontak</th>
                                     <th>Email</th>
-                                    <th>City/District</th>
-                                    <th>Action</th>
+                                    <th>Kota/Kab</th>
+                                    <th>Aksi</th>
                                  </tr>
                               </thead>
                               <tbody>
@@ -231,12 +231,12 @@
                                           </td>
                                           <td>
                                              <div class="d-flex align-items-center">
-                                                <a class="btn btn-sm btn-primary mr-2" data-toggle="tooltip" title="View History" href="/tbcare/patient-history/<%= p._id %>"><i class="ri-eye-line"></i></a>
-                                                <a class="btn btn-sm btn-info mr-2" data-toggle="tooltip" title="Edit Patient" href="/tbcare/edit-patient/<%= p._id %>"><i class="ri-pencil-line"></i></a>
-                                                <form action="/tbcare/delete-patient" method="POST" onsubmit="return confirm('Are you sure you want to delete this patient?');" style="display: inline;">
+                                                <a class="btn btn-sm btn-primary mr-2" data-toggle="tooltip" title="Lihat Riwayat" href="/tbcare/patient-history/<%= p._id %>"><i class="ri-eye-line"></i></a>
+                                                <a class="btn btn-sm btn-info mr-2" data-toggle="tooltip" title="Edit Pasien" href="/tbcare/edit-patient/<%= p._id %>"><i class="ri-pencil-line"></i></a>
+                                                <form action="/tbcare/delete-patient" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pasien ini?');" style="display: inline;">
                                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                                    <input type="hidden" name="patientId" value="<%= p._id %>">
-                                                   <button type="submit" class="btn btn-sm btn-danger" data-toggle="tooltip" title="Delete Patient"><i class="ri-delete-bin-line"></i></button>
+                                                   <button type="submit" class="btn btn-sm btn-danger" data-toggle="tooltip" title="Hapus Pasien"><i class="ri-delete-bin-line"></i></button>
                                                 </form>
                                              </div>
                                           </td>
@@ -244,7 +244,7 @@
                                     <% }) %>
                                  <% } else { %>
                                     <tr>
-                                       <td colspan="5" class="text-center">No patients found.</td>
+                                       <td colspan="5" class="text-center">Tidak ada pasien ditemukan.</td>
                                     </tr>
                                  <% } %>
                               </tbody>
@@ -258,7 +258,6 @@
          <%- include('../../includes/footer.ejs') %>
          </div>
    </div>
-    <%- include('../../includes/tbcare/end.ejs') %>
 
    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
    <script>
@@ -292,5 +291,5 @@
        }
    });
    </script>
-</body>
-</html>
+
+<%- include('../../includes/tbcare/end.ejs') %>
